@@ -1,5 +1,5 @@
 import { useState, ReactNode, forwardRef } from "react";
-import { View, TextInput, Text, Pressable, TextInputProps, ViewStyle } from "react-native";
+import { View, TextInput, Text, Pressable, TextInputProps, ViewStyle, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/theme/colors";
 
@@ -22,26 +22,23 @@ export const Input = forwardRef<TextInput, Props>(function Input(
   const [hidden, setHidden] = useState(!!isPassword);
 
   return (
-    <View style={[{ marginBottom: 14 }, containerStyle]}>
+    <View style={[styles.wrapper, containerStyle]}>
       {label ? (
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-          <Text style={{ color: Colors.ink[700], fontFamily: "Inter_500Medium", fontSize: 13 }}>{label}</Text>
+        <View style={styles.labelRow}>
+          <Text style={styles.labelText}>{label}</Text>
           {helperRight}
         </View>
       ) : null}
       <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          height: 52,
-          borderRadius: 14,
-          borderWidth: 1,
-          borderColor: error ? Colors.accent.red : focused ? Colors.brand.primary : Colors.ink[200],
-          paddingHorizontal: 14,
-          backgroundColor: error ? "#FFF5F5" : Colors.white,
-        }}
+        style={[
+          styles.inputContainer,
+          {
+            borderColor: error ? Colors.accent.red : focused ? Colors.brand.primary : Colors.ink[200],
+            backgroundColor: error ? "#FFF5F5" : Colors.white,
+          },
+        ]}
       >
-        {leftIcon ? <View style={{ marginRight: 8 }}>{leftIcon}</View> : null}
+        {leftIcon ? <View style={styles.leftIconWrap}>{leftIcon}</View> : null}
         <TextInput
           ref={ref}
           {...rest}
@@ -55,10 +52,7 @@ export const Input = forwardRef<TextInput, Props>(function Input(
             rest.onBlur?.(e);
           }}
           placeholderTextColor={Colors.ink[400]}
-          style={[
-            { flex: 1, color: Colors.ink[900], fontFamily: "Inter_400Regular", fontSize: 15, paddingVertical: 0 },
-            rest.style as any,
-          ]}
+          style={[styles.textInput, rest.style as any]}
         />
         {isPassword ? (
           <Pressable onPress={() => setHidden((h) => !h)} hitSlop={10}>
@@ -69,11 +63,58 @@ export const Input = forwardRef<TextInput, Props>(function Input(
         )}
       </View>
       {hint && !error ? (
-        <Text style={{ marginTop: 6, color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12 }}>{hint}</Text>
+        <Text style={styles.hintText}>{hint}</Text>
       ) : null}
       {error ? (
-        <Text style={{ marginTop: 6, color: Colors.accent.red, fontFamily: "Inter_500Medium", fontSize: 12 }}>{error}</Text>
+        <Text style={styles.errorText}>{error}</Text>
       ) : null}
     </View>
   );
+});
+
+const styles = StyleSheet.create({
+  wrapper: {
+    marginBottom: 14,
+  },
+  labelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  labelText: {
+    color: Colors.ink[700],
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+  },
+  leftIconWrap: {
+    marginRight: 8,
+  },
+  textInput: {
+    flex: 1,
+    color: Colors.ink[900],
+    fontFamily: "Inter_400Regular",
+    fontSize: 15,
+    paddingVertical: 0,
+  },
+  hintText: {
+    marginTop: 6,
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+  },
+  errorText: {
+    marginTop: 6,
+    color: Colors.accent.red,
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+  },
 });

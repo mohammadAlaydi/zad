@@ -77,8 +77,8 @@ export const useApp = create<AppState>()(
   persist(
     (set) => ({
       bootstrapped: false,
-      hasOnboarded: true, // pre-seeded
-      isAuthenticated: true, // pre-seeded
+      hasOnboarded: false, // show onboarding on first launch
+      isAuthenticated: false, // require auth after onboarding
       user: {
         fullName: "Mahmoud Hafez",
         username: "@Mahmoudhafez",
@@ -108,7 +108,7 @@ export const useApp = create<AppState>()(
       signOut: () => set({ isAuthenticated: false, hasOnboarded: false }),
     }),
     {
-      name: "zadpay-store",
+      name: "zadpay-store-v2",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         hasOnboarded: s.hasOnboarded,

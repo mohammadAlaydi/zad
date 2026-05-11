@@ -1,29 +1,33 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
+import { Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/Screen";
 import { Button } from "@/components/Button";
 import { Avatar } from "@/components/Avatar";
+import { SuccessIllustration } from "@/illustrations/SuccessIllustration";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 export default function SendSuccess() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { amount, mobile, contactName, message } = useLocalSearchParams<{ amount: string; mobile: string; contactName: string; message: string }>();
+  const { amount, mobile, contactName, message } = useLocalSearchParams<{
+    amount: string;
+    mobile: string;
+    contactName: string;
+    message: string;
+  }>();
   const amt = Number(amount || 0);
-  const recipient = contactName || mobile || "Recipient";
+  const recipient = contactName || mobile || "Roaa Ali mohamed";
+  const phone = mobile || "0101663645";
+  const username = "@" + recipient.replace(/\s+/g, "").toLowerCase().slice(0, 10);
   const { addTransaction } = useApp();
 
   const handleShare = () => {
-    // Mock share
-    router.replace("/(tabs)/home");
-  };
-
-  const handleDone = () => {
     addTransaction({
       id: "tx-" + Date.now(),
       name: recipient,
@@ -35,58 +39,209 @@ export default function SendSuccess() {
     router.replace("/(tabs)/home");
   };
 
+  const now = new Date();
+  const dateStr =
+    now.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) +
+    " " +
+    now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).toLowerCase();
+
   return (
-    <Screen bg={Colors.white}>
-      <View style={{ flex: 1, paddingHorizontal: 18, alignItems: "center", paddingTop: 40 }}>
-        <MotiView from={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", delay: 100 }}>
-          <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: Colors.accent.greenSoft, alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
-            <Ionicons name="checkmark" size={48} color={Colors.accent.green} />
-          </View>
+    <Screen scroll bg={Colors.white}>
+      <View style={[styles.topSection, { paddingTop: insets.top + 10 }]}>
+        {/* Illustration */}
+        <MotiView
+          from={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "timing", duration: 700, easing: Easing.out(Easing.cubic) }}
+        >
+          <SuccessIllustration size={180} />
         </MotiView>
 
-        <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 300 }}>
-          <Text style={{ color: Colors.accent.green, fontFamily: "Inter_600SemiBold", fontSize: 16, marginBottom: 8 }}>{t("send.success")}</Text>
-          <Text style={{ color: Colors.ink[900], fontFamily: "Sora_700Bold", fontSize: 32, textAlign: "center" }}>$ {amt.toFixed(2)}</Text>
-          <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 13, textAlign: "center", marginTop: 4 }}>{t("send.totalSentMoney")}</Text>
-        </MotiView>
-
-        {/* Sent to card */}
-        <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 500 }} style={{ width: "100%", backgroundColor: Colors.surface.background, borderRadius: 16, padding: 16, marginTop: 28 }}>
-          <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12, marginBottom: 10 }}>{t("send.sentTo")}</Text>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Avatar name={recipient} size={48} />
-            <View style={{ marginLeft: 12, flex: 1 }}>
-              <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}>{recipient}</Text>
-              <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12 }}>{mobile || "0101663645"}</Text>
-              <Text style={{ color: Colors.accent.green, fontFamily: "Inter_500Medium", fontSize: 11 }}>@{(recipient.replace(/\s+/g, "").toLowerCase())}</Text>
-            </View>
-          </View>
-          {message ? (
-            <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.ink[200] }}>
-              <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12 }}>{t("send.message")}</Text>
-              <Text style={{ color: Colors.ink[900], fontFamily: "Inter_500Medium", fontSize: 13, marginTop: 2 }}>{message}</Text>
-            </View>
-          ) : null}
-        </MotiView>
-
-        {/* Transaction details */}
-        <MotiView from={{ opacity: 0, translateY: 12 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 650 }} style={{ width: "100%", backgroundColor: Colors.surface.background, borderRadius: 16, padding: 16, marginTop: 12 }}>
-          <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14, marginBottom: 12 }}>{t("send.transferDetails")}</Text>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
-            <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12 }}>{t("send.reference")}</Text>
-            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_500Medium", fontSize: 12 }}>52545455454515</Text>
-          </View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12 }}>{t("send.date")}</Text>
-            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_500Medium", fontSize: 12 }}>{new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} {new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</Text>
-          </View>
+        {/* Success text */}
+        <MotiView
+          from={{ opacity: 0, translateY: 12 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 250, duration: 500 }}
+          style={styles.successTextWrap}
+        >
+          <Text style={styles.successLabel}>{t("send.success")}</Text>
+          <Text style={styles.amountText}>$ {amt.toFixed(2).replace(".", ",")}</Text>
+          <Text style={styles.totalLabel}>{t("send.totalSentMoney")}</Text>
         </MotiView>
       </View>
 
-      <View style={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 16, gap: 10 }}>
-        <Button title={t("send.share")} icon={<Ionicons name="share-outline" size={18} color={Colors.white} />} onPress={handleShare} />
-        <Button title={t("common.done")} variant="secondary" onPress={handleDone} />
+      {/* Sent to card */}
+      <MotiView
+        from={{ opacity: 0, translateY: 16 }}
+        animate={{ opacity: 1, translateY: 0 }}
+        transition={{ delay: 450, duration: 500 }}
+        style={styles.cardWrap}
+      >
+        <View style={styles.card}>
+          {/* Sended to header */}
+          <Text style={styles.cardSectionLabel}>{t("send.sentTo")}</Text>
+
+          {/* Recipient row */}
+          <View style={styles.recipientRow}>
+            <Avatar name={recipient} size={44} />
+            <View style={styles.recipientInfo}>
+              <Text style={styles.recipientName}>{recipient}</Text>
+              <Text style={styles.recipientPhone}>{phone}</Text>
+              <Text style={styles.recipientUsername}>{username}</Text>
+            </View>
+          </View>
+
+          {/* Message */}
+          {message ? (
+            <View style={styles.messageSection}>
+              <Text style={styles.messageLabel}>Message</Text>
+              <Text style={styles.messageText}>{message}</Text>
+            </View>
+          ) : null}
+        </View>
+      </MotiView>
+
+      {/* Transaction details card */}
+      <MotiView
+        from={{ opacity: 0, translateY: 16 }}
+        animate={{ opacity: 1, translateY: 0 }}
+        transition={{ delay: 600, duration: 500 }}
+        style={styles.cardWrap}
+      >
+        <View style={styles.card}>
+          <Text style={styles.detailsTitle}>{t("send.transferDetails")}</Text>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>{t("send.reference")}</Text>
+            <Text style={styles.detailValue}>S2545455454515</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>{t("send.date")}</Text>
+            <Text style={styles.detailValue}>{dateStr}</Text>
+          </View>
+        </View>
+      </MotiView>
+
+      {/* Share button */}
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 20 }]}>
+        <Button
+          title={t("send.share")}
+          icon={<Ionicons name="share-social-outline" size={18} color={Colors.white} />}
+          onPress={handleShare}
+        />
       </View>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  topSection: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  successTextWrap: {
+    alignItems: "center",
+    marginTop: 8,
+  },
+  successLabel: {
+    color: Colors.accent.green,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    marginBottom: 6,
+  },
+  amountText: {
+    color: Colors.ink[900],
+    fontFamily: "Sora_700Bold",
+    fontSize: 38,
+    letterSpacing: -0.5,
+  },
+  totalLabel: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    marginTop: 4,
+  },
+  cardWrap: {
+    paddingHorizontal: 18,
+    marginTop: 16,
+  },
+  card: {
+    backgroundColor: Colors.surface.background,
+    borderRadius: 16,
+    padding: 16,
+  },
+  cardSectionLabel: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    marginBottom: 12,
+  },
+  recipientRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  recipientInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  recipientName: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+  },
+  recipientPhone: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    marginTop: 1,
+  },
+  recipientUsername: {
+    color: Colors.accent.green,
+    fontFamily: "Inter_500Medium",
+    fontSize: 11,
+    marginTop: 1,
+  },
+  messageSection: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.ink[200],
+  },
+  messageLabel: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+  },
+  messageText: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    marginTop: 3,
+  },
+  detailsTitle: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    marginBottom: 14,
+  },
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  detailLabel: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+  },
+  detailValue: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+  },
+  bottomBar: {
+    paddingHorizontal: 18,
+    paddingTop: 24,
+  },
+});

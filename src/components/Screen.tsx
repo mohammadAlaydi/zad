@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { View, ViewStyle, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, ViewStyle, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/theme/colors";
 
@@ -16,19 +16,19 @@ export function Screen({ children, scroll, keyboard, style, contentStyle, bg = C
   const insets = useSafeAreaInsets();
   const content = scroll ? (
     <ScrollView
-      contentContainerStyle={[{ paddingBottom: insets.bottom + 24, flexGrow: 1 }, contentStyle]}
+      contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }, contentStyle]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={[{ flex: 1 }, contentStyle]}>{children}</View>
+    <View style={[styles.fill, contentStyle]}>{children}</View>
   );
   return (
-    <View style={[{ flex: 1, backgroundColor: bg }, style]}>
+    <View style={[styles.fill, { backgroundColor: bg }, style]}>
       {keyboard ? (
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : undefined}>
           {content}
         </KeyboardAvoidingView>
       ) : (
@@ -37,3 +37,12 @@ export function Screen({ children, scroll, keyboard, style, contentStyle, bg = C
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+});

@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { Avatar } from "./Avatar";
 import { Colors } from "@/theme/colors";
 import type { Transaction } from "@/store/appStore";
@@ -28,39 +28,61 @@ export function TransactionRow({ tx }: { tx: Transaction }) {
   const sign = isIncoming ? "+" : "−";
   const color = isIncoming ? Colors.accent.green : Colors.accent.red;
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: 12,
-        paddingHorizontal: 14,
-        backgroundColor: Colors.white,
-        borderRadius: 16,
-        marginBottom: 10,
-        shadowColor: "#101225",
-        shadowOpacity: 0.04,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 1,
-      }}
-    >
+    <View style={styles.row}>
       <Avatar name={tx.name} size={42} />
-      <View style={{ flex: 1, marginHorizontal: 12 }}>
-        <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }} numberOfLines={1}>
-          {tx.name}
-        </Text>
-        <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12 }} numberOfLines={1}>
-          {tx.category}
-        </Text>
+      <View style={styles.info}>
+        <Text style={styles.name} numberOfLines={1}>{tx.name}</Text>
+        <Text style={styles.category} numberOfLines={1}>{tx.category}</Text>
       </View>
-      <View style={{ alignItems: "flex-end" }}>
-        <Text style={{ color, fontFamily: "Inter_600SemiBold", fontSize: 14 }}>
+      <View style={styles.amountWrap}>
+        <Text style={[styles.amount, { color }]}>
           {sign}$ {formatAmount(tx.amount)}
         </Text>
-        <Text style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 11 }}>
-          {dateTimeLabel(tx.date)}
-        </Text>
+        <Text style={styles.time}>{dateTimeLabel(tx.date)}</Text>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    marginBottom: 10,
+    shadowColor: "#101225",
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
+  },
+  info: {
+    flex: 1,
+    marginHorizontal: 12,
+  },
+  name: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+  },
+  category: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+  },
+  amountWrap: {
+    alignItems: "flex-end",
+  },
+  amount: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+  },
+  time: {
+    color: Colors.ink[400],
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+  },
+});
