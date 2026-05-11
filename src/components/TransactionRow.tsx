@@ -3,18 +3,29 @@ import { Avatar } from "./Avatar";
 import { Colors } from "@/theme/colors";
 import type { Transaction } from "@/store/appStore";
 
-function timeLabel(date: string) {
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function dateTimeLabel(date: string) {
   const d = new Date(date);
+  const day = d.getDate();
+  const month = MONTHS[d.getMonth()];
   let hours = d.getHours();
   const minutes = d.getMinutes().toString().padStart(2, "0");
   const ampm = hours >= 12 ? "PM" : "AM";
   hours = hours % 12 || 12;
-  return `${hours}:${minutes} ${ampm}`;
+  return `${day},${month} · ${hours}:${minutes} ${ampm}`;
+}
+
+function formatAmount(amount: number): string {
+  const abs = Math.abs(amount);
+  const whole = Math.floor(abs);
+  const decimal = Math.round((abs - whole) * 100).toString().padStart(2, "0");
+  return `${whole.toLocaleString("en-US")},${decimal}`;
 }
 
 export function TransactionRow({ tx }: { tx: Transaction }) {
   const isIncoming = tx.amount > 0;
-  const sign = isIncoming ? "+" : "-";
+  const sign = isIncoming ? "+" : "−";
   const color = isIncoming ? Colors.accent.green : Colors.accent.red;
   return (
     <View
@@ -44,9 +55,11 @@ export function TransactionRow({ tx }: { tx: Transaction }) {
       </View>
       <View style={{ alignItems: "flex-end" }}>
         <Text style={{ color, fontFamily: "Inter_600SemiBold", fontSize: 14 }}>
-          {sign} ${Math.abs(tx.amount).toFixed(2)}
+          {sign}$ {formatAmount(tx.amount)}
         </Text>
-        <Text style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 11 }}>{timeLabel(tx.date)}</Text>
+        <Text style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 11 }}>
+          {dateTimeLabel(tx.date)}
+        </Text>
       </View>
     </View>
   );

@@ -37,51 +37,50 @@ export default function TopUpPayment() {
           <Pressable
             key={card.id}
             onPress={() => setSelected(card.id)}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
+            style={({ pressed }) => ({
               backgroundColor: Colors.white,
               borderRadius: 16,
-              padding: 14,
               marginBottom: 12,
               borderWidth: 1,
               borderColor: selected === card.id ? Colors.brand.primary : Colors.ink[100],
-            }}
+              opacity: pressed ? 0.85 : 1,
+            })}
           >
-            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#EB001B", alignItems: "center", justifyContent: "center", marginRight: 12, overflow: "hidden" }}>
-              <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: "#F79E1B", position: "absolute", right: 6 }} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}>{t("topup.masterCard")}</Text>
-              <Text style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 12 }}>**** **** **** {card.last4}</Text>
-            </View>
-            <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: selected === card.id ? Colors.brand.primary : Colors.ink[300], alignItems: "center", justifyContent: "center" }}>
-              {selected === card.id && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.brand.primary }} />}
+            <View style={{ flexDirection: "row", alignItems: "center", padding: 14 }}>
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#EB001B", alignItems: "center", justifyContent: "center", marginRight: 12, overflow: "hidden" }}>
+                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: "#F79E1B", position: "absolute", right: 6 }} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}>{t("topup.masterCard")}</Text>
+                <Text style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 12 }}>**** **** **** {card.last4}</Text>
+              </View>
+              <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: selected === card.id ? Colors.brand.primary : Colors.ink[300], alignItems: "center", justifyContent: "center" }}>
+                {selected === card.id && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.brand.primary }} />}
+              </View>
             </View>
           </Pressable>
         ))}
 
         <Pressable
           onPress={() => router.push("/topup/add-card")}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
+          style={({ pressed }) => ({
             height: 56,
             borderRadius: 999,
             borderWidth: 1.5,
             borderColor: Colors.ink[200],
             marginTop: 8,
-          }}
+            opacity: pressed ? 0.7 : 1,
+          })}
         >
-          <Ionicons name="card-outline" size={20} color={Colors.ink[700]} />
-          <Text style={{ color: Colors.ink[700], fontFamily: "Inter_500Medium", fontSize: 14 }}>{t("topup.addNewCard")}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, flex: 1 }}>
+            <Ionicons name="card-outline" size={20} color={Colors.ink[700]} />
+            <Text style={{ color: Colors.ink[700], fontFamily: "Inter_500Medium", fontSize: 14 }}>{t("topup.addNewCard")}</Text>
+          </View>
         </Pressable>
       </View>
 
       <View style={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 16 }}>
-        <Button title={t("common.continue")} disabled={!selected} onPress={() => router.push({ pathname: "/topup/confirm", params: { amount: amount.toString(), cardId: selected! } })} />
+        <Button title={t("common.continue")} onPress={() => router.push({ pathname: "/topup/confirm", params: { amount: amount.toString(), cardId: selected ?? cards[0]?.id ?? "card1" } })} />
       </View>
     </Screen>
   );

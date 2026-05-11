@@ -101,6 +101,7 @@ export function Button({
       from={{ scale: 1 }}
       animate={{ scale: 1 }}
       transition={{ type: "timing", duration: 120 }}
+      style={[{ width: fullWidth ? "100%" : undefined }, style]}
     >
       <Pressable
         onPress={() => {
@@ -123,7 +124,6 @@ export function Button({
               }
             : null,
           pressed && !disabled ? { transform: [{ scale: 0.97 }], opacity: 0.95 } : null,
-          style,
         ]}
       >
         {isPrimary && !disabled ? (
@@ -131,7 +131,7 @@ export function Button({
             colors={[Colors.brand.primaryLight, Colors.brand.primary]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ position: "absolute", inset: 0 } as any}
+            style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
           />
         ) : null}
         {content}

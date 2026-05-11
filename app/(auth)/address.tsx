@@ -32,7 +32,7 @@ export default function Address() {
         <Input label={t("auth.zip")} value={zip} keyboardType="number-pad" onChangeText={setZip} />
       </View>
       <View style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }}>
-        <Button title={t("common.continue")} disabled={!valid} onPress={() => router.push("/(auth)/id-scan")} />
+        <Button title={t("common.continue")} onPress={() => router.push("/(auth)/id-scan")} />
       </View>
     </Screen>
   );

@@ -6,23 +6,21 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/Screen";
 import { Header } from "@/components/Header";
-import { Button } from "@/components/Button";
 import { Colors } from "@/theme/colors";
 
 export default function BillsPay() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { operator, phone } = useLocalSearchParams<{ operator: string; phone: string }>();
-  const [selectedBill, setSelectedBill] = useState<string | null>(null);
-
   const bills = [
     { id: "b1", amount: 150.25, month: "August 2025" },
     { id: "b2", amount: 150.25, month: "July 2025" },
   ];
+  const [selectedBill, setSelectedBill] = useState<string>(bills[0].id);
 
-  const selected = bills.find((b) => b.id === selectedBill);
+  const selected = bills.find((b) => b.id === selectedBill) ?? bills[0];
   const fee = 1.25;
-  const total = (selected?.amount ?? 0) + fee;
+  const total = selected.amount + fee;
 
   return (
     <Screen bg={Colors.white}>
@@ -32,35 +30,33 @@ export default function BillsPay() {
           <Pressable
             key={bill.id}
             onPress={() => setSelectedBill(bill.id)}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 14,
-              paddingHorizontal: 14,
+            style={({ pressed }) => ({
               borderRadius: 14,
               backgroundColor: Colors.white,
               borderWidth: 1,
               borderColor: selectedBill === bill.id ? Colors.brand.primary : Colors.ink[100],
               marginBottom: 10,
-            }}
+              opacity: pressed ? 0.85 : 1,
+            })}
           >
-            <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.brand.primary50, alignItems: "center", justifyContent: "center", marginRight: 12 }}>
-              <Ionicons name="document-text-outline" size={20} color={Colors.brand.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}>{bill.amount.toFixed(2)} $</Text>
-              <Text style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 12 }}>{bill.month}</Text>
-            </View>
-            <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: selectedBill === bill.id ? Colors.brand.primary : Colors.ink[300], alignItems: "center", justifyContent: "center" }}>
-              {selectedBill === bill.id && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.brand.primary }} />}
+            <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 14 }}>
+              <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.brand.primary50, alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+                <Ionicons name="document-text-outline" size={20} color={Colors.brand.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}>{bill.amount.toFixed(2)} $</Text>
+                <Text style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 12 }}>{bill.month}</Text>
+              </View>
+              <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: selectedBill === bill.id ? Colors.brand.primary : Colors.ink[300], alignItems: "center", justifyContent: "center" }}>
+                {selectedBill === bill.id && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.brand.primary }} />}
+              </View>
             </View>
           </Pressable>
         ))}
       </ScrollView>
 
-      {/* Bottom sheet */}
-      {selected && (
-        <View style={{
+      {/* Bottom sheet — always visible */}
+      <View style={{
           position: "absolute",
           bottom: 0,
           left: 0,
@@ -99,13 +95,6 @@ export default function BillsPay() {
             <Text style={{ color: Colors.brand.primary, fontFamily: "Inter_600SemiBold", fontSize: 16 }}>{t("common.payNow")}</Text>
           </Pressable>
         </View>
-      )}
-
-      {!selected && (
-        <View style={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 16 }}>
-          <Button title={t("common.payNow")} disabled />
-        </View>
-      )}
     </Screen>
   );
 }

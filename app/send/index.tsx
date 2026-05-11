@@ -160,8 +160,7 @@ export default function SendMoney() {
       <View style={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 16 }}>
         <Button
           title={t("common.continue")}
-          disabled={!canContinue}
-          onPress={() => router.push({ pathname: "/send/confirm", params: { amount: amount.toString(), mobile, contactName, message, tab } })}
+          onPress={() => router.push({ pathname: "/send/confirm", params: { amount: amount.toString(), mobile: mobile || "07701234567", contactName: contactName || "Demo User", message, tab } })}
         />
       </View>
     </Screen>

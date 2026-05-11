@@ -7,7 +7,12 @@ import { useTranslation } from "react-i18next";
 import { Colors } from "@/theme/colors";
 import { useHaptic } from "@/hooks/useHaptic";
 
-type Tab = { route: string; icon: keyof typeof Ionicons.glyphMap; key: string };
+type Tab = {
+  route: string;
+  iconInactive: keyof typeof Ionicons.glyphMap;
+  iconActive: keyof typeof Ionicons.glyphMap;
+  key: string;
+};
 
 export function BottomTabBar({ state }: any) {
   const insets = useSafeAreaInsets();
@@ -15,10 +20,10 @@ export function BottomTabBar({ state }: any) {
   const haptic = useHaptic();
 
   const tabs: Tab[] = [
-    { route: "/(tabs)/home", icon: "home", key: "home" },
-    { route: "/(tabs)/accounts", icon: "wallet", key: "accounts" },
-    { route: "/(tabs)/expenses", icon: "stats-chart", key: "expenses" },
-    { route: "/(tabs)/settings", icon: "settings-sharp", key: "settings" },
+    { route: "/(tabs)/home",     iconInactive: "home-outline",    iconActive: "home",        key: "home" },
+    { route: "/(tabs)/accounts", iconInactive: "wallet-outline",  iconActive: "wallet",      key: "accounts" },
+    { route: "/(tabs)/expenses", iconInactive: "stats-chart-outline", iconActive: "stats-chart", key: "expenses" },
+    { route: "/(tabs)/settings", iconInactive: "settings-outline", iconActive: "settings",   key: "settings" },
   ];
 
   const active = state?.index ?? 0;
@@ -27,20 +32,20 @@ export function BottomTabBar({ state }: any) {
     <View
       style={{
         position: "absolute",
-        bottom: insets.bottom + 14,
-        left: 18,
-        right: 18,
-        height: 66,
-        borderRadius: 36,
+        bottom: insets.bottom + 12,
+        left: 16,
+        right: 16,
+        height: 62,
+        borderRadius: 34,
         backgroundColor: "#FFFFFF",
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 8,
-        shadowColor: "#4B1F8A",
-        shadowOpacity: 0.18,
-        shadowRadius: 26,
-        shadowOffset: { width: 0, height: 12 },
-        elevation: 14,
+        paddingHorizontal: 6,
+        shadowColor: "#3A1670",
+        shadowOpacity: 0.14,
+        shadowRadius: 24,
+        shadowOffset: { width: 0, height: 10 },
+        elevation: 12,
       }}
     >
       {tabs.map((tab, i) => {
@@ -48,32 +53,43 @@ export function BottomTabBar({ state }: any) {
         return (
           <Pressable
             key={tab.key}
-            onPress={() => {
-              haptic.selection();
-              router.replace(tab.route as any);
+            onPress={() => { haptic.selection(); router.replace(tab.route as any); }}
+            style={{
+              flex: focused ? 2 : 1,
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
             }}
-            style={{ flex: focused ? 1.6 : 1, alignItems: "center", justifyContent: "center", height: "100%" }}
           >
             <MotiView
               animate={{ backgroundColor: focused ? Colors.brand.primary : "transparent" }}
-              transition={{ type: "timing", duration: 240 }}
+              transition={{ type: "timing", duration: 220 }}
               style={{
-                flexDirection: "row", alignItems: "center",
-                paddingHorizontal: focused ? 18 : 12, paddingVertical: 11,
-                borderRadius: 999, gap: 7,
-                shadowColor: focused ? Colors.brand.primary : "transparent",
-                shadowOpacity: focused ? 0.32 : 0, shadowRadius: focused ? 12 : 0,
-                shadowOffset: { width: 0, height: 6 }, elevation: focused ? 6 : 0,
+                borderRadius: 999,
+                paddingHorizontal: focused ? 12 : 0,
+                paddingVertical: 8,
               }}
             >
-              <Ionicons name={tab.icon} size={focused ? 18 : 22} color={focused ? "#FFFFFF" : Colors.ink[400]} />
-              {focused ? (
-                <MotiView from={{ opacity: 0, translateX: -6 }} animate={{ opacity: 1, translateX: 0 }} transition={{ duration: 200 }}>
-                  <Text style={{ color: "#FFFFFF", fontFamily: "Inter_600SemiBold", fontSize: 13 }}>
+              {/* Inner View prevents Pressable flex issues on Android */}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5, justifyContent: "center" }}>
+                <Ionicons
+                  name={focused ? tab.iconActive : tab.iconInactive}
+                  size={19}
+                  color={focused ? "#FFFFFF" : Colors.ink[400]}
+                />
+                {focused ? (
+                  <Text
+                    style={{
+                      color: "#FFFFFF",
+                      fontFamily: "Inter_600SemiBold",
+                      fontSize: 12,
+                    }}
+                    numberOfLines={1}
+                  >
                     {t(`tabs.${tab.key}` as any)}
                   </Text>
-                </MotiView>
-              ) : null}
+                ) : null}
+              </View>
             </MotiView>
           </Pressable>
         );

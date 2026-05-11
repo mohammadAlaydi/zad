@@ -37,7 +37,6 @@ export default function Signup() {
       <View style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }}>
         <Button
           title={t("auth.signUp")}
-          disabled={!valid}
           onPress={() => router.push({ pathname: "/(auth)/verify-phone", params: { mode: "signup", phone: `${country.dial}${phone}` } })}
         />
       </View>

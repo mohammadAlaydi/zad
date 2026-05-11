@@ -29,39 +29,26 @@ export default function Security() {
           overflow: "hidden",
         }}
       >
-        {/* subtle pattern */}
+        {/* subtle pattern circles */}
         <View
           pointerEvents="none"
           style={{
-            position: "absolute",
-            top: -40,
-            right: -40,
-            width: 180,
-            height: 180,
-            borderRadius: 90,
+            position: "absolute", top: -40, right: -40,
+            width: 180, height: 180, borderRadius: 90,
             backgroundColor: "rgba(255,255,255,0.05)",
           }}
         />
         <View
           pointerEvents="none"
           style={{
-            position: "absolute",
-            bottom: -30,
-            left: -30,
-            width: 130,
-            height: 130,
-            borderRadius: 65,
+            position: "absolute", bottom: -30, left: -30,
+            width: 130, height: 130, borderRadius: 65,
             backgroundColor: "rgba(255,255,255,0.04)",
           }}
         />
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+        {/* Back button */}
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Pressable
             hitSlop={10}
             onPress={() => {
@@ -69,12 +56,9 @@ export default function Security() {
               router.canGoBack() ? router.back() : router.replace("/(tabs)/settings");
             }}
             style={({ pressed }) => ({
-              width: 40,
-              height: 40,
-              borderRadius: 12,
+              width: 40, height: 40, borderRadius: 12,
               backgroundColor: "rgba(255,255,255,0.15)",
-              alignItems: "center",
-              justifyContent: "center",
+              alignItems: "center", justifyContent: "center",
               opacity: pressed ? 0.7 : 1,
             })}
           >
@@ -83,68 +67,37 @@ export default function Security() {
           <View style={{ width: 40 }} />
         </View>
 
+        {/* Title */}
         <MotiView
           from={{ opacity: 0, translateY: 6 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ duration: 380 }}
           style={{ marginTop: 18, alignItems: "center" }}
         >
-          <Text
-            style={{
-              fontFamily: "Sora_700Bold",
-              fontSize: 30,
-              color: Colors.white,
-              letterSpacing: 0.5,
-            }}
-          >
-            ZADPAY
-            <Text style={{ color: Colors.accent.green }}> Security</Text>
+          <Text style={{ fontFamily: "Sora_700Bold", fontSize: 30, color: Colors.white, letterSpacing: 0.5 }}>
+            ZADPAY<Text style={{ color: Colors.accent.green }}> Security</Text>
           </Text>
         </MotiView>
 
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            gap: 28,
-            marginTop: 22,
-          }}
-        >
+        {/* Report Fraud / Lost Device quick actions */}
+        <View style={{ flexDirection: "row", justifyContent: "center", gap: 28, marginTop: 22 }}>
           {[
-            { icon: "bug-outline" as const, label: t("security.reportFraud") },
-            {
-              icon: "phone-portrait-outline" as const,
-              label: t("security.lostDevice"),
-            },
-          ].map((it, i) => (
+            { icon: "bug-outline" as const, label: t("security.reportFraud"), route: "/settings/security/report-fraud" },
+            { icon: "phone-portrait-outline" as const, label: t("security.lostDevice"), route: "/settings/security/lost-device" },
+          ].map((it) => (
             <Pressable
               key={it.label}
-              onPress={() => haptic.selection()}
-              style={({ pressed }) => ({
-                alignItems: "center",
-                opacity: pressed ? 0.7 : 1,
-              })}
+              onPress={() => { haptic.selection(); router.push(it.route as any); }}
+              style={({ pressed }) => ({ alignItems: "center", opacity: pressed ? 0.7 : 1 })}
             >
-              <View
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: "rgba(255,255,255,0.18)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 8,
-                }}
-              >
+              <View style={{
+                width: 48, height: 48, borderRadius: 24,
+                backgroundColor: "rgba(255,255,255,0.18)",
+                alignItems: "center", justifyContent: "center", marginBottom: 8,
+              }}>
                 <Ionicons name={it.icon} size={22} color={Colors.white} />
               </View>
-              <Text
-                style={{
-                  color: Colors.white,
-                  fontFamily: "Inter_500Medium",
-                  fontSize: 12,
-                }}
-              >
+              <Text style={{ color: Colors.white, fontFamily: "Inter_500Medium", fontSize: 12 }}>
                 {it.label}
               </Text>
             </Pressable>
@@ -153,189 +106,84 @@ export default function Security() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: 18,
-          paddingTop: 18,
-          paddingBottom: insets.bottom + 24,
-        }}
+        contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 18, paddingBottom: insets.bottom + 24 }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Payments Security */}
         <MotiView
           from={{ opacity: 0, translateY: 8 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 80, duration: 320 }}
         >
-          <Text
-            style={{
-              color: Colors.ink[500],
-              fontFamily: "Inter_500Medium",
-              fontSize: 12,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
-          >
+          <Text style={{ color: Colors.ink[500], fontFamily: "Inter_500Medium", fontSize: 12, marginBottom: 8, marginLeft: 4 }}>
             {t("security.paymentSecurity")}
           </Text>
-          <View
-            style={{
-              backgroundColor: Colors.white,
-              borderRadius: 18,
-              borderWidth: 1,
-              borderColor: Colors.ink[100],
-              overflow: "hidden",
-              marginBottom: 18,
-            }}
-          >
+          <View style={{ backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden", marginBottom: 18 }}>
             <ListRow
-              icon={
-                <Ionicons
-                  name="card-outline"
-                  size={18}
-                  color={Colors.brand.primary}
-                />
-              }
+              icon={<Ionicons name="card-outline" size={18} color={Colors.brand.primary} />}
               title={t("security.cardSecurity")}
-              onPress={() => {}}
+              onPress={() => { haptic.selection(); router.push("/settings/security/card-security"); }}
             />
             <ListRow
-              icon={
-                <Ionicons
-                  name="link-outline"
-                  size={18}
-                  color={Colors.brand.primary}
-                />
-              }
+              icon={<Ionicons name="link-outline" size={18} color={Colors.brand.primary} />}
               title={t("security.cardConnections")}
-              onPress={() => {}}
+              onPress={() => { haptic.selection(); router.push("/settings/security/card-connections"); }}
             />
             <ListRow
-              icon={
-                <Ionicons
-                  name="cash-outline"
-                  size={18}
-                  color={Colors.brand.primary}
-                />
-              }
+              icon={<Ionicons name="cash-outline" size={18} color={Colors.brand.primary} />}
               title={t("security.payments")}
               divider={false}
-              onPress={() => {}}
+              onPress={() => { haptic.selection(); router.push("/settings/security/payments"); }}
             />
           </View>
         </MotiView>
 
+        {/* Login Security */}
         <MotiView
           from={{ opacity: 0, translateY: 8 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 160, duration: 320 }}
         >
-          <Text
-            style={{
-              color: Colors.ink[500],
-              fontFamily: "Inter_500Medium",
-              fontSize: 12,
-              marginBottom: 8,
-              marginLeft: 4,
-            }}
-          >
+          <Text style={{ color: Colors.ink[500], fontFamily: "Inter_500Medium", fontSize: 12, marginBottom: 8, marginLeft: 4 }}>
             {t("security.loginSecurity")}
           </Text>
-          <View
-            style={{
-              backgroundColor: Colors.white,
-              borderRadius: 18,
-              borderWidth: 1,
-              borderColor: Colors.ink[100],
-              overflow: "hidden",
-              marginBottom: 18,
-            }}
-          >
+          <View style={{ backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden", marginBottom: 18 }}>
             <ListRow
-              icon={
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={18}
-                  color={Colors.brand.primary}
-                />
-              }
+              icon={<Ionicons name="lock-closed-outline" size={18} color={Colors.brand.primary} />}
               title={t("security.signin")}
-              onPress={() => {}}
+              onPress={() => { haptic.selection(); router.push("/settings/security/signin"); }}
             />
             <ListRow
-              icon={
-                <Ionicons
-                  name="phone-portrait-outline"
-                  size={18}
-                  color={Colors.brand.primary}
-                />
-              }
+              icon={<Ionicons name="phone-portrait-outline" size={18} color={Colors.brand.primary} />}
               title={t("security.devices")}
-              onPress={() => {}}
+              onPress={() => { haptic.selection(); router.push("/settings/security/devices"); }}
             />
             <ListRow
-              icon={
-                <Ionicons
-                  name="apps-outline"
-                  size={18}
-                  color={Colors.brand.primary}
-                />
-              }
+              icon={<Ionicons name="apps-outline" size={18} color={Colors.brand.primary} />}
               title={t("security.connectedApps")}
               divider={false}
-              onPress={() => {}}
+              onPress={() => { haptic.selection(); router.push("/settings/security/connected-apps"); }}
             />
           </View>
         </MotiView>
 
+        {/* Learn about security — plain text + chevron (matches PDF) */}
         <MotiView
           from={{ opacity: 0, translateY: 8 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 240, duration: 320 }}
         >
           <Pressable
-            onPress={() => haptic.selection()}
-            style={({ pressed }) => ({
-              backgroundColor: Colors.white,
-              borderRadius: 18,
-              padding: 14,
-              borderWidth: 1,
-              borderColor: Colors.ink[100],
-              flexDirection: "row",
-              alignItems: "center",
-              opacity: pressed ? 0.8 : 1,
-            })}
+            onPress={() => { haptic.selection(); router.push("/settings/security/learn"); }}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, paddingVertical: 4 })}
           >
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                backgroundColor: Colors.brand.primary50,
-                alignItems: "center",
-                justifyContent: "center",
-                marginRight: 12,
-              }}
-            >
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={18}
-                color={Colors.brand.primary}
-              />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Ionicons name="shield-checkmark-outline" size={20} color={Colors.brand.primary} />
             </View>
-            <Text
-              style={{
-                flex: 1,
-                color: Colors.ink[900],
-                fontFamily: "Inter_500Medium",
-                fontSize: 14,
-              }}
-            >
+            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_500Medium", fontSize: 15, marginTop: 6 }}>
               {t("security.learnMore")}
             </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={Colors.ink[400]}
-            />
+            <Ionicons name="chevron-forward" size={18} color={Colors.ink[400]} style={{ marginTop: 2 }} />
           </Pressable>
         </MotiView>
       </ScrollView>

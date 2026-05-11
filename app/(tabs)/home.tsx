@@ -13,8 +13,6 @@ import { Avatar } from "@/components/Avatar";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
-const CURRENCY_FLAGS: Record<string, string> = { USD: "🇺🇸", AED: "🇦🇪", CAD: "🇨🇦", AUD: "🇦🇺" };
-
 export default function Home() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -32,7 +30,6 @@ export default function Home() {
     { key: "send", icon: <Ionicons name="paper-plane" size={20} color={Colors.brand.primary} />, route: "/send", highlight: false },
     { key: "receive", icon: <MaterialCommunityIcons name="cash-multiple" size={20} color={Colors.brand.primary} />, route: "/receive", highlight: false },
     { key: "qrScan", icon: <MaterialCommunityIcons name="qrcode-scan" size={20} color={Colors.brand.primary} />, route: "/qr", highlight: false },
-    { key: "bills", icon: <Ionicons name="receipt" size={20} color="#FFFFFF" />, route: "/bills", highlight: true },
   ];
 
   return (
@@ -65,20 +62,23 @@ export default function Home() {
           </Pressable>
         </View>
 
+        {/* ── USD Balance green pill selector ── */}
         <View style={{ paddingHorizontal: 18, marginBottom: 12 }}>
           <Pressable
             onPress={() => router.push("/(tabs)/accounts")}
             style={({ pressed }) => ({
-              flexDirection: "row", alignItems: "center", backgroundColor: Colors.white,
-              borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, opacity: pressed ? 0.85 : 1,
-              shadowColor: "#101225", shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
+              flexDirection: "row", alignItems: "center",
+              alignSelf: "flex-start",
+              backgroundColor: Colors.accent.greenSoft,
+              borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8,
+              opacity: pressed ? 0.85 : 1,
             })}
           >
-            <Text style={{ fontSize: 18, marginRight: 8 }}>{CURRENCY_FLAGS[activeCurrency] ?? "🌐"}</Text>
-            <Text style={{ flex: 1, color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.accent.green, marginRight: 8 }} />
+            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 13, marginRight: 6 }}>
               {activeCurrency} Balance
             </Text>
-            <Ionicons name="chevron-down" size={18} color={Colors.ink[500]} />
+            <Ionicons name="chevron-down" size={16} color={Colors.ink[500]} />
           </Pressable>
         </View>
 
@@ -91,6 +91,7 @@ export default function Home() {
           />
         </View>
 
+        {/* ── Services (4 tiles only) ── */}
         <View style={{ paddingHorizontal: 18, marginTop: 24 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 15 }}>{t("home.services")}</Text>
@@ -110,22 +111,9 @@ export default function Home() {
               />
             ))}
           </View>
-
-          <View style={{ flexDirection: "row", alignItems: "center", marginTop: 18 }}>
-            <View style={{ width: 70, alignItems: "center" }}>
-              <ServiceTile
-                label={t("home.whatsapp")}
-                icon={<Ionicons name="logo-whatsapp" size={22} color="#25D366" />}
-                index={5}
-                onPress={() => router.push("/send")}
-              />
-            </View>
-            <View style={{ flex: 1, alignItems: "flex-start", paddingLeft: 18 }}>
-              <Text style={{ color: Colors.accent.green, fontFamily: "Inter_600SemiBold", fontSize: 14 }}>{t("home.more")}</Text>
-            </View>
-          </View>
         </View>
 
+        {/* ── Manage Expenses ── */}
         <View style={{ paddingHorizontal: 18, marginTop: 26 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 15 }}>{t("home.manageExpenses")}</Text>

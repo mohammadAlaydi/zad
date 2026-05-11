@@ -2,6 +2,7 @@
   "expo": {
     "name": "ZADPAY",
     "slug": "zadpay",
+    "owner": "mohammadalaydi",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "zadpay",
@@ -11,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#4B1F8A"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zadpay.app",
@@ -22,7 +25,23 @@
     },
     "android": {
       "package": "com.zadpay.app",
-      "permissions": ["CAMERA", "USE_BIOMETRIC", "USE_FINGERPRINT"]
+      "permissions": [
+        "CAMERA",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ],
+      "packagingOptions": {
+        "pickFirst": [
+          "lib/x86/librnworklets.so",
+          "lib/x86_64/librnworklets.so",
+          "lib/armeabi-v7a/librnworklets.so",
+          "lib/arm64-v8a/librnworklets.so"
+        ]
+      }
     },
     "web": {
       "bundler": "metro",
@@ -31,12 +50,30 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      ["expo-camera", { "cameraPermission": "Allow ZADPAY to access your camera to verify your identity." }],
-      ["expo-local-authentication", { "faceIDPermission": "Allow ZADPAY to use Face ID." }]
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow ZADPAY to access your camera to verify your identity."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow ZADPAY to use Face ID."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "3a43ceff-2f2d-41fb-9688-bbdc7a9a29b1"
+      }
     }
   }
 }

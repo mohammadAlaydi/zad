@@ -7,15 +7,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/Screen";
 import { Header } from "@/components/Header";
 import { useApp, Currency } from "@/store/appStore";
+import { CURRENCY_FLAGS } from "@/constants/currencyFlags";
 import { Colors } from "@/theme/colors";
 import { useHaptic } from "@/hooks/useHaptic";
-
-const FLAGS: Record<string, string> = {
-  USD: "🇺🇸",
-  AED: "🇦🇪",
-  CAD: "🇨🇦",
-  AUD: "🇦🇺",
-};
 
 type Row = {
   code: string;
@@ -105,10 +99,6 @@ export default function AccountDetails() {
             <Pressable
               onPress={() => haptic.selection()}
               style={({ pressed }) => ({
-                flexDirection: "row",
-                alignItems: "center",
-                paddingVertical: 14,
-                paddingHorizontal: 14,
                 borderRadius: 18,
                 backgroundColor: Colors.white,
                 borderWidth: 1,
@@ -117,35 +107,37 @@ export default function AccountDetails() {
                 opacity: pressed ? 0.85 : 1,
               })}
             >
-              <Text style={{ fontSize: 28, marginRight: 14 }}>
-                {FLAGS[c.code]}
-              </Text>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    color: Colors.ink[900],
-                    fontFamily: "Inter_600SemiBold",
-                    fontSize: 14,
-                  }}
-                >
-                  {c.name}
+              <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 14 }}>
+                <Text style={{ fontSize: 28, marginRight: 14 }}>
+                  {CURRENCY_FLAGS[c.code as keyof typeof CURRENCY_FLAGS]}
                 </Text>
-                <Text
-                  style={{
-                    marginTop: 2,
-                    color: Colors.accent.green,
-                    fontFamily: "Inter_500Medium",
-                    fontSize: 12,
-                  }}
-                >
-                  {c.sub}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: Colors.ink[900],
+                      fontFamily: "Inter_600SemiBold",
+                      fontSize: 14,
+                    }}
+                  >
+                    {c.name}
+                  </Text>
+                  <Text
+                    style={{
+                      marginTop: 2,
+                      color: Colors.accent.green,
+                      fontFamily: "Inter_500Medium",
+                      fontSize: 12,
+                    }}
+                  >
+                    {c.sub}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={Colors.ink[400]}
+                />
               </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={Colors.ink[400]}
-              />
             </Pressable>
           </MotiView>
         ))}
@@ -174,7 +166,7 @@ export default function AccountDetails() {
               }}
             >
               <Text style={{ fontSize: 26, marginRight: 14 }}>
-                {FLAGS[c.code]}
+                {CURRENCY_FLAGS[c.code as keyof typeof CURRENCY_FLAGS]}
               </Text>
               <View style={{ flex: 1 }}>
                 <Text

@@ -69,7 +69,7 @@ export default function PersonalInfo() {
         </Pressable>
       </View>
       <View style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }}>
-        <Button title={t("common.continue")} disabled={!valid} onPress={() => router.push("/(auth)/address")} />
+        <Button title={t("common.continue")} onPress={() => router.push("/(auth)/address")} />
       </View>
       <Modal visible={open} animationType="fade" transparent onRequestClose={() => setOpen(false)}>
         <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)" }} onPress={() => setOpen(false)} />

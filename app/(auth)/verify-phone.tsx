@@ -50,7 +50,6 @@ export default function VerifyPhone() {
       <View style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }}>
         <Button
           title={mode === "login" ? t("auth.logIn") : t("auth.signUp")}
-          disabled={!valid}
           onPress={() => {
             if (mode === "login") router.replace("/(auth)/passcode");
             else router.push("/(auth)/add-email");

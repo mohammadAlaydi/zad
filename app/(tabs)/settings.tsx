@@ -4,12 +4,11 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
 import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { ListRow } from "@/components/ListRow";
 import { Switch } from "@/components/Switch";
-import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/Button";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
@@ -17,98 +16,206 @@ import { Colors } from "@/theme/colors";
 export default function Settings() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { user, biometricEnabled, faceIdEnabled, hideBalance, setBiometric, setFaceId, toggleHideBalance, signOut } = useApp();
+  const {
+    user,
+    biometricEnabled,
+    faceIdEnabled,
+    hideBalance,
+    setBiometric,
+    setFaceId,
+    toggleHideBalance,
+    signOut,
+  } = useApp();
   const [confirmClose, setConfirmClose] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
 
-  return (
-    <Screen bg={Colors.white}>
-      <Header
-        title={t("settings.title")}
-        showBack={false}
-        right={<Pressable><Ionicons name="refresh" size={20} color={Colors.brand.primary} /></Pressable>}
-      />
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}>
-        <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12, paddingHorizontal: 24, marginBottom: 14 }}>
-          {t("settings.subtitle")}
-        </Text>
+  const initials = (user.fullName ?? "M")
+    .split(" ")
+    .filter(Boolean)
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
-        <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ duration: 400 }}>
+  return (
+    <Screen bg={Colors.surface.background}>
+      {/* ─── Purple gradient header ─── */}
+      <LinearGradient
+        colors={[Colors.brand.gradientStart, Colors.brand.gradientEnd]}
+        start={{ x: 0.1, y: 0 }}
+        end={{ x: 0.9, y: 1 }}
+        style={{
+          paddingTop: insets.top + 10,
+          paddingBottom: 30,
+          paddingHorizontal: 20,
+        }}
+      >
+        {/* Decorative circles */}
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute", top: -50, right: -50,
+            width: 200, height: 200, borderRadius: 100,
+            backgroundColor: "rgba(255,255,255,0.05)",
+          }}
+        />
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute", bottom: -40, left: -30,
+            width: 150, height: 150, borderRadius: 75,
+            backgroundColor: "rgba(255,255,255,0.04)",
+          }}
+        />
+
+        {/* Title row + edit button */}
+        <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
+          <View>
+            <Text style={{ color: Colors.white, fontFamily: "Sora_700Bold", fontSize: 22 }}>
+              {t("settings.title")}
+            </Text>
+            <Text style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Inter_400Regular", fontSize: 12, marginTop: 2 }}>
+              {t("settings.subtitle")}
+            </Text>
+          </View>
           <Pressable
             onPress={() => router.push("/profile/edit")}
+            hitSlop={8}
             style={({ pressed }) => ({
-              marginHorizontal: 18, backgroundColor: Colors.white, borderRadius: 18, padding: 18,
-              alignItems: "center", borderWidth: 1, borderColor: Colors.ink[100], opacity: pressed ? 0.92 : 1,
-              shadowColor: "#101225", shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+              width: 36, height: 36, borderRadius: 18,
+              backgroundColor: "rgba(255,255,255,0.18)",
+              alignItems: "center", justifyContent: "center",
+              opacity: pressed ? 0.7 : 1,
             })}
           >
-            <View style={{ position: "relative" }}>
-              <Avatar name={user.fullName} size={72} />
-              <View style={{
-                position: "absolute", right: -2, bottom: -2, width: 26, height: 26, borderRadius: 13,
-                backgroundColor: Colors.brand.primary, alignItems: "center", justifyContent: "center",
-                borderWidth: 2, borderColor: "#FFFFFF",
-              }}>
-                <Ionicons name="create-outline" size={13} color="#FFFFFF" />
-              </View>
-            </View>
-            <Text style={{ marginTop: 10, color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 17 }}>
-              {user.fullName}
-            </Text>
-            <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12, marginTop: 2 }}>
-              {user.email}
-            </Text>
-            <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12 }}>{user.phone}</Text>
+            <Ionicons name="create-outline" size={18} color={Colors.white} />
           </Pressable>
-        </MotiView>
+        </View>
 
-        <View style={{
-          marginTop: 18, marginHorizontal: 18, backgroundColor: Colors.white, borderRadius: 18,
-          borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden",
-        }}>
+        {/* Avatar + user info */}
+        <MotiView
+          from={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", damping: 14, stiffness: 160 }}
+          style={{ alignItems: "center" }}
+        >
+          <View
+            style={{
+              width: 84, height: 84, borderRadius: 42,
+              backgroundColor: "rgba(255,255,255,0.18)",
+              alignItems: "center", justifyContent: "center",
+              borderWidth: 2.5, borderColor: "rgba(255,255,255,0.4)",
+            }}
+          >
+            <Text style={{ color: Colors.white, fontFamily: "Sora_700Bold", fontSize: 26, letterSpacing: 1 }}>
+              {initials}
+            </Text>
+          </View>
+          <Text style={{ color: Colors.white, fontFamily: "Sora_700Bold", fontSize: 19, marginTop: 12 }}>
+            {user.fullName}
+          </Text>
+          <Text style={{ color: "rgba(255,255,255,0.70)", fontFamily: "Inter_400Regular", fontSize: 13, marginTop: 3 }}>
+            {user.email}
+          </Text>
+          <Text style={{ color: "rgba(255,255,255,0.70)", fontFamily: "Inter_400Regular", fontSize: 13, marginTop: 1 }}>
+            {user.phone}
+          </Text>
+        </MotiView>
+      </LinearGradient>
+
+      {/* ─── Settings list ─── */}
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 18,
+          paddingBottom: insets.bottom + 110,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <MotiView
+          from={{ opacity: 0, translateY: 10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 60, duration: 340 }}
+          style={{
+            backgroundColor: Colors.white,
+            borderRadius: 18,
+            overflow: "hidden",
+            shadowColor: "#101225",
+            shadowOpacity: 0.05,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 2,
+          }}
+        >
+          {/* ── Toggles ── */}
           <ListRow
-            icon={<Ionicons name="finger-print" size={18} color={Colors.brand.primary} />}
+            icon={<Ionicons name="finger-print" size={16} color={Colors.brand.primary} />}
             title={t("settings.biometric")}
             right={<Switch value={biometricEnabled} onChange={setBiometric} />}
           />
           <ListRow
-            icon={<Ionicons name="happy-outline" size={18} color={Colors.brand.primary} />}
+            icon={<Ionicons name="happy-outline" size={16} color={Colors.brand.primary} />}
             title={t("settings.faceId")}
             right={<Switch value={faceIdEnabled} onChange={setFaceId} />}
           />
           <ListRow
-            icon={<Ionicons name="eye-off-outline" size={18} color={Colors.brand.primary} />}
+            icon={<Ionicons name="eye-off-outline" size={16} color={Colors.brand.primary} />}
             title={t("settings.hideBalance")}
             right={<Switch value={hideBalance} onChange={toggleHideBalance} />}
-            divider={false}
           />
-        </View>
 
-        <View style={{
-          marginTop: 18, marginHorizontal: 18, backgroundColor: Colors.white, borderRadius: 18,
-          borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden",
-        }}>
-          <ListRow icon={<Ionicons name="card-outline" size={18} color={Colors.brand.primary} />} title={t("settings.accountDetails")} onPress={() => router.push("/profile/account-details")} />
-          <ListRow icon={<Ionicons name="shield-checkmark-outline" size={18} color={Colors.brand.primary} />} title={t("settings.security")} onPress={() => router.push("/settings/security")} />
-          <ListRow icon={<Ionicons name="card" size={18} color={Colors.brand.primary} />} title={t("settings.savedCards")} onPress={() => router.push("/settings/cards")} />
-          <ListRow icon={<Ionicons name="document-text-outline" size={18} color={Colors.brand.primary} />} title={t("settings.documents")} onPress={() => router.push("/settings/documents")} />
-          <ListRow icon={<Ionicons name="information-circle-outline" size={18} color={Colors.brand.primary} />} title={t("settings.about")} onPress={() => router.push("/settings/about")} />
-          <ListRow icon={<Ionicons name="help-circle-outline" size={18} color={Colors.brand.primary} />} title={t("settings.help")} onPress={() => router.push("/settings/help")} divider={false} />
-        </View>
+          {/* ── Navigation ── */}
+          <ListRow
+            icon={<Ionicons name="card-outline" size={16} color={Colors.brand.primary} />}
+            title={t("settings.accountDetails")}
+            onPress={() => router.push("/profile/account-details")}
+          />
+          <ListRow
+            icon={<Ionicons name="shield-checkmark-outline" size={16} color={Colors.brand.primary} />}
+            title={t("settings.security")}
+            onPress={() => router.push("/settings/security")}
+          />
+          <ListRow
+            icon={<Ionicons name="card" size={16} color={Colors.brand.primary} />}
+            title={t("settings.savedCards")}
+            onPress={() => router.push("/settings/cards")}
+          />
+          <ListRow
+            icon={<Ionicons name="document-text-outline" size={16} color={Colors.brand.primary} />}
+            title={t("settings.documents")}
+            onPress={() => router.push("/settings/documents")}
+          />
+          <ListRow
+            icon={<Ionicons name="information-circle-outline" size={16} color={Colors.brand.primary} />}
+            title={t("settings.about")}
+            onPress={() => router.push("/settings/about")}
+          />
+          <ListRow
+            icon={<Ionicons name="help-circle-outline" size={16} color={Colors.brand.primary} />}
+            title={t("settings.help")}
+            onPress={() => router.push("/settings/help")}
+          />
 
-        <View style={{
-          marginTop: 18, marginHorizontal: 18, backgroundColor: Colors.white, borderRadius: 18,
-          borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden",
-        }}>
-          <ListRow icon={<Ionicons name="close-circle-outline" size={18} color={Colors.accent.red} />} title={t("settings.closeAccount")} onPress={() => setConfirmClose(true)} />
-          <ListRow icon={<Ionicons name="log-out-outline" size={18} color={Colors.accent.red} />} title={t("settings.logout")} divider={false} onPress={() => setConfirmLogout(true)} />
-        </View>
+          {/* ── Danger ── */}
+          <ListRow
+            icon={<Ionicons name="close-circle-outline" size={16} color={Colors.accent.red} />}
+            title={t("settings.closeAccount")}
+            onPress={() => setConfirmClose(true)}
+          />
+          <ListRow
+            icon={<Ionicons name="log-out-outline" size={16} color={Colors.accent.red} />}
+            title={t("settings.logout")}
+            divider={false}
+            onPress={() => setConfirmLogout(true)}
+          />
+        </MotiView>
       </ScrollView>
 
+      {/* ─── Close account modal ─── */}
       <Modal visible={confirmClose} animationType="fade" transparent onRequestClose={() => setConfirmClose(false)}>
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", alignItems: "center", justifyContent: "center", paddingHorizontal: 30 }}>
           <View style={{ backgroundColor: "#FFFFFF", borderRadius: 20, padding: 24, width: "100%", alignItems: "center" }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "#FBE3E5", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.accent.redSoft, alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <Ionicons name="warning" size={28} color={Colors.accent.red} />
             </View>
             <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.ink[900], marginBottom: 6, textAlign: "center" }}>
@@ -125,6 +232,7 @@ export default function Settings() {
         </View>
       </Modal>
 
+      {/* ─── Log out modal ─── */}
       <Modal visible={confirmLogout} animationType="fade" transparent onRequestClose={() => setConfirmLogout(false)}>
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", alignItems: "center", justifyContent: "center", paddingHorizontal: 30 }}>
           <View style={{ backgroundColor: "#FFFFFF", borderRadius: 20, padding: 24, width: "100%", alignItems: "center" }}>

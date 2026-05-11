@@ -103,8 +103,7 @@ export default function TopUp() {
       <View style={{ position: "absolute", left: 18, right: 18, bottom: insets.bottom + 12 }}>
         <Button
           title={t("common.continue")}
-          disabled={amount <= 0}
-          onPress={() => router.push({ pathname: "/topup/payment", params: { amount: amount.toString() } })}
+          onPress={() => router.push({ pathname: "/topup/payment", params: { amount: (amount > 0 ? amount : 200).toString() } })}
         />
       </View>
     </Screen>
