@@ -1,4 +1,4 @@
-import { Pressable, View, Text } from "react-native";
+import { Pressable, View, Text, StyleSheet } from "react-native";
 import { ReactNode } from "react";
 import { MotiView } from "moti";
 import { useHaptic } from "@/hooks/useHaptic";
@@ -13,31 +13,64 @@ export function ServiceTile({ label, icon, onPress, highlight, index = 0 }: Prop
       from={{ opacity: 0, scale: 0.85, translateY: 8 }}
       animate={{ opacity: 1, scale: 1, translateY: 0 }}
       transition={{ type: "spring", damping: 14, stiffness: 200, delay: index * 50 }}
-      style={{ alignItems: "center", flex: 1 }}
+      style={styles.wrapper}
     >
       <Pressable
         onPress={() => { haptic.light(); onPress?.(); }}
-        style={({ pressed }) => ({ alignItems: "center", transform: [{ scale: pressed ? 0.93 : 1 }] })}
+        style={styles.pressable}
       >
         <View
-          style={{
-            width: 56, height: 56, borderRadius: 16,
-            backgroundColor: highlight ? Colors.brand.primary : Colors.white,
-            alignItems: "center", justifyContent: "center",
-            shadowColor: highlight ? Colors.brand.primary : "#4B1F8A",
-            shadowOpacity: highlight ? 0.3 : 0.1,
-            shadowRadius: highlight ? 12 : 10,
-            shadowOffset: { width: 0, height: 6 },
-            elevation: highlight ? 6 : 3,
-            marginBottom: 8,
-          }}
+          style={[
+            styles.iconBox,
+            highlight ? styles.iconBoxHighlight : styles.iconBoxDefault,
+          ]}
         >
           {icon}
         </View>
-        <Text style={{ color: Colors.ink[800], fontFamily: "Inter_500Medium", fontSize: 11.5, textAlign: "center" }} numberOfLines={1}>
+        <Text style={styles.label} numberOfLines={1}>
           {label}
         </Text>
       </Pressable>
     </MotiView>
   );
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    alignItems: "center",
+    flex: 1,
+  },
+  pressable: {
+    alignItems: "center",
+  },
+  iconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  iconBoxHighlight: {
+    backgroundColor: Colors.brand.primary,
+    shadowColor: Colors.brand.primary,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  iconBoxDefault: {
+    backgroundColor: Colors.white,
+    shadowColor: "#4B1F8A",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  label: {
+    color: Colors.ink[800],
+    fontFamily: "Inter_500Medium",
+    fontSize: 11.5,
+    textAlign: "center",
+  },
+});
