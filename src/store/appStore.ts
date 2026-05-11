@@ -108,7 +108,7 @@ export const useApp = create<AppState>()(
       signOut: () => set({ isAuthenticated: false, hasOnboarded: false }),
     }),
     {
-      name: "zadpay-store-v2",
+      name: "zadpay-store-v3",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         hasOnboarded: s.hasOnboarded,

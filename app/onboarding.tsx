@@ -1,17 +1,18 @@
 import { useRef, useState, useCallback } from "react";
-import { View, Text, Pressable, Dimensions, StyleSheet } from "react-native";
+import { View, Text, Dimensions, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import PagerView from "react-native-pager-view";
 import { MotiView } from "moti";
 import { Easing } from "react-native-reanimated";
 import { StatusBar } from "expo-status-bar";
+import { Button } from "@/components/Button";
 import { FlagSelect } from "@/components/FlagSelect";
 import { OnboardingTrust } from "@/illustrations/OnboardingTrust";
 import { OnboardingSpend } from "@/illustrations/OnboardingSpend";
 import { OnboardingReceive } from "@/illustrations/OnboardingReceive";
 import { useApp } from "@/store/appStore";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/theme/colors";
 
 const { width } = Dimensions.get("window");
@@ -22,7 +23,6 @@ export default function Onboarding() {
   const { setOnboarded } = useApp();
   const pager = useRef<PagerView>(null);
   const [page, setPage] = useState(0);
-  const insets = useSafeAreaInsets();
 
   const slides = [
     {
@@ -52,17 +52,15 @@ export default function Onboarding() {
     else finish();
   }, [page, finish]);
 
-  const BOTTOM_BAR_HEIGHT = 56 + 12 + (insets.bottom + 24); // button + paddingTop + paddingBottom
-
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
 
       {/* Top bar: Skip + Language dropdown */}
       <View style={styles.topBar}>
-        <Pressable onPress={finish} hitSlop={14} style={styles.skipBtn}>
-          <Text style={styles.skipText}>{t("common.skip")}</Text>
-        </Pressable>
+        <Text onPress={finish} style={styles.skipText}>
+          {t("common.skip")}
+        </Text>
         <FlagSelect />
       </View>
 
@@ -75,7 +73,7 @@ export default function Onboarding() {
           onPageSelected={(e) => setPage(e.nativeEvent.position)}
         >
           {slides.map((s, i) => (
-            <View key={i} style={[styles.slide, { paddingBottom: BOTTOM_BAR_HEIGHT }]}>
+            <View key={i} style={styles.slide}>
               {/* Illustration */}
               <MotiView
                 from={{ opacity: 0, translateY: 24 }}
@@ -124,19 +122,11 @@ export default function Onboarding() {
         </PagerView>
       </View>
 
-      {/* Bottom CTA — absolutely positioned so Android PagerView can't push it off-screen */}
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 24 }]}>
-        <Pressable
-          onPress={next}
-          style={({ pressed }) => [
-            styles.ctaButton,
-            pressed && styles.ctaButtonPressed,
-          ]}
-        >
-          <Text style={styles.ctaText}>{slides[page].cta}</Text>
-        </Pressable>
+      {/* Bottom CTA — sits naturally at the bottom of the screen */}
+      <View style={styles.bottomBar}>
+        <Button onPress={next} title={slides[page].cta} />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -152,10 +142,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  skipBtn: {
-    paddingVertical: 4,
-    paddingHorizontal: 2,
   },
   skipText: {
     color: Colors.brand.primary,
@@ -209,34 +195,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
   bottomBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     paddingHorizontal: 28,
     paddingTop: 12,
+    paddingBottom: 24,
     backgroundColor: Colors.white,
-  },
-  ctaButton: {
-    height: 56,
-    borderRadius: 999,
-    backgroundColor: Colors.brand.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: Colors.brand.primary,
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
-  },
-  ctaButtonPressed: {
-    transform: [{ scale: 0.97 }],
-    opacity: 0.92,
-  },
-  ctaText: {
-    color: "#FFFFFF",
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    letterSpacing: 0.3,
   },
 });

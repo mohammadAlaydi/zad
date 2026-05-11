@@ -108,42 +108,46 @@ export default function ConfirmPasscode() {
           <View key={rIdx} style={styles.keyRow}>
             {row.map((k, cIdx) => {
               if (k.d === "blank") {
-                return <View key={cIdx} style={styles.keyCell} />;
+                return <View key={cIdx} style={styles.keyCellWrap} />;
               }
               if (k.d === "del") {
                 return (
-                  <Pressable
-                    key={cIdx}
-                    onPress={() => press("del")}
-                    style={({ pressed }) => [
-                      styles.keyCell,
-                      pressed && styles.keyCellPressed,
-                    ]}
-                    android_ripple={{ color: Colors.ink[100], borderless: true }}
-                  >
-                    <Ionicons
-                      name="backspace-outline"
-                      size={26}
-                      color={Colors.ink[700]}
-                    />
-                  </Pressable>
+                  <View key={cIdx} style={styles.keyCellWrap}>
+                    <Pressable
+                      onPress={() => press("del")}
+                      style={styles.keyCell}
+                      android_ripple={{ color: Colors.ink[100], borderless: true }}
+                    >
+                      {({ pressed }) => (
+                        <View style={[StyleSheet.absoluteFill, styles.innerCell, pressed ? styles.keyCellPressed : null]}>
+                          <Ionicons
+                            name="backspace-outline"
+                            size={26}
+                            color={Colors.ink[700]}
+                          />
+                        </View>
+                      )}
+                    </Pressable>
+                  </View>
                 );
               }
               return (
-                <Pressable
-                  key={cIdx}
-                  onPress={() => press(k.d)}
-                  style={({ pressed }) => [
-                    styles.keyCell,
-                    pressed && styles.keyCellPressed,
-                  ]}
-                  android_ripple={{ color: Colors.ink[100], borderless: true }}
-                >
-                  <Text style={styles.keyDigit}>{k.d}</Text>
-                  {"sub" in k && k.sub ? (
-                    <Text style={styles.keySub}>{k.sub.toUpperCase()}</Text>
-                  ) : null}
-                </Pressable>
+                <View key={cIdx} style={styles.keyCellWrap}>
+                  <Pressable
+                    onPress={() => press(k.d)}
+                    style={styles.keyCell}
+                    android_ripple={{ color: Colors.ink[100], borderless: true }}
+                  >
+                    {({ pressed }) => (
+                      <View style={[StyleSheet.absoluteFill, styles.innerCell, pressed ? styles.keyCellPressed : null]}>
+                        <Text style={styles.keyDigit}>{k.d}</Text>
+                        {"sub" in k && k.sub ? (
+                          <Text style={styles.keySub}>{k.sub.toUpperCase()}</Text>
+                        ) : null}
+                      </View>
+                    )}
+                  </Pressable>
+                </View>
               );
             })}
           </View>
@@ -183,22 +187,31 @@ const styles = StyleSheet.create({
     borderRadius: 7,
   },
   keypadWrap: {
+    width: "100%",
     paddingHorizontal: 18,
     paddingBottom: 36,
   },
   keyRow: {
+    width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 8,
   },
+  keyCellWrap: {
+    flex: 1,
+    marginHorizontal: 4,
+    height: 64,
+  },
   keyCell: {
     flex: 1,
-    height: 64,
+    width: "100%",
+    height: "100%",
+  },
+  innerCell: {
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 12,
-    marginHorizontal: 4,
   },
   keyCellPressed: {
     backgroundColor: Colors.ink[100],
