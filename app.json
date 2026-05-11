@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "ZADPAY",
+    "slug": "zadpay",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "zadpay",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#4B1F8A"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zadpay.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "ZADPAY needs your camera to scan your ID and verify your identity.",
+        "NSFaceIDUsageDescription": "ZADPAY uses Face ID to keep your account secure."
+      }
+    },
+    "android": {
+      "package": "com.zadpay.app",
+      "permissions": ["CAMERA", "USE_BIOMETRIC", "USE_FINGERPRINT"]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      ["expo-camera", { "cameraPermission": "Allow ZADPAY to access your camera to verify your identity." }],
+      ["expo-local-authentication", { "faceIDPermission": "Allow ZADPAY to use Face ID." }]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": true
+    }
+  }
+}
