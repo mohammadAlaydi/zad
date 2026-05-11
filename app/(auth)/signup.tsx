@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,17 +24,15 @@ export default function Signup() {
   return (
     <Screen scroll keyboard>
       <Header showBack title="" right={<FlagSelect />} />
-      <View style={{ paddingHorizontal: 24, flex: 1 }}>
-        <Text style={{ color: Colors.ink[900], fontFamily: "Sora_700Bold", fontSize: 22 }}>{t("auth.signupTitle")}</Text>
-        <Text style={{ marginTop: 6, marginBottom: 28, color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 13 }}>
-          {t("auth.loginSubtitle")}
-        </Text>
-        <Text style={{ color: Colors.ink[700], fontFamily: "Inter_500Medium", fontSize: 13, marginBottom: 6 }}>{t("auth.phone")}</Text>
+      <View style={styles.content}>
+        <Text style={styles.heading}>{t("auth.signupTitle")}</Text>
+        <Text style={styles.subheading}>{t("auth.loginSubtitle")}</Text>
+        <Text style={styles.fieldLabel}>{t("auth.phone")}</Text>
         <PhoneInput country={country} onCountryChange={setCountry} value={phone} onChangeText={setPhone} />
-        <View style={{ height: 16 }} />
+        <View style={styles.spacer} />
         <Input label={t("auth.password")} placeholder="••••••••" isPassword value={pwd} onChangeText={setPwd} />
       </View>
-      <View style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }}>
+      <View style={[styles.bottom, { paddingBottom: insets.bottom + 24 }]}>
         <Button
           title={t("auth.signUp")}
           disabled={!valid}
@@ -44,3 +42,34 @@ export default function Signup() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  content: {
+    paddingHorizontal: 24,
+    flex: 1,
+  },
+  heading: {
+    color: Colors.ink[900],
+    fontFamily: "Sora_700Bold",
+    fontSize: 22,
+  },
+  subheading: {
+    marginTop: 6,
+    marginBottom: 28,
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+  },
+  fieldLabel: {
+    color: Colors.ink[700],
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    marginBottom: 6,
+  },
+  spacer: {
+    height: 16,
+  },
+  bottom: {
+    paddingHorizontal: 24,
+  },
+});

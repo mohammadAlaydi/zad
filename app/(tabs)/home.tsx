@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl, StyleSheet, StatusBar } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
@@ -37,52 +37,44 @@ export default function Home() {
 
   return (
     <Screen bg={Colors.surface.background}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.surface.background} translucent />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 110 }}
+        contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 110 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.brand.primary} />}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 18, marginBottom: 18 }}>
+        {/* Header row: avatar + greeting + notification */}
+        <View style={styles.headerRow}>
           <Avatar name={user.fullName} size={44} />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 16 }}>
+          <View style={styles.greetingWrap}>
+            <Text style={styles.greetingName}>
               {t("home.greeting", { name: firstName })}
             </Text>
-            <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12, marginTop: 2 }}>
-              {t("home.subgreeting")}
-            </Text>
+            <Text style={styles.greetingSub}>{t("home.subgreeting")}</Text>
           </View>
           <Pressable
             onPress={() => router.push("/notifications")}
-            style={({ pressed }) => ({
-              width: 38, height: 38, borderRadius: 12, backgroundColor: Colors.white,
-              alignItems: "center", justifyContent: "center", opacity: pressed ? 0.7 : 1,
-              shadowColor: "#101225", shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 2,
-            })}
+            style={styles.notifBtn}
           >
             <Ionicons name="notifications-outline" size={18} color={Colors.brand.primary} />
-            <View style={{ position: "absolute", top: 8, right: 9, width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.accent.red, borderWidth: 1.5, borderColor: Colors.white }} />
+            <View style={styles.notifDot} />
           </Pressable>
         </View>
 
-        <View style={{ paddingHorizontal: 18, marginBottom: 12 }}>
+        {/* Currency selector */}
+        <View style={styles.sectionPad}>
           <Pressable
             onPress={() => router.push("/(tabs)/accounts")}
-            style={({ pressed }) => ({
-              flexDirection: "row", alignItems: "center", backgroundColor: Colors.white,
-              borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, opacity: pressed ? 0.85 : 1,
-              shadowColor: "#101225", shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
-            })}
+            style={styles.currencySelector}
           >
-            <Text style={{ fontSize: 18, marginRight: 8 }}>{CURRENCY_FLAGS[activeCurrency] ?? "🌐"}</Text>
-            <Text style={{ flex: 1, color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}>
-              {activeCurrency} Balance
-            </Text>
+            <Text style={styles.currencyFlag}>{CURRENCY_FLAGS[activeCurrency] ?? "🌐"}</Text>
+            <Text style={styles.currencyLabel}>{activeCurrency} Balance</Text>
             <Ionicons name="chevron-down" size={18} color={Colors.ink[500]} />
           </Pressable>
         </View>
 
-        <View style={{ paddingHorizontal: 18 }}>
+        {/* Balance card */}
+        <View style={styles.sectionPad}>
           <BalanceCard
             amount={balances[activeCurrency]}
             currency={activeCurrency}
@@ -91,14 +83,15 @@ export default function Home() {
           />
         </View>
 
-        <View style={{ paddingHorizontal: 18, marginTop: 24 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 15 }}>{t("home.services")}</Text>
+        {/* Services */}
+        <View style={styles.servicesSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{t("home.services")}</Text>
             <Pressable onPress={() => router.push("/bills")} hitSlop={6}>
-              <Text style={{ color: Colors.brand.primary, fontFamily: "Inter_500Medium", fontSize: 12 }}>{t("home.seeAll")}</Text>
+              <Text style={styles.seeAll}>{t("home.seeAll")}</Text>
             </Pressable>
           </View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <View style={styles.servicesRow}>
             {services.map((s, i) => (
               <ServiceTile
                 key={s.key}
@@ -111,8 +104,8 @@ export default function Home() {
             ))}
           </View>
 
-          <View style={{ flexDirection: "row", alignItems: "center", marginTop: 18 }}>
-            <View style={{ width: 70, alignItems: "center" }}>
+          <View style={styles.whatsappRow}>
+            <View style={styles.whatsappTile}>
               <ServiceTile
                 label={t("home.whatsapp")}
                 icon={<Ionicons name="logo-whatsapp" size={22} color="#25D366" />}
@@ -120,17 +113,18 @@ export default function Home() {
                 onPress={() => router.push("/send")}
               />
             </View>
-            <View style={{ flex: 1, alignItems: "flex-start", paddingLeft: 18 }}>
-              <Text style={{ color: Colors.accent.green, fontFamily: "Inter_600SemiBold", fontSize: 14 }}>{t("home.more")}</Text>
+            <View style={styles.moreWrap}>
+              <Text style={styles.moreText}>{t("home.more")}</Text>
             </View>
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 18, marginTop: 26 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 15 }}>{t("home.manageExpenses")}</Text>
+        {/* Transactions */}
+        <View style={styles.transactionsSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{t("home.manageExpenses")}</Text>
             <Pressable onPress={() => router.push("/(tabs)/expenses")} hitSlop={6}>
-              <Text style={{ color: Colors.brand.primary, fontFamily: "Inter_500Medium", fontSize: 12 }}>{t("home.seeAll")}</Text>
+              <Text style={styles.seeAll}>{t("home.seeAll")}</Text>
             </Pressable>
           </View>
           {transactions.slice(0, 5).map((tx, i) => (
@@ -148,3 +142,124 @@ export default function Home() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  // Header
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 18,
+    marginBottom: 18,
+  },
+  greetingWrap: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  greetingName: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+  },
+  greetingSub: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    marginTop: 2,
+  },
+  notifBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: Colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#101225",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  notifDot: {
+    position: "absolute",
+    top: 8,
+    right: 9,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.accent.red,
+    borderWidth: 1.5,
+    borderColor: Colors.white,
+  },
+  // Currency selector
+  sectionPad: {
+    paddingHorizontal: 18,
+    marginBottom: 12,
+  },
+  currencySelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  currencyFlag: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  currencyLabel: {
+    flex: 1,
+    color: Colors.ink[900],
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+  },
+  // Services
+  servicesSection: {
+    paddingHorizontal: 18,
+    marginTop: 24,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 15,
+  },
+  seeAll: {
+    color: Colors.brand.primary,
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+  },
+  servicesRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  whatsappRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 18,
+  },
+  whatsappTile: {
+    width: 70,
+    alignItems: "center",
+  },
+  moreWrap: {
+    flex: 1,
+    alignItems: "flex-start",
+    paddingLeft: 18,
+  },
+  moreText: {
+    color: Colors.accent.green,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+  },
+  // Transactions
+  transactionsSection: {
+    paddingHorizontal: 18,
+    marginTop: 26,
+  },
+});

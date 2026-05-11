@@ -94,6 +94,7 @@ export default function AddCard() {
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
+            keyboardType="default"
           />
 
           <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}>
