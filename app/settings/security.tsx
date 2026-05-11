@@ -167,24 +167,20 @@ export default function Security() {
           </View>
         </MotiView>
 
-        {/* Learn about security — plain text + chevron (matches PDF) */}
+        {/* Learn about security */}
         <MotiView
           from={{ opacity: 0, translateY: 8 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 240, duration: 320 }}
         >
-          <Pressable
-            onPress={() => { haptic.selection(); router.push("/settings/security/learn"); }}
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, paddingVertical: 4 })}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Ionicons name="shield-checkmark-outline" size={20} color={Colors.brand.primary} />
-            </View>
-            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_500Medium", fontSize: 15, marginTop: 6 }}>
-              {t("security.learnMore")}
-            </Text>
-            <Ionicons name="chevron-forward" size={18} color={Colors.ink[400]} style={{ marginTop: 2 }} />
-          </Pressable>
+          <View style={{ backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden" }}>
+            <ListRow
+              icon={<Ionicons name="shield-checkmark-outline" size={18} color={Colors.brand.primary} />}
+              title={t("security.learnMore")}
+              divider={false}
+              onPress={() => { haptic.selection(); router.push("/settings/security/learn"); }}
+            />
+          </View>
         </MotiView>
       </ScrollView>
     </Screen>

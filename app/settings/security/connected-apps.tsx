@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -33,7 +33,7 @@ export default function ConnectedApps() {
                 icon={<Ionicons name={a.icon} size={18} color={Colors.brand.primary} />}
                 title={a.name}
                 divider={i < apps.length - 1}
-                onPress={() => {}}
+                onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")}
               />
             ))}
           </View>

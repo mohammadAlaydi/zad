@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -23,9 +23,9 @@ export default function SignIn() {
             Manage how you sign in to ZADPAY.
           </Text>
           <View style={{ backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden" }}>
-            <ListRow icon={<Ionicons name="key-outline" size={18} color={Colors.brand.primary} />} title="Change passcode" onPress={() => {}} />
-            <ListRow icon={<Ionicons name="finger-print-outline" size={18} color={Colors.brand.primary} />} title="Biometric login" onPress={() => {}} />
-            <ListRow icon={<Ionicons name="shield-outline" size={18} color={Colors.brand.primary} />} title="Two-factor authentication" divider={false} onPress={() => {}} />
+            <ListRow icon={<Ionicons name="key-outline" size={18} color={Colors.brand.primary} />} title="Change passcode" onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")} />
+            <ListRow icon={<Ionicons name="finger-print-outline" size={18} color={Colors.brand.primary} />} title="Biometric login" onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")} />
+            <ListRow icon={<Ionicons name="shield-outline" size={18} color={Colors.brand.primary} />} title="Two-factor authentication" divider={false} onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")} />
           </View>
         </MotiView>
       </ScrollView>

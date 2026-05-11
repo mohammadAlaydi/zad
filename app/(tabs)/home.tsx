@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, StyleSheet, StatusBar } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl, StyleSheet, StatusBar, Modal } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
@@ -16,9 +16,10 @@ import { Colors } from "@/theme/colors";
 export default function Home() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { user, balances, activeCurrency, transactions } = useApp();
+  const { user, balances, activeCurrency, transactions, setActiveCurrency } = useApp();
   const firstName = (user.fullName ?? "").split(" ")[0];
   const [refreshing, setRefreshing] = useState(false);
+  const [currencyModalOpen, setCurrencyModalOpen] = useState(false);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -58,28 +59,26 @@ export default function Home() {
           </Pressable>
         </View>
 
-        {/* ── USD Balance green pill selector ── */}
-        <View style={{ paddingHorizontal: 18, marginBottom: 12 }}>
+        {/* ── Connected Wallet Balance Section ── */}
+        <View style={{ marginHorizontal: 18, marginBottom: 12, backgroundColor: Colors.accent.greenSoft, borderRadius: 24 }}>
           <Pressable
-            onPress={() => router.push("/(tabs)/accounts")}
+            onPress={() => setCurrencyModalOpen(true)}
             style={({ pressed }) => ({
-              flexDirection: "row", alignItems: "center",
-              alignSelf: "flex-start",
-              backgroundColor: Colors.accent.greenSoft,
-              borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8,
-              opacity: pressed ? 0.85 : 1,
+              flexDirection: "row",
+              alignItems: "center",
+              paddingHorizontal: 20,
+              paddingTop: 16,
+              paddingBottom: 20,
+              opacity: pressed ? 0.7 : 1,
             })}
           >
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.accent.green, marginRight: 8 }} />
-            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 13, marginRight: 6 }}>
+            <Ionicons name="wallet" size={20} color={Colors.accent.green} style={{ marginRight: 8 }} />
+            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14, flex: 1 }}>
               {activeCurrency} Balance
             </Text>
-            <Ionicons name="chevron-down" size={16} color={Colors.ink[500]} />
+            <Ionicons name="chevron-down" size={20} color={Colors.accent.green} />
           </Pressable>
-        </View>
 
-        {/* Balance card */}
-        <View style={styles.sectionPad}>
           <BalanceCard
             amount={balances[activeCurrency]}
             currency={activeCurrency}
@@ -87,6 +86,33 @@ export default function Home() {
             onGetQr={() => router.push("/qr-display")}
           />
         </View>
+
+        {/* Currency Selection Modal */}
+        <Modal visible={currencyModalOpen} transparent animationType="fade" onRequestClose={() => setCurrencyModalOpen(false)}>
+          <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)", justifyContent: "center", alignItems: "center", paddingHorizontal: 40 }} onPress={() => setCurrencyModalOpen(false)}>
+            <View style={{ width: "100%", backgroundColor: Colors.white, borderRadius: 16, paddingVertical: 20, paddingHorizontal: 16 }}>
+              <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 16, color: Colors.ink[900], marginBottom: 16, textAlign: "center" }}>Select Currency</Text>
+              {["USD", "AED", "CAD", "AUD"].map((c) => {
+                const isActive = c === activeCurrency;
+                return (
+                  <Pressable
+                    key={c}
+                    onPress={() => { setActiveCurrency(c as any); setCurrencyModalOpen(false); }}
+                    style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, marginBottom: 6, backgroundColor: isActive ? Colors.brand.primary50 : "transparent" }}
+                  >
+                    <Text style={{ fontSize: 22 }}>
+                      {c === "USD" ? "🇺🇸" : c === "AED" ? "🇦🇪" : c === "CAD" ? "🇨🇦" : c === "AUD" ? "🇦🇺" : "💵"}
+                    </Text>
+                    <Text style={{ fontFamily: isActive ? "Inter_600SemiBold" : "Inter_500Medium", fontSize: 15, color: isActive ? Colors.brand.primary : Colors.ink[700] }}>
+                      {c}
+                    </Text>
+                    {isActive && <Ionicons name="checkmark-circle" size={20} color={Colors.brand.primary} style={{ marginLeft: "auto" }} />}
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Pressable>
+        </Modal>
 
         {/* ── Services (4 tiles only) ── */}
         <View style={{ paddingHorizontal: 18, marginTop: 24 }}>

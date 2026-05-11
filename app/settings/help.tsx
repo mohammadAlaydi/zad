@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -86,41 +86,23 @@ export default function Help() {
               />
             }
             title="Dispute transactions"
-            onPress={() => {}}
+            onPress={() => Alert.alert("Dispute Transaction", "To dispute a transaction, select it from your history and tap 'Report an issue'.")}
           />
           <ListRow
-            icon={
-              <Ionicons
-                name="close-circle-outline"
-                size={18}
-                color={Colors.brand.primary}
-              />
-            }
+            icon={<Ionicons name="close-circle-outline" size={18} color={Colors.brand.primary} />}
             title={t("help.cancel")}
-            onPress={() => {}}
+            onPress={() => Alert.alert("Cancel Transfer", "To cancel a transfer, go to your transaction history and select the pending transfer.")}
           />
           <ListRow
-            icon={
-              <Ionicons
-                name="close-circle-outline"
-                size={18}
-                color={Colors.brand.primary}
-              />
-            }
-            title={t("help.cancel")}
-            onPress={() => {}}
+            icon={<Ionicons name="swap-horizontal-outline" size={18} color={Colors.brand.primary} />}
+            title="Refund request"
+            onPress={() => Alert.alert("Refund Request", "Refund requests are processed within 3-5 business days.")}
           />
           <ListRow
-            icon={
-              <Ionicons
-                name="close-circle-outline"
-                size={18}
-                color={Colors.brand.primary}
-              />
-            }
-            title={t("help.cancel")}
+            icon={<Ionicons name="help-circle-outline" size={18} color={Colors.brand.primary} />}
+            title="Account issues"
             divider={false}
-            onPress={() => {}}
+            onPress={() => Alert.alert("Account Issues", "For account issues, please contact our support team.")}
           />
         </MotiView>
 
@@ -146,7 +128,7 @@ export default function Help() {
             }
             title={t("help.support")}
             divider={false}
-            onPress={() => {}}
+            onPress={() => Alert.alert("Support", "Contact us at support@zadpay.com or call +1-800-ZADPAY")}
           />
         </MotiView>
       </ScrollView>

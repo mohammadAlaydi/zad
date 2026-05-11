@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -60,7 +60,7 @@ export default function LostDevice() {
           ))}
 
           <View style={{ marginTop: 24 }}>
-            <Button title="Lock My Account" onPress={() => {}} />
+            <Button title="Lock My Account" onPress={() => Alert.alert("Account Locked", "Your account has been locked. Contact support to regain access.")} />
           </View>
         </MotiView>
       </ScrollView>

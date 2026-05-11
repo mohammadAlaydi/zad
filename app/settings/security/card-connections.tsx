@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -34,7 +34,7 @@ export default function CardConnections() {
                 icon={<Ionicons name={c.icon} size={18} color={Colors.brand.primary} />}
                 title={c.name}
                 divider={i < connections.length - 1}
-                onPress={() => {}}
+                onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")}
               />
             ))}
           </View>

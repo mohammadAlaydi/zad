@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Linking, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -46,7 +46,7 @@ export default function About() {
             }
             title={t("about.rateUs")}
             divider={false}
-            onPress={() => {}}
+            onPress={() => Linking.openURL("https://play.google.com/store").catch(() => Alert.alert("Error", "Could not open link"))}
           />
         </MotiView>
 
@@ -72,7 +72,7 @@ export default function About() {
               />
             }
             title={t("about.blogs")}
-            onPress={() => {}}
+            onPress={() => Linking.openURL("https://zadpay.com/blog").catch(() => Alert.alert("Error", "Could not open link"))}
           />
           <ListRow
             icon={
@@ -83,7 +83,7 @@ export default function About() {
               />
             }
             title={t("about.instagram")}
-            onPress={() => {}}
+            onPress={() => Linking.openURL("https://instagram.com/zadpay").catch(() => Alert.alert("Error", "Could not open link"))}
           />
           <ListRow
             icon={
@@ -95,7 +95,7 @@ export default function About() {
             }
             title={t("about.facebook")}
             divider={false}
-            onPress={() => {}}
+            onPress={() => Linking.openURL("https://facebook.com/zadpay").catch(() => Alert.alert("Error", "Could not open link"))}
           />
         </MotiView>
 
@@ -121,7 +121,7 @@ export default function About() {
             }
             title={t("about.openSource")}
             divider={false}
-            onPress={() => {}}
+            onPress={() => Alert.alert("Open Source", "This app is built with open source software including React Native, Expo, and other libraries.")}
           />
         </MotiView>
       </ScrollView>

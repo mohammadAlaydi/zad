@@ -57,7 +57,7 @@ export function BalanceCard({ amount, currency, iban, onGetQr }: Props) {
 
         <Pressable onPress={toggleHideBalance} hitSlop={6} style={styles.balanceRow}>
           <Text style={styles.balanceText}>
-            {symbol}{hideBalance ? "••••" : formatted}
+            {hideBalance ? `${symbol}****` : `${symbol}${formatted}`}
           </Text>
           <Ionicons name={hideBalance ? "eye-off-outline" : "eye-outline"} size={18} color="rgba(255,255,255,0.55)" />
         </Pressable>
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
     backgroundColor: "rgba(255,255,255,0.18)",
-    borderRadius: 999,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.15)",
   },

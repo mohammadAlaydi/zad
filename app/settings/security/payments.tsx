@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -23,9 +23,9 @@ export default function Payments() {
             Manage payment authorisation and limits.
           </Text>
           <View style={{ backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden" }}>
-            <ListRow icon={<Ionicons name="cash-outline" size={18} color={Colors.brand.primary} />} title="Payment limits" onPress={() => {}} />
-            <ListRow icon={<Ionicons name="globe-outline" size={18} color={Colors.brand.primary} />} title="International payments" onPress={() => {}} />
-            <ListRow icon={<Ionicons name="notifications-outline" size={18} color={Colors.brand.primary} />} title="Payment notifications" divider={false} onPress={() => {}} />
+            <ListRow icon={<Ionicons name="cash-outline" size={18} color={Colors.brand.primary} />} title="Payment limits" onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")} />
+            <ListRow icon={<Ionicons name="globe-outline" size={18} color={Colors.brand.primary} />} title="International payments" onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")} />
+            <ListRow icon={<Ionicons name="notifications-outline" size={18} color={Colors.brand.primary} />} title="Payment notifications" divider={false} onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")} />
           </View>
         </MotiView>
       </ScrollView>

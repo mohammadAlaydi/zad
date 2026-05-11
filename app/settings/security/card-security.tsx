@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -23,9 +23,9 @@ export default function CardSecurity() {
             Manage security settings for your linked cards.
           </Text>
           <View style={{ backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden" }}>
-            <ListRow icon={<Ionicons name="lock-closed-outline" size={18} color={Colors.brand.primary} />} title="Change PIN" onPress={() => {}} />
-            <ListRow icon={<Ionicons name="eye-off-outline" size={18} color={Colors.brand.primary} />} title="Hide card number" onPress={() => {}} />
-            <ListRow icon={<Ionicons name="ban-outline" size={18} color={Colors.brand.primary} />} title="Freeze card" divider={false} onPress={() => {}} />
+            <ListRow icon={<Ionicons name="lock-closed-outline" size={18} color={Colors.brand.primary} />} title="Change PIN" onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")} />
+            <ListRow icon={<Ionicons name="eye-off-outline" size={18} color={Colors.brand.primary} />} title="Hide card number" onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")} />
+            <ListRow icon={<Ionicons name="ban-outline" size={18} color={Colors.brand.primary} />} title="Freeze card" divider={false} onPress={() => Alert.alert("Coming Soon", "This feature will be available in a future update.")} />
           </View>
         </MotiView>
       </ScrollView>

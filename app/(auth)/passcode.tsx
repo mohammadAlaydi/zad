@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,19 +9,13 @@ import { Header } from "@/components/Header";
 import { Colors } from "@/theme/colors";
 import { useHaptic } from "@/hooks/useHaptic";
 
-const KEYS: (string | "del" | "blank")[] = [
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "blank",
-  "0",
-  "del",
+type Key = { d: string; sub?: string } | { d: "blank" } | { d: "del" };
+
+const ROWS: Key[][] = [
+  [{ d: "1" }, { d: "2", sub: "abc" }, { d: "3", sub: "def" }],
+  [{ d: "4", sub: "ghi" }, { d: "5", sub: "jkl" }, { d: "6", sub: "mno" }],
+  [{ d: "7", sub: "pqrs" }, { d: "8", sub: "tuv" }, { d: "9", sub: "wxyz" }],
+  [{ d: "blank" }, { d: "0", sub: "+" }, { d: "del" }],
 ];
 
 export default function Passcode() {
@@ -53,49 +47,17 @@ export default function Passcode() {
   return (
     <Screen>
       <Header />
-      <View
-        style={{
-          paddingHorizontal: 28,
-          alignItems: "center",
-          marginTop: 18,
-        }}
-      >
+      <View style={styles.heading}>
         <MotiView
           from={{ opacity: 0, translateY: 8 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: "timing", duration: 320 }}
         >
-          <Text
-            style={{
-              color: Colors.brand.primary,
-              fontFamily: "Sora_700Bold",
-              fontSize: 22,
-              textAlign: "center",
-            }}
-          >
-            {t("auth.createPasscode")}
-          </Text>
-          <Text
-            style={{
-              marginTop: 8,
-              color: Colors.ink[500],
-              fontFamily: "Inter_400Regular",
-              fontSize: 13,
-              textAlign: "center",
-            }}
-          >
-            {t("auth.passcodeHint")}
-          </Text>
+          <Text style={styles.title}>{t("auth.createPasscode")}</Text>
+          <Text style={styles.subtitle}>{t("auth.passcodeHint")}</Text>
         </MotiView>
 
-        <View
-          style={{
-            flexDirection: "row",
-            gap: 16,
-            marginTop: 44,
-            marginBottom: 8,
-          }}
-        >
+        <View style={styles.dotsRow}>
           {Array.from({ length: 6 }).map((_, i) => {
             const filled = i < code.length;
             return (
@@ -108,7 +70,7 @@ export default function Passcode() {
                     : Colors.ink[200],
                 }}
                 transition={{ type: "timing", duration: 180 }}
-                style={{ width: 14, height: 14, borderRadius: 7 }}
+                style={styles.dot}
               />
             );
           })}
@@ -117,42 +79,119 @@ export default function Passcode() {
 
       <View style={{ flex: 1 }} />
 
-      <View style={{ paddingHorizontal: 18, paddingBottom: 36 }}>
-        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-          {KEYS.map((k, idx) => (
-            <Pressable
-              key={`${k}-${idx}`}
-              onPress={() => press(k)}
-              disabled={k === "blank"}
-              style={({ pressed }) => ({
-                width: "33.333%",
-                paddingVertical: 18,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: pressed && k !== "blank" ? 0.55 : 1,
-              })}
-            >
-              {k === "del" ? (
-                <Ionicons
-                  name="backspace-outline"
-                  size={26}
-                  color={Colors.ink[700]}
-                />
-              ) : k === "blank" ? null : (
-                <Text
-                  style={{
-                    fontFamily: "Inter_500Medium",
-                    fontSize: 28,
-                    color: Colors.ink[900],
-                  }}
+      <View style={styles.keypadWrap}>
+        {ROWS.map((row, rIdx) => (
+          <View key={rIdx} style={styles.keyRow}>
+            {row.map((k, cIdx) => {
+              if (k.d === "blank") {
+                return <View key={cIdx} style={styles.keyCell} />;
+              }
+              if (k.d === "del") {
+                return (
+                  <Pressable
+                    key={cIdx}
+                    onPress={() => press("del")}
+                    style={({ pressed }) => [
+                      styles.keyCell,
+                      pressed && styles.keyCellPressed,
+                    ]}
+                    android_ripple={{ color: Colors.ink[100], borderless: true }}
+                  >
+                    <Ionicons
+                      name="backspace-outline"
+                      size={26}
+                      color={Colors.ink[700]}
+                    />
+                  </Pressable>
+                );
+              }
+              return (
+                <Pressable
+                  key={cIdx}
+                  onPress={() => press(k.d)}
+                  style={({ pressed }) => [
+                    styles.keyCell,
+                    pressed && styles.keyCellPressed,
+                  ]}
+                  android_ripple={{ color: Colors.ink[100], borderless: true }}
                 >
-                  {k}
-                </Text>
-              )}
-            </Pressable>
-          ))}
-        </View>
+                  <Text style={styles.keyDigit}>{k.d}</Text>
+                  {"sub" in k && k.sub ? (
+                    <Text style={styles.keySub}>{k.sub.toUpperCase()}</Text>
+                  ) : null}
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
       </View>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  heading: {
+    paddingHorizontal: 28,
+    alignItems: "center",
+    marginTop: 18,
+  },
+  title: {
+    color: Colors.brand.primary,
+    fontFamily: "Sora_700Bold",
+    fontSize: 22,
+    textAlign: "center",
+  },
+  subtitle: {
+    marginTop: 8,
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    textAlign: "center",
+  },
+  dotsRow: {
+    flexDirection: "row",
+    gap: 16,
+    marginTop: 44,
+    marginBottom: 8,
+  },
+  dot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+  keypadWrap: {
+    paddingHorizontal: 18,
+    paddingBottom: 36,
+  },
+  keyRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  keyCell: {
+    flex: 1,
+    height: 64,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
+    marginHorizontal: 4,
+  },
+  keyCellPressed: {
+    backgroundColor: Colors.ink[100],
+    opacity: 0.9,
+  },
+  keyDigit: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 28,
+    color: Colors.ink[900],
+    lineHeight: 32,
+  },
+  keySub: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 10,
+    letterSpacing: 1.5,
+    color: Colors.ink[500],
+    marginTop: 2,
+  },
+});

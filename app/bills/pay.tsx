@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/Screen";
 import { Header } from "@/components/Header";
+import { Button } from "@/components/Button";
 import { Colors } from "@/theme/colors";
 
 export default function BillsPay() {
@@ -93,7 +94,6 @@ export default function BillsPay() {
             <Text style={styles.sheetValue}>
               {selected.amount.toFixed(2)} $
             </Text>
->>>>>>> origin/basel-branch
           </View>
           <View style={styles.sheetRow}>
             <Text style={styles.sheetLabel}>{t("bills.serviceFee")}</Text>

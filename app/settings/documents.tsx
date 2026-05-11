@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -63,7 +63,7 @@ export default function Documents() {
             }
             title={t("documents.consolidated")}
             subtitle="To help fill out your taxes"
-            onPress={() => {}}
+            onPress={() => Alert.alert("Coming Soon", "Consolidated statements will be available in a future update.")}
           />
           <ListRow
             icon={
@@ -74,7 +74,7 @@ export default function Documents() {
               />
             }
             title={t("documents.personal")}
-            onPress={() => {}}
+            onPress={() => Alert.alert("Coming Soon", "Personal documents will be available in a future update.")}
           />
           <ListRow
             icon={
@@ -86,7 +86,7 @@ export default function Documents() {
             }
             title={t("documents.general")}
             divider={false}
-            onPress={() => {}}
+            onPress={() => Alert.alert("Coming Soon", "General documents will be available in a future update.")}
           />
         </MotiView>
       </ScrollView>

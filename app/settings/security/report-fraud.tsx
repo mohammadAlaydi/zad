@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
@@ -52,7 +52,7 @@ export default function ReportFraud() {
           ))}
 
           <View style={{ marginTop: 24 }}>
-            <Button title="Report Now" onPress={() => {}} />
+            <Button title="Report Now" onPress={() => Alert.alert("Report Submitted", "Your fraud report has been submitted. Our team will contact you within 24 hours.")} />
           </View>
         </MotiView>
       </ScrollView>
