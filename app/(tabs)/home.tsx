@@ -59,24 +59,16 @@ export default function Home() {
           </Pressable>
         </View>
 
-        {/* ── Connected Wallet Balance Section ── */}
-        <View style={{ marginHorizontal: 18, marginBottom: 12, backgroundColor: Colors.accent.greenSoft, borderRadius: 24 }}>
+        {/* ── Currency pill + Balance Card ── */}
+        <View style={styles.balanceSection}>
           <Pressable
             onPress={() => setCurrencyModalOpen(true)}
-            style={({ pressed }) => ({
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: 20,
-              paddingTop: 16,
-              paddingBottom: 20,
-              opacity: pressed ? 0.7 : 1,
-            })}
+            style={({ pressed }) => [styles.currencyPill, pressed && { opacity: 0.7 }]}
           >
-            <Ionicons name="wallet" size={20} color={Colors.accent.green} style={{ marginRight: 8 }} />
-            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14, flex: 1 }}>
-              {activeCurrency} Balance
-            </Text>
-            <Ionicons name="chevron-down" size={20} color={Colors.accent.green} />
+            <View style={styles.currencyPillLeft}>
+              <Ionicons name="wallet-outline" size={16} color={Colors.accent.green} />
+              <Text style={styles.currencyPillText}>{activeCurrency} Balance</Text>
+            </View>
           </Pressable>
 
           <BalanceCard
@@ -134,6 +126,50 @@ export default function Home() {
               />
             ))}
           </View>
+        </View>
+
+        {/* ── Financial Tools ── */}
+        <View style={{ marginTop: 26 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 18, marginBottom: 14 }}>
+            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 15 }}>Financial Tools</Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.toolsScroll}
+          >
+            {([
+              { label: "Visa Direct", icon: "send",              color: "#5B2C9C", bg: "#F4EFFA", route: "/send/visa-direct" },
+              { label: "Agent Cash",  icon: "cash",              color: "#1FCFA5", bg: "#D7F7EE", route: "/agent" },
+              { label: "BNPL",        icon: "layers",            color: "#E25563", bg: "#FBE3E5", route: "/bnpl" },
+              { label: "My Cards",    icon: "card",              color: "#5B2C9C", bg: "#F4EFFA", route: "/cards/issue" },
+              { label: "Savings",     icon: "leaf",              color: "#1FCFA5", bg: "#D7F7EE", route: "/savings" },
+              { label: "Goals",       icon: "trophy",            color: "#F2B441", bg: "#FDF6DD", route: "/goals" },
+              { label: "Scheduled",   icon: "calendar",          color: "#8159C2", bg: "#EDE5F8", route: "/scheduled" },
+              { label: "Vouchers",    icon: "gift",              color: "#E25563", bg: "#FBE3E5", route: "/vouchers" },
+              { label: "Loyalty",     icon: "star",              color: "#F2B441", bg: "#FDF6DD", route: "/loyalty" },
+              { label: "Invest",      icon: "trending-up",       color: "#1FCFA5", bg: "#D7F7EE", route: "/invest" },
+              { label: "Crypto",      icon: "logo-bitcoin",      color: "#F2B441", bg: "#FDF6DD", route: "/crypto" },
+              { label: "Bills",       icon: "receipt",           color: "#5B2C9C", bg: "#F4EFFA", route: "/bills" },
+            ] as const).map((item, i) => (
+              <MotiView
+                key={item.label}
+                from={{ opacity: 0, translateY: 10 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ delay: i * 40, type: "timing", duration: 280 }}
+              >
+                <Pressable
+                  onPress={() => router.push(item.route as any)}
+                  style={({ pressed }) => [styles.toolTile, { opacity: pressed ? 0.72 : 1 }]}
+                >
+                  <View style={[styles.toolIconBox, { backgroundColor: item.bg }]}>
+                    <Ionicons name={item.icon as any} size={22} color={item.color} />
+                  </View>
+                  <Text style={styles.toolLabel}>{item.label}</Text>
+                </Pressable>
+              </MotiView>
+            ))}
+          </ScrollView>
         </View>
 
         {/* ── Manage Expenses ── */}
@@ -207,6 +243,32 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.white,
   },
+  // Balance section
+  balanceSection: {
+    marginHorizontal: 18,
+    marginBottom: 12,
+  },
+  currencyPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.accent.greenSoft,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 14,
+    marginBottom: 10,
+  },
+  currencyPillLeft: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  currencyPillText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    color: Colors.ink[800],
+  },
   // Currency selector
   sectionPad: {
     paddingHorizontal: 18,
@@ -254,6 +316,34 @@ const styles = StyleSheet.create({
   servicesRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+  },
+  toolsScroll: {
+    paddingHorizontal: 18,
+    gap: 12,
+    paddingBottom: 4,
+  },
+  toolTile: {
+    alignItems: "center",
+    width: 68,
+  },
+  toolIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+    shadowColor: Colors.ink[900],
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  toolLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 11,
+    color: Colors.ink[700],
+    textAlign: "center",
   },
   whatsappRow: {
     flexDirection: "row",

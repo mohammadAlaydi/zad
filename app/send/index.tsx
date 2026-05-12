@@ -14,6 +14,8 @@ import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 import { useHaptic } from "@/hooks/useHaptic";
 
+type Tab = "mobile" | "username" | "visa";
+
 export default function SendMoney() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -24,9 +26,15 @@ export default function SendMoney() {
   const [contactName, setContactName] = useState("");
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
-  const [tab, setTab] = useState<"mobile" | "username">("mobile");
+  const [tab, setTab] = useState<Tab>("mobile");
 
-  const canContinue = amount > 0 && (tab === "mobile" ? mobile.length > 6 : contactName.length > 0);
+  const canContinue = amount > 0 && (tab === "mobile" ? mobile.length > 6 : tab === "username" ? contactName.length > 0 : true);
+
+  const tabs: { key: Tab; label: string; icon: React.ComponentProps<typeof Ionicons>["name"] }[] = [
+    { key: "mobile", label: t("send.mobileNumber"), icon: "phone-portrait-outline" },
+    { key: "username", label: t("receive.userName"), icon: "at-circle-outline" },
+    { key: "visa", label: "Visa Direct", icon: "card-outline" },
+  ];
 
   return (
     <Screen bg={Colors.white} keyboard>
@@ -52,7 +60,7 @@ export default function SendMoney() {
 
           {/* Tabs */}
           <View style={styles.tabRow}>
-            {(["mobile", "username"] as const).map((key) => {
+            {tabs.map(({ key, label, icon }) => {
               const active = key === tab;
               return (
                 <Pressable
@@ -62,12 +70,12 @@ export default function SendMoney() {
                 >
                   <View style={styles.tabInner}>
                     <Ionicons
-                      name={key === "mobile" ? "phone-portrait-outline" : "at-circle-outline"}
+                      name={icon}
                       size={16}
                       color={active ? Colors.brand.primary : Colors.ink[400]}
                     />
                     <Text style={[styles.tabLabel, active ? styles.tabLabelActive : null]}>
-                      {key === "mobile" ? t("send.mobileNumber") : t("receive.userName")}
+                      {label}
                     </Text>
                   </View>
                   {active ? (
@@ -83,78 +91,107 @@ export default function SendMoney() {
             })}
           </View>
 
-          <Text style={styles.howMuch}>{t("send.howMuch")}</Text>
-          <AmountStepper value={amount} onChange={setAmount} />
-
-          {/* Quick amounts */}
-          <View style={styles.quickGrid}>
-            {[100, 200, 300, 400, 500, 600, 700, 800].map((v) => {
-              const active = amount === v;
-              return (
-                <Pressable
-                  key={v}
-                  onPress={() => { haptic.selection(); setAmount(v); }}
-                  style={[styles.quickChip, active ? styles.quickChipActive : null]}
-                >
-                  <Text style={[styles.quickChipText, active ? styles.quickChipTextActive : null]}>
-                    ${v}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <Text style={styles.sendToLabel}>{t("send.sendTo")}</Text>
-          <View style={styles.inputRow}>
-            <View style={styles.flex1}>
-              <Input
-                placeholder={tab === "mobile" ? t("send.mobileNumber") : "@username"}
-                value={tab === "mobile" ? mobile : contactName}
-                onChangeText={tab === "mobile" ? setMobile : setContactName}
-                keyboardType={tab === "mobile" ? "phone-pad" : "default"}
-                leftIcon={<Ionicons name={tab === "mobile" ? "phone-portrait-outline" : "at-outline"} size={18} color={Colors.ink[400]} />}
-              />
-            </View>
-            <Pressable style={styles.contactBtn}>
-              <Ionicons name="person-add-outline" size={20} color={Colors.white} />
-            </Pressable>
-          </View>
-
-          {tab === "mobile" && (
-            <Input
-              placeholder={t("send.contactName")}
-              value={contactName}
-              onChangeText={setContactName}
-              containerStyle={styles.contactNameInput}
-            />
-          )}
-
-          {!showMessage ? (
-            <Pressable
-              onPress={() => setShowMessage(true)}
-              style={styles.addMessageBtn}
-              hitSlop={6}
+          {/* Visa Direct panel */}
+          {tab === "visa" ? (
+            <MotiView
+              from={{ opacity: 0, translateY: 8 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 300 }}
+              style={styles.visaPanel}
             >
-              <Ionicons name="add-circle" size={18} color={Colors.accent.green} />
-              <Text style={styles.addMessageText}>{t("send.addMessage")}</Text>
-            </Pressable>
+              <View style={styles.visaCardGraphic}>
+                <Text style={styles.visaCardGraphicWord}>VISA</Text>
+              </View>
+              <Text style={styles.visaPanelTitle}>Send to any Visa card</Text>
+              <Text style={styles.visaPanelDesc}>
+                Send directly to any Visa card worldwide. Fast, secure, and reliable. $1.50 fee applies per transfer.
+              </Text>
+              <Button
+                title="Get Started"
+                onPress={() => router.push("/send/visa-direct")}
+                size="md"
+              />
+            </MotiView>
           ) : (
-            <Input
-              placeholder={t("send.message")}
-              value={message}
-              onChangeText={setMessage}
-              leftIcon={<Ionicons name="chatbubble-outline" size={18} color={Colors.ink[400]} />}
-            />
+            <>
+              <Text style={styles.howMuch}>{t("send.howMuch")}</Text>
+              <AmountStepper value={amount} onChange={setAmount} />
+
+              {/* Quick amounts */}
+              <View style={styles.quickGrid}>
+                {[100, 200, 300, 400, 500, 600, 700, 800].map((v) => {
+                  const active = amount === v;
+                  return (
+                    <Pressable
+                      key={v}
+                      onPress={() => { haptic.selection(); setAmount(v); }}
+                      style={[styles.quickChip, active ? styles.quickChipActive : null]}
+                    >
+                      <Text style={[styles.quickChipText, active ? styles.quickChipTextActive : null]}>
+                        ${v}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.sendToLabel}>{t("send.sendTo")}</Text>
+              <View style={styles.inputRow}>
+                <View style={styles.flex1}>
+                  <Input
+                    placeholder={tab === "mobile" ? t("send.mobileNumber") : "@username"}
+                    value={tab === "mobile" ? mobile : contactName}
+                    onChangeText={tab === "mobile" ? setMobile : setContactName}
+                    keyboardType={tab === "mobile" ? "phone-pad" : "default"}
+                    leftIcon={<Ionicons name={tab === "mobile" ? "phone-portrait-outline" : "at-outline"} size={18} color={Colors.ink[400]} />}
+                  />
+                </View>
+                <Pressable style={styles.contactBtn}>
+                  <Ionicons name="person-add-outline" size={20} color={Colors.white} />
+                </Pressable>
+              </View>
+
+              {tab === "mobile" && (
+                <Input
+                  placeholder={t("send.contactName")}
+                  value={contactName}
+                  onChangeText={setContactName}
+                  containerStyle={styles.contactNameInput}
+                />
+              )}
+
+              {!showMessage ? (
+                <Pressable onPress={() => setShowMessage(true)} style={styles.addMessageBtn} hitSlop={6}>
+                  <Ionicons name="add-circle" size={18} color={Colors.accent.green} />
+                  <Text style={styles.addMessageText}>{t("send.addMessage")}</Text>
+                </Pressable>
+              ) : (
+                <Input
+                  placeholder={t("send.message")}
+                  value={message}
+                  onChangeText={setMessage}
+                  leftIcon={<Ionicons name="chatbubble-outline" size={18} color={Colors.ink[400]} />}
+                />
+              )}
+            </>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
-        <Button
-          title={t("common.continue")}
-          onPress={() => router.push({ pathname: "/send/confirm", params: { amount: amount.toString(), mobile: mobile || "07701234567", contactName: contactName || "Demo User", message, tab } })}
-        />
-      </View>
+      {tab !== "visa" && (
+        <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
+          <Button
+            title={t("common.continue")}
+            disabled={!canContinue}
+            onPress={() =>
+              router.push({
+                pathname: "/send/confirm",
+                params: { amount: amount.toString(), mobile: mobile || "07701234567", contactName: contactName || "Demo User", message, tab },
+              })
+            }
+          />
+        </View>
+      )}
     </Screen>
   );
 }
@@ -162,7 +199,6 @@ export default function SendMoney() {
 const styles = StyleSheet.create({
   flex1: { flex: 1 },
   scrollContent: { paddingHorizontal: 18 },
-  // Balance card
   balanceCard: {
     backgroundColor: Colors.surface.background,
     borderRadius: 16,
@@ -176,7 +212,6 @@ const styles = StyleSheet.create({
   balanceName: { color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 },
   balanceAvailable: { color: Colors.accent.green, fontFamily: "Inter_500Medium", fontSize: 12 },
   changeLink: { color: Colors.brand.primary, fontFamily: "Inter_600SemiBold", fontSize: 13 },
-  // Tabs
   tabRow: {
     flexDirection: "row",
     marginBottom: 22,
@@ -185,7 +220,7 @@ const styles = StyleSheet.create({
   },
   tabItem: { flex: 1, alignItems: "center", paddingVertical: 12 },
   tabInner: { flexDirection: "row", alignItems: "center", gap: 6 },
-  tabLabel: { color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 13 },
+  tabLabel: { color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 12 },
   tabLabelActive: { color: Colors.brand.primary, fontFamily: "Inter_600SemiBold" },
   tabIndicator: {
     position: "absolute",
@@ -202,7 +237,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 14,
   },
-  // Quick amounts
   quickGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -218,13 +252,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.ink[200],
   },
-  quickChipActive: {
-    backgroundColor: Colors.brand.primary,
-    borderColor: Colors.brand.primary,
-  },
+  quickChipActive: { backgroundColor: Colors.brand.primary, borderColor: Colors.brand.primary },
   quickChipText: { color: Colors.ink[700], fontFamily: "Inter_600SemiBold", fontSize: 13 },
   quickChipTextActive: { color: Colors.white },
-  // Send to
   sendToLabel: {
     color: Colors.ink[700],
     fontFamily: "Inter_500Medium",
@@ -245,4 +275,48 @@ const styles = StyleSheet.create({
   addMessageBtn: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 },
   addMessageText: { color: Colors.accent.green, fontFamily: "Inter_600SemiBold", fontSize: 13 },
   bottomBar: { paddingHorizontal: 18 },
+  // Visa panel
+  visaPanel: {
+    backgroundColor: Colors.surface.background,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  visaCardGraphic: {
+    width: 120,
+    height: 72,
+    backgroundColor: "#1A1F71",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+    shadowColor: "#1A1F71",
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  visaCardGraphicWord: {
+    color: Colors.white,
+    fontFamily: "Sora_700Bold",
+    fontSize: 20,
+    letterSpacing: 3,
+    fontStyle: "italic",
+  },
+  visaPanelTitle: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  visaPanelDesc: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 24,
+  },
 });

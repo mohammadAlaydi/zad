@@ -1,4 +1,5 @@
 import { View, Text, Pressable, Dimensions } from "react-native";
+import { Button } from "@/components/Button";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -92,19 +93,7 @@ export default function QrDisplay() {
       </View>
 
       <View style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 16 }}>
-        <Pressable
-          onPress={() => router.back()}
-          style={({ pressed }) => ({
-            height: 56,
-            borderRadius: 999,
-            backgroundColor: Colors.ink[100],
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: pressed ? 0.9 : 1,
-          })}
-        >
-          <Text style={{ color: Colors.ink[700], fontFamily: "Inter_600SemiBold", fontSize: 16 }}>{t("common.done")}</Text>
-        </Pressable>
+        <Button title={t("common.done")} onPress={() => router.back()} />
       </View>
     </Screen>
   );

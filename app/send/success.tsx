@@ -123,12 +123,18 @@ export default function SendSuccess() {
         </View>
       </MotiView>
 
-      {/* Share button */}
+      {/* Share + Done buttons */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 20 }]}>
         <Button
           title={t("send.share")}
           icon={<Ionicons name="share-social-outline" size={18} color={Colors.white} />}
           onPress={handleShare}
+        />
+        <View style={{ height: 10 }} />
+        <Button
+          title={t("common.done")}
+          variant="secondary"
+          onPress={() => router.replace("/(tabs)/home")}
         />
       </View>
     </Screen>
