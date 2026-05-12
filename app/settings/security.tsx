@@ -1,4 +1,5 @@
-import { View, Text, Pressable, ScrollView } from "react-native";
+import { useState } from "react";
+import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,13 +8,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/Screen";
 import { Header } from "@/components/Header";
 import { ListRow } from "@/components/ListRow";
+import { Switch } from "@/components/Switch";
 import { Colors } from "@/theme/colors";
 import { useHaptic } from "@/hooks/useHaptic";
+import { useApp } from "@/store/appStore";
 
 export default function Security() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const haptic = useHaptic();
+  const profile = useApp((s) => s.profile);
+
+  const [whatsappEnabled, setWhatsappEnabled] = useState(false);
 
   return (
     <Screen bg={Colors.surface.background}>
@@ -173,7 +179,7 @@ export default function Security() {
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 240, duration: 320 }}
         >
-          <View style={{ backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden" }}>
+          <View style={{ backgroundColor: Colors.white, borderRadius: 18, borderWidth: 1, borderColor: Colors.ink[100], overflow: "hidden", marginBottom: 18 }}>
             <ListRow
               icon={<Ionicons name="shield-checkmark-outline" size={18} color={Colors.brand.primary} />}
               title={t("security.learnMore")}
@@ -182,7 +188,155 @@ export default function Security() {
             />
           </View>
         </MotiView>
+
+        {/* ── WhatsApp Bot ── */}
+        <MotiView
+          from={{ opacity: 0, translateY: 8 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 320, duration: 320 }}
+        >
+          <Text style={{ color: Colors.ink[500], fontFamily: "Inter_500Medium", fontSize: 12, marginBottom: 8, marginLeft: 4 }}>
+            WhatsApp Bot
+          </Text>
+          <View style={[styles.whatsappCard, { marginBottom: whatsappEnabled ? 10 : 18 }]}>
+            {/* Toggle row */}
+            <View style={styles.whatsappToggleRow}>
+              <View style={styles.whatsappIconWrap}>
+                <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.whatsappTitle}>WhatsApp Bot</Text>
+                <Text style={styles.whatsappSub}>Check balance & send money via WhatsApp</Text>
+              </View>
+              <Switch
+                value={whatsappEnabled}
+                onChange={(v) => {
+                  haptic.selection();
+                  setWhatsappEnabled(v);
+                }}
+              />
+            </View>
+
+            {/* Divider */}
+            <View style={styles.whatsappDivider} />
+
+            {/* Linked Number row */}
+            <View style={styles.whatsappNumberRow}>
+              <View style={styles.whatsappIconWrap}>
+                <Ionicons name="call-outline" size={18} color={Colors.brand.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.whatsappTitle}>Linked Number</Text>
+                <Text style={styles.whatsappSub}>{profile?.phone ?? "—"}</Text>
+              </View>
+              <Pressable
+                hitSlop={8}
+                onPress={() => {
+                  haptic.selection();
+                  router.push("/settings/security/change-phone" as any);
+                }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                <Text style={styles.changeText}>Change</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Active banner */}
+          {whatsappEnabled && (
+            <MotiView
+              from={{ opacity: 0, scaleY: 0.85 }}
+              animate={{ opacity: 1, scaleY: 1 }}
+              transition={{ type: "spring", damping: 18, stiffness: 240 }}
+              style={styles.whatsappBanner}
+            >
+              <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
+              <Text style={styles.whatsappBannerText}>
+                Bot active — message{" "}
+                <Text style={styles.whatsappBannerNum}>+1 (800) ZAD-PAY</Text>
+              </Text>
+            </MotiView>
+          )}
+        </MotiView>
       </ScrollView>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  whatsappCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.ink[100],
+    overflow: "hidden",
+  },
+  whatsappToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    minHeight: 56,
+    gap: 0,
+  },
+  whatsappNumberRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    minHeight: 52,
+  },
+  whatsappIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    backgroundColor: Colors.brand.primary50,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  whatsappTitle: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_500Medium",
+    fontSize: 14,
+  },
+  whatsappSub: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    marginTop: 1,
+  },
+  whatsappDivider: {
+    height: 1,
+    backgroundColor: Colors.ink[100],
+    marginHorizontal: 16,
+  },
+  changeText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    color: Colors.brand.primary,
+    marginLeft: 12,
+  },
+  whatsappBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#F0FDF4",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+    marginBottom: 18,
+  },
+  whatsappBannerText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: Colors.ink[700],
+    flex: 1,
+  },
+  whatsappBannerNum: {
+    fontFamily: "Inter_700Bold",
+    color: "#16A34A",
+  },
+});

@@ -1,418 +1,1064 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
-  View, Text, Pressable, ScrollView, StyleSheet, StatusBar, Modal,
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Modal,
+  TextInput,
+  Animated,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { MotiView } from "moti";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
 import { Colors } from "@/theme/colors";
 
-type ModuleStatus = "locked" | "available" | "in_progress" | "completed";
+// ── Types ────────────────────────────────────────────────────────────────────
 
-type QuizQuestion = {
+type Course = {
   id: string;
-  question: string;
-  options: string[];
-  correctIndex: number;
+  emoji: string;
+  title: string;
+  lessons: Lesson[];
+  completionPct: number;
+  color: string;
 };
 
-type LearningModule = {
+type Lesson = {
   id: string;
   title: string;
-  category: "savings" | "debt" | "investing" | "budgeting";
-  description: string;
   duration: string;
-  xp: number;
-  status: ModuleStatus;
-  progress: number;
-  lessons: string[];
-  quiz: QuizQuestion[];
 };
+
+type QuizOption = { text: string; correct: boolean };
+type Quiz = { question: string; options: QuizOption[] };
+
+const LESSON_QUIZZES: Record<string, Quiz> = {
+  "l1-1": {
+    question: "What is the recommended % of income for needs in the 50/30/20 rule?",
+    options: [
+      { text: "30%", correct: false },
+      { text: "20%", correct: false },
+      { text: "50%", correct: true },
+      { text: "70%", correct: false },
+    ],
+  },
+  "l1-2": {
+    question: "Which of the following is a fixed expense?",
+    options: [
+      { text: "Dining out", correct: false },
+      { text: "Monthly rent", correct: true },
+      { text: "Entertainment", correct: false },
+      { text: "Clothing", correct: false },
+    ],
+  },
+  "l1-3": {
+    question: "Tracking expenses helps you:",
+    options: [
+      { text: "Earn more money", correct: false },
+      { text: "Avoid paying taxes", correct: false },
+      { text: "Identify overspending", correct: true },
+      { text: "Get a bank loan", correct: false },
+    ],
+  },
+  "l2-1": {
+    question: "An emergency fund should cover how many months of expenses?",
+    options: [
+      { text: "1 month", correct: false },
+      { text: "3–6 months", correct: true },
+      { text: "12 months", correct: false },
+      { text: "24 months", correct: false },
+    ],
+  },
+  "l2-2": {
+    question: "What is considered 'good debt'?",
+    options: [
+      { text: "Payday loan", correct: false },
+      { text: "Credit card rollover", correct: false },
+      { text: "Student loan", correct: true },
+      { text: "Gambling debt", correct: false },
+    ],
+  },
+  "l2-3": {
+    question: "Diversification in investing means:",
+    options: [
+      { text: "Putting all money in one stock", correct: false },
+      { text: "Only buying bonds", correct: false },
+      { text: "Spreading investments across assets", correct: true },
+      { text: "Timing the market", correct: false },
+    ],
+  },
+  "l3-1": {
+    question: "Bitcoin is an example of:",
+    options: [
+      { text: "A savings account", correct: false },
+      { text: "A government bond", correct: false },
+      { text: "A cryptocurrency", correct: true },
+      { text: "A real estate fund", correct: false },
+    ],
+  },
+  "l3-2": {
+    question: "Blockchain technology is best described as:",
+    options: [
+      { text: "A bank database", correct: false },
+      { text: "A decentralized ledger", correct: true },
+      { text: "A credit card network", correct: false },
+      { text: "A savings app", correct: false },
+    ],
+  },
+  "l3-3": {
+    question: "A goal-based savings strategy involves:",
+    options: [
+      { text: "Spending first, saving the rest", correct: false },
+      { text: "Saving a fixed amount for a specific target", correct: true },
+      { text: "Investing only in crypto", correct: false },
+      { text: "Borrowing to save", correct: false },
+    ],
+  },
+  "l4-1": {
+    question: "The debt avalanche method prioritizes:",
+    options: [
+      { text: "Smallest balance first", correct: false },
+      { text: "Newest debt first", correct: false },
+      { text: "Highest interest rate first", correct: true },
+      { text: "Random order", correct: false },
+    ],
+  },
+  "l4-2": {
+    question: "A stock represents:",
+    options: [
+      { text: "A loan to a company", correct: false },
+      { text: "Ownership in a company", correct: true },
+      { text: "A savings deposit", correct: false },
+      { text: "A government obligation", correct: false },
+    ],
+  },
+  "l4-3": {
+    question: "DCA stands for:",
+    options: [
+      { text: "Daily Cash Advance", correct: false },
+      { text: "Dollar Cost Averaging", correct: true },
+      { text: "Direct Credit Allocation", correct: false },
+      { text: "Debt Credit Analysis", correct: false },
+    ],
+  },
+};
+
+const COURSES: Course[] = [
+  {
+    id: "c1",
+    emoji: "💰",
+    title: "Savings & Goals",
+    completionPct: 66,
+    color: Colors.accent.green,
+    lessons: [
+      { id: "l1-1", title: "Why savings matter", duration: "4 min" },
+      { id: "l1-2", title: "Setting SMART goals", duration: "5 min" },
+      { id: "l1-3", title: "Automating your savings", duration: "6 min" },
+    ],
+  },
+  {
+    id: "c2",
+    emoji: "📉",
+    title: "Debt Management",
+    completionPct: 33,
+    color: Colors.accent.red,
+    lessons: [
+      { id: "l2-1", title: "Good debt vs bad debt", duration: "5 min" },
+      { id: "l2-2", title: "Avalanche & snowball methods", duration: "7 min" },
+      { id: "l2-3", title: "Debt consolidation explained", duration: "6 min" },
+    ],
+  },
+  {
+    id: "c3",
+    emoji: "📈",
+    title: "Investing Basics",
+    completionPct: 0,
+    color: Colors.brand.primary,
+    lessons: [
+      { id: "l3-1", title: "Stocks, bonds & ETFs", duration: "8 min" },
+      { id: "l3-2", title: "Risk & return", duration: "5 min" },
+      { id: "l3-3", title: "Diversification", duration: "6 min" },
+    ],
+  },
+  {
+    id: "c4",
+    emoji: "₿",
+    title: "Crypto 101",
+    completionPct: 0,
+    color: Colors.accent.amber,
+    lessons: [
+      { id: "l4-1", title: "What is blockchain?", duration: "6 min" },
+      { id: "l4-2", title: "Bitcoin & altcoins", duration: "7 min" },
+      { id: "l4-3", title: "Wallets & security", duration: "5 min" },
+    ],
+  },
+];
 
 type Badge = {
   id: string;
-  name: string;
-  icon: string;
-  earned: boolean;
-  description: string;
+  label: string;
+  emoji: string;
+  unlocked: boolean;
+  desc: string;
 };
 
-const modules: LearningModule[] = [
-  {
-    id: "m1", title: "Budgeting Basics", category: "budgeting", description: "Learn how to create and stick to a personal budget.",
-    duration: "15 min", xp: 100, status: "completed", progress: 100,
-    lessons: ["What is a budget?", "The 50/30/20 rule", "Tracking expenses", "Adjusting your budget"],
-    quiz: [
-      { id: "q1", question: "What does the 50/30/20 rule suggest for needs?", options: ["20%", "30%", "50%", "70%"], correctIndex: 2 },
-      { id: "q2", question: "Which is NOT a fixed expense?", options: ["Rent", "Insurance", "Dining out", "Car payment"], correctIndex: 2 },
-    ],
-  },
-  {
-    id: "m2", title: "Building an Emergency Fund", category: "savings", description: "Why you need an emergency fund and how to build one.",
-    duration: "12 min", xp: 80, status: "in_progress", progress: 60,
-    lessons: ["Why emergency funds matter", "How much to save", "Where to keep it", "Automating savings"],
-    quiz: [
-      { id: "q3", question: "How many months of expenses should an emergency fund cover?", options: ["1 month", "3-6 months", "12 months", "24 months"], correctIndex: 1 },
-      { id: "q4", question: "Where is the best place for an emergency fund?", options: ["Stocks", "Savings account", "Under the mattress", "Cryptocurrency"], correctIndex: 1 },
-    ],
-  },
-  {
-    id: "m3", title: "Understanding Debt", category: "debt", description: "Learn about good debt vs bad debt and debt management strategies.",
-    duration: "20 min", xp: 120, status: "available", progress: 0,
-    lessons: ["Good debt vs bad debt", "Interest rates explained", "Debt snowball method", "Debt avalanche method", "When to consolidate"],
-    quiz: [
-      { id: "q5", question: "Which is generally considered 'good debt'?", options: ["Credit card debt", "Payday loan", "Student loan", "Gambling debt"], correctIndex: 2 },
-      { id: "q6", question: "What does the debt snowball method focus on?", options: ["Highest interest first", "Smallest balance first", "Newest debt first", "Random order"], correctIndex: 1 },
-    ],
-  },
-  {
-    id: "m4", title: "Investing for Beginners", category: "investing", description: "Introduction to stocks, bonds, and building a portfolio.",
-    duration: "25 min", xp: 150, status: "available", progress: 0,
-    lessons: ["What is investing?", "Stocks vs bonds", "Risk and return", "Diversification", "Getting started", "Common mistakes"],
-    quiz: [
-      { id: "q7", question: "What does diversification help with?", options: ["Increasing returns", "Reducing risk", "Avoiding taxes", "Timing the market"], correctIndex: 1 },
-      { id: "q8", question: "Which investment type generally has the highest long-term returns?", options: ["Savings accounts", "Bonds", "Stocks", "Gold"], correctIndex: 2 },
-    ],
-  },
-  {
-    id: "m5", title: "Smart Savings Goals", category: "savings", description: "Set and achieve financial goals using proven strategies.",
-    duration: "10 min", xp: 70, status: "locked", progress: 0,
-    lessons: ["SMART goals framework", "Prioritizing goals", "Automating contributions"],
-    quiz: [
-      { id: "q9", question: "What does the 'S' in SMART goals stand for?", options: ["Simple", "Specific", "Strategic", "Sustainable"], correctIndex: 1 },
-    ],
-  },
-  {
-    id: "m6", title: "Managing Credit Cards", category: "debt", description: "Use credit cards wisely without falling into debt traps.",
-    duration: "18 min", xp: 110, status: "locked", progress: 0,
-    lessons: ["How credit cards work", "Interest and fees", "Building credit score", "Avoiding common traps", "Rewards optimization"],
-    quiz: [
-      { id: "q10", question: "What is a good practice for credit card use?", options: ["Pay minimum only", "Max out your limit", "Pay full balance monthly", "Open many cards"], correctIndex: 2 },
-    ],
-  },
+const BADGES: Badge[] = [
+  { id: "b1", label: "First Lesson", emoji: "🎖️", unlocked: true, desc: "Completed your first lesson" },
+  { id: "b2", label: "Quiz Master", emoji: "🧠", unlocked: false, desc: "Scored 100% on 3 quizzes" },
+  { id: "b3", label: "Saver", emoji: "💰", unlocked: false, desc: "Completed Savings & Goals" },
+  { id: "b4", label: "Investor", emoji: "📈", unlocked: false, desc: "Completed Investing Basics" },
 ];
 
-const badges: Badge[] = [
-  { id: "b1", name: "Budget Master", icon: "calculator", earned: true, description: "Complete the Budgeting Basics module" },
-  { id: "b2", name: "Savings Star", icon: "star", earned: false, description: "Complete all savings modules" },
-  { id: "b3", name: "Debt Slayer", icon: "flash", earned: false, description: "Complete all debt management modules" },
-  { id: "b4", name: "Investor", icon: "trending-up", earned: false, description: "Complete the investing module" },
-  { id: "b5", name: "Quiz Champ", icon: "trophy", earned: false, description: "Score 100% on 3 quizzes" },
-  { id: "b6", name: "Streak", icon: "flame", earned: true, description: "Learn 5 days in a row" },
-];
+// ── Progress Ring ─────────────────────────────────────────────────────────────
 
-const categoryColors: Record<string, string> = {
-  savings: Colors.accent.green,
-  debt: Colors.accent.red,
-  investing: Colors.brand.primary,
-  budgeting: Colors.accent.amber,
-};
+function ProgressRing({ pct, size = 64, stroke = 5, color }: { pct: number; size?: number; stroke?: number; color: string }) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
+  return (
+    <View style={{ width: size, height: size }}>
+      {/* SVG not available in RN without react-native-svg, so we do a CSS-border trick */}
+      <View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderWidth: stroke,
+          borderColor: Colors.ink[100],
+          alignItems: "center",
+          justifyContent: "center",
+          position: "absolute",
+        }}
+      />
+      <View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderWidth: stroke,
+          borderColor: "transparent",
+          borderTopColor: color,
+          borderRightColor: pct >= 25 ? color : "transparent",
+          borderBottomColor: pct >= 50 ? color : "transparent",
+          borderLeftColor: pct >= 75 ? color : "transparent",
+          transform: [{ rotate: "-90deg" }],
+          position: "absolute",
+        }}
+      />
+      <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
+        <Text style={{ fontFamily: "Inter_700Bold", fontSize: size === 64 ? 14 : 11, color: Colors.ink[900] }}>
+          {pct}%
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+
+function XPToast({ visible, correct }: { visible: boolean; correct: boolean }) {
+  return (
+    <MotiView
+      animate={{ opacity: visible ? 1 : 0, translateY: visible ? 0 : 20 }}
+      transition={{ type: "timing", duration: 300 }}
+      style={[
+        styles.xpToast,
+        { backgroundColor: correct ? Colors.accent.green : Colors.accent.red },
+      ]}
+      pointerEvents="none"
+    >
+      <Text style={styles.xpToastText}>
+        {correct ? "+10 XP  🎉" : "Wrong answer  ❌"}
+      </Text>
+    </MotiView>
+  );
+}
+
+// ── Main Screen ───────────────────────────────────────────────────────────────
 
 export default function LearnScreen() {
   const insets = useSafeAreaInsets();
-  const [tab, setTab] = useState<"modules" | "quiz" | "badges">("modules");
-  const [activeModule, setActiveModule] = useState<LearningModule | null>(null);
-  const [quizModule, setQuizModule] = useState<LearningModule | null>(null);
-  const [currentQ, setCurrentQ] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [quizDone, setQuizDone] = useState(false);
 
-  const totalXP = modules.filter((m) => m.status === "completed").reduce((s, m) => s + m.xp, 0);
-  const level = Math.floor(totalXP / 200) + 1;
-  const xpToNext = 200 - (totalXP % 200);
+  // XP state
+  const [xp, setXp] = useState(340);
+  const xpMax = 500;
 
-  const startQuiz = (mod: LearningModule) => {
-    setQuizModule(mod);
-    setCurrentQ(0);
-    setSelectedAnswer(null);
-    setScore(0);
-    setQuizDone(false);
+  // Course modal
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  // Lesson quiz modal
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+
+  // Quiz state
+  const [chosenIdx, setChosenIdx] = useState<number | null>(null);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastCorrect, setToastCorrect] = useState(false);
+
+  const currentQuiz = selectedLesson ? LESSON_QUIZZES[selectedLesson.id] : null;
+
+  const handleAnswer = (idx: number, correct: boolean) => {
+    if (chosenIdx !== null) return;
+    setChosenIdx(idx);
+    setToastCorrect(correct);
+    setToastVisible(true);
+    if (correct) setXp((v) => Math.min(v + 10, xpMax));
+    setTimeout(() => setToastVisible(false), 1800);
   };
 
-  const answerQuestion = (index: number) => {
-    if (selectedAnswer !== null || !quizModule) return;
-    setSelectedAnswer(index);
-    if (index === quizModule.quiz[currentQ].correctIndex) {
-      setScore(score + 1);
-    }
-    setTimeout(() => {
-      if (currentQ + 1 < quizModule.quiz.length) {
-        setCurrentQ(currentQ + 1);
-        setSelectedAnswer(null);
-      } else {
-        setQuizDone(true);
-      }
-    }, 1200);
+  const closeQuiz = () => {
+    setSelectedLesson(null);
+    setChosenIdx(null);
+    setToastVisible(false);
   };
+
+  const closeCourse = () => {
+    setSelectedCourse(null);
+  };
+
+  const level = Math.floor(xp / 170) + 1;
 
   return (
     <Screen bg={Colors.surface.background}>
-      <StatusBar barStyle="dark-content" />
-      <Header title="Financial Literacy" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
-        {/* Progress Card */}
-        <View style={styles.progressCard}>
-          <View style={styles.levelCircle}>
-            <Text style={styles.levelNum}>{level}</Text>
-            <Text style={styles.levelLabel}>Level</Text>
-          </View>
-          <View style={styles.progressInfo}>
-            <Text style={styles.progressTitle}>{totalXP} XP Earned</Text>
-            <Text style={styles.progressSub}>{xpToNext} XP to Level {level + 1}</Text>
-            <View style={styles.xpBar}>
-              <View style={[styles.xpFill, { width: `${((totalXP % 200) / 200) * 100}%` }]} />
-            </View>
-            <View style={styles.progressStats}>
-              <Text style={styles.progressStatText}>{modules.filter((m) => m.status === "completed").length}/{modules.length} Completed</Text>
-              <Text style={styles.progressStatText}>{badges.filter((b) => b.earned).length} Badges</Text>
-            </View>
-          </View>
-        </View>
+      <Header title="Learn & Earn" />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]}
+      >
+        {/* ── XP / Level Card ── */}
+        <MotiView
+          from={{ opacity: 0, translateY: 12 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 420 }}
+        >
+          <LinearGradient
+            colors={[Colors.brand.gradientStart, Colors.brand.gradientEnd]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.xpCard}
+          >
+            {/* decoration circles */}
+            <View style={styles.deco1} pointerEvents="none" />
+            <View style={styles.deco2} pointerEvents="none" />
 
-        {/* Tabs */}
-        <View style={styles.tabRow}>
-          {(["modules", "quiz", "badges"] as const).map((t) => (
-            <Pressable key={t} onPress={() => setTab(t)} style={[styles.tabChip, tab === t && styles.tabActive]}>
-              <Text style={[styles.tabText, tab === t && styles.tabTextActive]}>
-                {t === "quiz" ? "Quizzes" : t.charAt(0).toUpperCase() + t.slice(1)}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+            <View style={styles.xpTop}>
+              <View>
+                <Text style={styles.xpLevel}>Level {level} Learner 🎓</Text>
+                <Text style={styles.xpSub}>{xp} / {xpMax} XP</Text>
+              </View>
+              <View style={styles.streakBadge}>
+                <Text style={styles.streakText}>7 day streak 🔥</Text>
+              </View>
+            </View>
 
-        {/* Modules */}
-        {tab === "modules" && (
-          <View style={styles.section}>
-            {modules.map((mod) => (
+            {/* XP bar */}
+            <View style={styles.xpBarBg}>
+              <MotiView
+                from={{ width: "0%" }}
+                animate={{ width: `${(xp / xpMax) * 100}%` as any }}
+                transition={{ type: "timing", duration: 700, delay: 300 }}
+                style={styles.xpBarFill}
+              />
+            </View>
+            <Text style={styles.xpHint}>{xpMax - xp} XP to next level</Text>
+          </LinearGradient>
+        </MotiView>
+
+        {/* ── Featured Lesson ── */}
+        <MotiView
+          from={{ opacity: 0, translateY: 10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 400, delay: 120 }}
+        >
+          <Text style={styles.sectionLabel}>Featured Lesson</Text>
+          <Pressable
+            style={({ pressed }) => [styles.featuredCard, { opacity: pressed ? 0.93 : 1 }]}
+            onPress={() => setSelectedCourse(COURSES[0])}
+          >
+            <LinearGradient
+              colors={["#7C3FC4", Colors.brand.gradientEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.featuredGrad}
+            />
+            <View style={styles.featuredContent}>
+              <View style={{ flex: 1 }}>
+                <View style={styles.featuredBadge}>
+                  <Text style={styles.featuredBadgeText}>TOP PICK</Text>
+                </View>
+                <Text style={styles.featuredTitle}>Budgeting 101 📚</Text>
+                <Text style={styles.featuredSub}>Master the 50/30/20 rule and take control of your money</Text>
+                <View style={styles.featuredMeta}>
+                  <Ionicons name="time-outline" size={13} color="rgba(255,255,255,0.7)" />
+                  <Text style={styles.featuredMetaText}>15 min · 3 lessons</Text>
+                </View>
+              </View>
+              <ProgressRing pct={60} size={72} stroke={6} color={Colors.accent.amber} />
+            </View>
+          </Pressable>
+        </MotiView>
+
+        {/* ── Courses Horizontal Scroll ── */}
+        <MotiView
+          from={{ opacity: 0, translateY: 10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 400, delay: 200 }}
+        >
+          <Text style={styles.sectionLabel}>All Courses</Text>
+        </MotiView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.courseRow}
+        >
+          {COURSES.map((course, i) => (
+            <MotiView
+              key={course.id}
+              from={{ opacity: 0, translateX: 20 }}
+              animate={{ opacity: 1, translateX: 0 }}
+              transition={{ type: "timing", duration: 380, delay: 240 + i * 60 }}
+            >
               <Pressable
-                key={mod.id}
-                onPress={() => mod.status !== "locked" && setActiveModule(mod)}
-                style={[styles.moduleCard, mod.status === "locked" && { opacity: 0.5 }]}
+                style={({ pressed }) => [styles.courseCard, { opacity: pressed ? 0.9 : 1 }]}
+                onPress={() => setSelectedCourse(course)}
               >
-                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-                  <View style={[styles.modIcon, { backgroundColor: categoryColors[mod.category] + "18" }]}>
-                    <Ionicons
-                      name={mod.status === "completed" ? "checkmark" : mod.status === "locked" ? "lock-closed" : "book"}
-                      size={18}
-                      color={mod.status === "completed" ? Colors.accent.green : categoryColors[mod.category]}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.modTitle}>{mod.title}</Text>
-                    <Text style={styles.modMeta}>{mod.duration} · {mod.xp} XP · {mod.lessons.length} lessons</Text>
-                  </View>
-                  <View style={[styles.catBadge, { backgroundColor: categoryColors[mod.category] + "18" }]}>
-                    <Text style={[styles.catText, { color: categoryColors[mod.category] }]}>{mod.category}</Text>
-                  </View>
+                <View style={[styles.courseEmojiWrap, { backgroundColor: course.color + "18" }]}>
+                  <Text style={styles.courseEmoji}>{course.emoji}</Text>
                 </View>
-                <Text style={styles.modDesc}>{mod.description}</Text>
-                {mod.status === "in_progress" && (
-                  <View style={styles.modProgressBar}>
-                    <View style={[styles.modProgressFill, { width: `${mod.progress}%` }]} />
-                  </View>
-                )}
+                <Text style={styles.courseTitle}>{course.title}</Text>
+                <Text style={styles.courseMeta}>{course.lessons.length} lessons</Text>
+                <View style={styles.courseProgBarBg}>
+                  <View
+                    style={[
+                      styles.courseProgBarFill,
+                      { width: `${course.completionPct}%`, backgroundColor: course.color },
+                    ]}
+                  />
+                </View>
+                <Text style={[styles.courseProgPct, { color: course.color }]}>
+                  {course.completionPct}%
+                </Text>
               </Pressable>
+            </MotiView>
+          ))}
+        </ScrollView>
+
+        {/* ── Badges Section ── */}
+        <MotiView
+          from={{ opacity: 0, translateY: 10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 400, delay: 420 }}
+        >
+          <Text style={styles.sectionLabel}>Badges</Text>
+          <View style={styles.badgeGrid}>
+            {BADGES.map((b, i) => (
+              <MotiView
+                key={b.id}
+                from={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", delay: 460 + i * 70 }}
+              >
+                <View style={[styles.badgeCard, !b.unlocked && styles.badgeLocked]}>
+                  <View style={[styles.badgeIconCircle, b.unlocked && { backgroundColor: Colors.accent.amber + "22" }]}>
+                    {b.unlocked ? (
+                      <Text style={styles.badgeEmoji}>{b.emoji}</Text>
+                    ) : (
+                      <Ionicons name="lock-closed" size={22} color={Colors.ink[300]} />
+                    )}
+                  </View>
+                  <Text style={[styles.badgeLabel, !b.unlocked && { color: Colors.ink[400] }]}>{b.label}</Text>
+                  <Text style={styles.badgeDesc}>{b.desc}</Text>
+                  {b.unlocked && (
+                    <View style={styles.unlockedDot}>
+                      <Ionicons name="checkmark" size={10} color={Colors.white} />
+                    </View>
+                  )}
+                </View>
+              </MotiView>
             ))}
           </View>
-        )}
-
-        {/* Quizzes */}
-        {tab === "quiz" && !quizModule && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Available Quizzes</Text>
-            {modules.filter((m) => m.status !== "locked").map((mod) => (
-              <Pressable key={mod.id} onPress={() => startQuiz(mod)} style={styles.quizCard}>
-                <Ionicons name="help-circle" size={24} color={categoryColors[mod.category]} />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.quizTitle}>{mod.title}</Text>
-                  <Text style={styles.quizMeta}>{mod.quiz.length} questions · {mod.xp / 2} XP</Text>
-                </View>
-                <Ionicons name="play-circle" size={24} color={Colors.brand.primary} />
-              </Pressable>
-            ))}
-          </View>
-        )}
-
-        {/* Active Quiz */}
-        {tab === "quiz" && quizModule && !quizDone && (
-          <View style={styles.quizContainer}>
-            <View style={styles.quizHeader}>
-              <Text style={styles.quizProgress}>Question {currentQ + 1} of {quizModule.quiz.length}</Text>
-              <View style={styles.quizProgressBar}>
-                <View style={[styles.quizProgressFill, { width: `${((currentQ + 1) / quizModule.quiz.length) * 100}%` }]} />
-              </View>
-            </View>
-            <Text style={styles.questionText}>{quizModule.quiz[currentQ].question}</Text>
-            {quizModule.quiz[currentQ].options.map((opt, i) => {
-              const isSelected = selectedAnswer === i;
-              const isCorrect = i === quizModule.quiz[currentQ].correctIndex;
-              const showResult = selectedAnswer !== null;
-              return (
-                <Pressable
-                  key={i}
-                  onPress={() => answerQuestion(i)}
-                  style={[
-                    styles.optionBtn,
-                    showResult && isCorrect && styles.optionCorrect,
-                    showResult && isSelected && !isCorrect && styles.optionWrong,
-                  ]}
-                >
-                  <Text style={[styles.optionText, showResult && isCorrect && { color: Colors.accent.green }, showResult && isSelected && !isCorrect && { color: Colors.accent.red }]}>
-                    {opt}
-                  </Text>
-                  {showResult && isCorrect && <Ionicons name="checkmark-circle" size={20} color={Colors.accent.green} />}
-                  {showResult && isSelected && !isCorrect && <Ionicons name="close-circle" size={20} color={Colors.accent.red} />}
-                </Pressable>
-              );
-            })}
-          </View>
-        )}
-
-        {/* Quiz Done */}
-        {tab === "quiz" && quizModule && quizDone && (
-          <View style={styles.quizDone}>
-            <View style={[styles.doneCircle, { backgroundColor: score === quizModule.quiz.length ? Colors.accent.green : Colors.accent.amber }]}>
-              <Ionicons name={score === quizModule.quiz.length ? "trophy" : "ribbon"} size={40} color={Colors.white} />
-            </View>
-            <Text style={styles.doneTitle}>Quiz Complete!</Text>
-            <Text style={styles.doneScore}>{score}/{quizModule.quiz.length} Correct</Text>
-            <Text style={styles.doneXP}>+{Math.floor((score / quizModule.quiz.length) * (quizModule.xp / 2))} XP Earned</Text>
-            {score === quizModule.quiz.length && (
-              <View style={styles.perfectBadge}>
-                <Ionicons name="star" size={16} color={Colors.accent.amber} />
-                <Text style={styles.perfectText}>Perfect Score!</Text>
-              </View>
-            )}
-            <Button title="Back to Quizzes" onPress={() => { setQuizModule(null); setQuizDone(false); }} style={{ marginTop: 20, paddingHorizontal: 20 }} />
-          </View>
-        )}
-
-        {/* Badges */}
-        {tab === "badges" && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Badges</Text>
-            <View style={styles.badgeGrid}>
-              {badges.map((badge) => (
-                <View key={badge.id} style={[styles.badgeCard, !badge.earned && { opacity: 0.4 }]}>
-                  <View style={[styles.badgeIcon, badge.earned && { backgroundColor: Colors.accent.amber + "20" }]}>
-                    <Ionicons name={badge.icon as any} size={24} color={badge.earned ? Colors.accent.amber : Colors.ink[400]} />
-                  </View>
-                  <Text style={styles.badgeName}>{badge.name}</Text>
-                  <Text style={styles.badgeDesc}>{badge.description}</Text>
-                  {badge.earned && <Ionicons name="checkmark-circle" size={16} color={Colors.accent.green} style={{ marginTop: 4 }} />}
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
+        </MotiView>
       </ScrollView>
 
-      {/* Module Detail Modal */}
-      <Modal visible={!!activeModule} transparent animationType="slide" onRequestClose={() => setActiveModule(null)}>
-        <Pressable style={styles.modalBg} onPress={() => setActiveModule(null)}>
-          <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
-            {activeModule && (
-              <>
-                <Text style={styles.modalTitle}>{activeModule.title}</Text>
-                <Text style={styles.modalSub}>{activeModule.description}</Text>
-                <View style={{ marginTop: 16 }}>
-                  {activeModule.lessons.map((lesson, i) => (
-                    <View key={i} style={styles.lessonRow}>
-                      <View style={[styles.lessonNum, activeModule.progress >= ((i + 1) / activeModule.lessons.length) * 100 && { backgroundColor: Colors.accent.green }]}>
-                        {activeModule.progress >= ((i + 1) / activeModule.lessons.length) * 100 ? (
-                          <Ionicons name="checkmark" size={12} color={Colors.white} />
-                        ) : (
-                          <Text style={styles.lessonNumText}>{i + 1}</Text>
-                        )}
-                      </View>
-                      <Text style={styles.lessonText}>{lesson}</Text>
+      {/* ── Course Modal ── */}
+      <Modal visible={!!selectedCourse} transparent animationType="slide" onRequestClose={closeCourse}>
+        <Pressable style={styles.modalOverlay} onPress={closeCourse}>
+          <MotiView
+            from={{ translateY: 80, opacity: 0 }}
+            animate={{ translateY: 0, opacity: 1 }}
+            transition={{ type: "spring", damping: 22, stiffness: 200 }}
+            style={styles.modalSheet}
+          >
+            <Pressable onPress={() => {}} style={{ flex: 1 }}>
+              {selectedCourse && (
+                <>
+                  {/* Handle */}
+                  <View style={styles.sheetHandle} />
+
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalEmoji}>{selectedCourse.emoji}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.modalTitle}>{selectedCourse.title}</Text>
+                      <Text style={styles.modalSub}>{selectedCourse.completionPct}% complete · {selectedCourse.lessons.length} lessons</Text>
                     </View>
+                    <ProgressRing pct={selectedCourse.completionPct} size={52} stroke={4} color={selectedCourse.color} />
+                  </View>
+
+                  <Text style={styles.lessonsSectionLabel}>Lessons</Text>
+
+                  {selectedCourse.lessons.map((lesson, i) => (
+                    <MotiView
+                      key={lesson.id}
+                      from={{ opacity: 0, translateX: -12 }}
+                      animate={{ opacity: 1, translateX: 0 }}
+                      transition={{ type: "timing", duration: 280, delay: i * 70 }}
+                    >
+                      <Pressable
+                        style={({ pressed }) => [styles.lessonRow, { opacity: pressed ? 0.8 : 1 }]}
+                        onPress={() => {
+                          setSelectedLesson(lesson);
+                          setChosenIdx(null);
+                        }}
+                      >
+                        <View style={[styles.lessonNumBadge, { backgroundColor: selectedCourse.color + "22" }]}>
+                          <Text style={[styles.lessonNum, { color: selectedCourse.color }]}>{i + 1}</Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.lessonTitle}>{lesson.title}</Text>
+                          <Text style={styles.lessonDuration}>{lesson.duration}</Text>
+                        </View>
+                        <Ionicons name="play-circle-outline" size={24} color={selectedCourse.color} />
+                      </Pressable>
+                    </MotiView>
                   ))}
+
+                  <View style={styles.modalFooter}>
+                    <Button title="Start Learning" onPress={closeCourse} />
+                  </View>
+                </>
+              )}
+            </Pressable>
+          </MotiView>
+        </Pressable>
+      </Modal>
+
+      {/* ── Quiz Modal ── */}
+      <Modal
+        visible={!!selectedLesson}
+        transparent
+        animationType="fade"
+        onRequestClose={closeQuiz}
+      >
+        <View style={styles.quizOverlay}>
+          <MotiView
+            from={{ scale: 0.92, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", damping: 20, stiffness: 260 }}
+            style={styles.quizCard}
+          >
+            <Pressable style={styles.quizClose} onPress={closeQuiz}>
+              <Ionicons name="close" size={20} color={Colors.ink[400]} />
+            </Pressable>
+            {currentQuiz && (
+              <>
+                <View style={styles.quizIconWrap}>
+                  <Ionicons name="bulb-outline" size={28} color={Colors.brand.primary} />
                 </View>
-                <Button
-                  title={activeModule.status === "completed" ? "Review Module" : "Continue Learning"}
-                  onPress={() => setActiveModule(null)}
-                  style={{ marginTop: 16 }}
-                />
-                {activeModule.quiz.length > 0 && (
-                  <Button
-                    title="Take Quiz"
-                    variant="secondary"
-                    onPress={() => { startQuiz(activeModule); setActiveModule(null); setTab("quiz"); }}
-                    style={{ marginTop: 8 }}
-                  />
+                <Text style={styles.quizLesson}>{selectedLesson?.title}</Text>
+                <Text style={styles.quizQuestion}>{currentQuiz.question}</Text>
+
+                <View style={styles.quizOptions}>
+                  {currentQuiz.options.map((opt, idx) => {
+                    const isChosen = chosenIdx === idx;
+                    const showResult = chosenIdx !== null;
+                    const isCorrect = opt.correct;
+                    const bg =
+                      showResult && isCorrect
+                        ? Colors.accent.greenSoft
+                        : showResult && isChosen && !isCorrect
+                        ? Colors.accent.redSoft
+                        : Colors.ink[50];
+                    const border =
+                      showResult && isCorrect
+                        ? Colors.accent.green
+                        : showResult && isChosen && !isCorrect
+                        ? Colors.accent.red
+                        : Colors.ink[200];
+
+                    return (
+                      <MotiView
+                        key={idx}
+                        animate={{ backgroundColor: bg, borderColor: border }}
+                        transition={{ type: "timing", duration: 220 }}
+                        style={[styles.optionChip]}
+                      >
+                        <Pressable
+                          style={styles.optionPressable}
+                          onPress={() => handleAnswer(idx, opt.correct)}
+                          disabled={chosenIdx !== null}
+                        >
+                          <Text
+                            style={[
+                              styles.optionText,
+                              showResult && isCorrect && { color: Colors.accent.green },
+                              showResult && isChosen && !isCorrect && { color: Colors.accent.red },
+                            ]}
+                          >
+                            {opt.text}
+                          </Text>
+                          {showResult && isCorrect && (
+                            <Ionicons name="checkmark-circle" size={18} color={Colors.accent.green} />
+                          )}
+                          {showResult && isChosen && !isCorrect && (
+                            <Ionicons name="close-circle" size={18} color={Colors.accent.red} />
+                          )}
+                        </Pressable>
+                      </MotiView>
+                    );
+                  })}
+                </View>
+
+                {chosenIdx !== null && (
+                  <MotiView
+                    from={{ opacity: 0, translateY: 8 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ type: "timing", duration: 300 }}
+                    style={{ marginTop: 10 }}
+                  >
+                    <Button title="Next Lesson" size="md" onPress={closeQuiz} />
+                  </MotiView>
                 )}
               </>
             )}
-          </View>
-        </Pressable>
+          </MotiView>
+        </View>
+
+        {/* Toast overlay */}
+        <XPToast visible={toastVisible} correct={toastCorrect} />
       </Modal>
     </Screen>
   );
 }
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  progressCard: { marginHorizontal: 18, backgroundColor: Colors.white, borderRadius: 18, padding: 18, flexDirection: "row", alignItems: "center", gap: 16, shadowColor: "#101225", shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  levelCircle: { width: 64, height: 64, borderRadius: 32, borderWidth: 3, borderColor: Colors.accent.amber, alignItems: "center", justifyContent: "center" },
-  levelNum: { fontFamily: "Inter_700Bold", fontSize: 22, color: Colors.ink[900] },
-  levelLabel: { fontFamily: "Inter_400Regular", fontSize: 9, color: Colors.ink[500] },
-  progressInfo: { flex: 1 },
-  progressTitle: { fontFamily: "Inter_700Bold", fontSize: 16, color: Colors.ink[900] },
-  progressSub: { fontFamily: "Inter_400Regular", fontSize: 12, color: Colors.ink[500], marginTop: 2 },
-  xpBar: { height: 6, borderRadius: 3, backgroundColor: Colors.ink[100], marginTop: 8 },
-  xpFill: { height: 6, borderRadius: 3, backgroundColor: Colors.accent.amber },
-  progressStats: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
-  progressStatText: { fontFamily: "Inter_400Regular", fontSize: 11, color: Colors.ink[500] },
-  tabRow: { flexDirection: "row", paddingHorizontal: 18, gap: 8, marginTop: 16 },
-  tabChip: { flex: 1, paddingVertical: 10, borderRadius: 12, backgroundColor: Colors.white, alignItems: "center", borderWidth: 1, borderColor: Colors.ink[200] },
-  tabActive: { backgroundColor: Colors.brand.primary, borderColor: Colors.brand.primary },
-  tabText: { fontFamily: "Inter_500Medium", fontSize: 13, color: Colors.ink[600] },
-  tabTextActive: { color: Colors.white },
-  section: { paddingHorizontal: 18, marginTop: 16 },
-  sectionTitle: { fontFamily: "Inter_600SemiBold", fontSize: 15, color: Colors.ink[900], marginBottom: 12 },
-  moduleCard: { backgroundColor: Colors.white, borderRadius: 14, padding: 14, marginBottom: 10, shadowColor: "#101225", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 },
-  modIcon: { width: 38, height: 38, borderRadius: 10, alignItems: "center", justifyContent: "center", marginRight: 12 },
-  modTitle: { fontFamily: "Inter_600SemiBold", fontSize: 14, color: Colors.ink[900] },
-  modMeta: { fontFamily: "Inter_400Regular", fontSize: 11, color: Colors.ink[500], marginTop: 2 },
-  catBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
-  catText: { fontFamily: "Inter_600SemiBold", fontSize: 10, textTransform: "capitalize" },
-  modDesc: { fontFamily: "Inter_400Regular", fontSize: 12, color: Colors.ink[600], lineHeight: 17 },
-  modProgressBar: { height: 6, borderRadius: 3, backgroundColor: Colors.ink[100], marginTop: 8 },
-  modProgressFill: { height: 6, borderRadius: 3, backgroundColor: Colors.brand.primary },
-  quizCard: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.white, borderRadius: 14, padding: 14, marginBottom: 8 },
-  quizTitle: { fontFamily: "Inter_600SemiBold", fontSize: 14, color: Colors.ink[900] },
-  quizMeta: { fontFamily: "Inter_400Regular", fontSize: 11, color: Colors.ink[500], marginTop: 2 },
-  quizContainer: { paddingHorizontal: 18, marginTop: 16 },
-  quizHeader: { marginBottom: 20 },
-  quizProgress: { fontFamily: "Inter_500Medium", fontSize: 13, color: Colors.ink[600], marginBottom: 6 },
-  quizProgressBar: { height: 6, borderRadius: 3, backgroundColor: Colors.ink[100] },
-  quizProgressFill: { height: 6, borderRadius: 3, backgroundColor: Colors.brand.primary },
-  questionText: { fontFamily: "Inter_700Bold", fontSize: 18, color: Colors.ink[900], lineHeight: 26, marginBottom: 20 },
-  optionBtn: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: Colors.white, borderRadius: 14, padding: 16, marginBottom: 10, borderWidth: 1.5, borderColor: Colors.ink[200] },
-  optionCorrect: { borderColor: Colors.accent.green, backgroundColor: Colors.accent.greenSoft },
-  optionWrong: { borderColor: Colors.accent.red, backgroundColor: Colors.accent.redSoft },
-  optionText: { fontFamily: "Inter_500Medium", fontSize: 14, color: Colors.ink[800], flex: 1 },
-  quizDone: { alignItems: "center", paddingHorizontal: 30, paddingTop: 40 },
-  doneCircle: { width: 80, height: 80, borderRadius: 40, alignItems: "center", justifyContent: "center", marginBottom: 16 },
-  doneTitle: { fontFamily: "Inter_700Bold", fontSize: 22, color: Colors.ink[900] },
-  doneScore: { fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.ink[700], marginTop: 6 },
-  doneXP: { fontFamily: "Inter_500Medium", fontSize: 14, color: Colors.brand.primary, marginTop: 4 },
-  perfectBadge: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#FFF3E0", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, marginTop: 12 },
-  perfectText: { fontFamily: "Inter_600SemiBold", fontSize: 13, color: Colors.accent.amber },
-  badgeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  badgeCard: { width: "47%", backgroundColor: Colors.white, borderRadius: 16, padding: 16, alignItems: "center" },
-  badgeIcon: { width: 50, height: 50, borderRadius: 25, backgroundColor: Colors.ink[100], alignItems: "center", justifyContent: "center", marginBottom: 8 },
-  badgeName: { fontFamily: "Inter_600SemiBold", fontSize: 13, color: Colors.ink[900], textAlign: "center" },
-  badgeDesc: { fontFamily: "Inter_400Regular", fontSize: 10, color: Colors.ink[500], textAlign: "center", marginTop: 4 },
-  modalBg: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
-  modalCard: { backgroundColor: Colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
-  modalTitle: { fontFamily: "Inter_700Bold", fontSize: 18, color: Colors.ink[900] },
-  modalSub: { fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[500], marginTop: 4 },
-  lessonRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 10 },
-  lessonNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: Colors.ink[200], alignItems: "center", justifyContent: "center" },
-  lessonNumText: { fontFamily: "Inter_600SemiBold", fontSize: 12, color: Colors.ink[600] },
-  lessonText: { fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[700], flex: 1 },
+  scroll: {
+    paddingHorizontal: 18,
+    paddingTop: 12,
+  },
+  // XP Card
+  xpCard: {
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 22,
+    overflow: "hidden",
+  },
+  deco1: {
+    position: "absolute",
+    top: -40,
+    right: -40,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: "rgba(255,255,255,0.07)",
+  },
+  deco2: {
+    position: "absolute",
+    bottom: -30,
+    left: -20,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  xpTop: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  xpLevel: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: Colors.white,
+  },
+  xpSub: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: "rgba(255,255,255,0.7)",
+    marginTop: 2,
+  },
+  streakBadge: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  streakText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 12,
+    color: Colors.white,
+  },
+  xpBarBg: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    overflow: "hidden",
+  },
+  xpBarFill: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.accent.amber,
+  },
+  xpHint: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: "rgba(255,255,255,0.6)",
+    marginTop: 6,
+    textAlign: "right",
+  },
+  // Section label
+  sectionLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 15,
+    color: Colors.ink[900],
+    marginBottom: 12,
+  },
+  // Featured card
+  featuredCard: {
+    borderRadius: 20,
+    overflow: "hidden",
+    marginBottom: 24,
+    height: 150,
+  },
+  featuredGrad: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  featuredContent: {
+    flex: 1,
+    padding: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  featuredBadge: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+    marginBottom: 8,
+  },
+  featuredBadgeText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 9,
+    color: Colors.white,
+    letterSpacing: 1,
+  },
+  featuredTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: Colors.white,
+  },
+  featuredSub: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: "rgba(255,255,255,0.75)",
+    lineHeight: 17,
+    marginTop: 4,
+  },
+  featuredMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 8,
+  },
+  featuredMetaText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: "rgba(255,255,255,0.7)",
+  },
+  // Course cards
+  courseRow: {
+    paddingRight: 18,
+    gap: 12,
+    marginBottom: 26,
+  },
+  courseCard: {
+    width: 140,
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 14,
+    shadowColor: "#101225",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  courseEmojiWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  courseEmoji: {
+    fontSize: 22,
+  },
+  courseTitle: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    color: Colors.ink[900],
+  },
+  courseMeta: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: Colors.ink[500],
+    marginTop: 2,
+    marginBottom: 8,
+  },
+  courseProgBarBg: {
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.ink[100],
+    marginBottom: 4,
+  },
+  courseProgBarFill: {
+    height: 4,
+    borderRadius: 2,
+  },
+  courseProgPct: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 11,
+    textAlign: "right",
+  },
+  // Badges
+  badgeGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 8,
+  },
+  badgeCard: {
+    width: "47.5%",
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: "center",
+    shadowColor: "#101225",
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  badgeLocked: {
+    opacity: 0.5,
+  },
+  badgeIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: Colors.ink[100],
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  badgeEmoji: {
+    fontSize: 24,
+  },
+  badgeLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    color: Colors.ink[900],
+    textAlign: "center",
+  },
+  badgeDesc: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 10,
+    color: Colors.ink[500],
+    textAlign: "center",
+    marginTop: 4,
+    lineHeight: 14,
+  },
+  unlockedDot: {
+    marginTop: 8,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Colors.accent.green,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // Course Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(16,18,37,0.45)",
+    justifyContent: "flex-end",
+  },
+  modalSheet: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 20,
+    paddingBottom: 36,
+    maxHeight: "85%",
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.ink[200],
+    alignSelf: "center",
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    marginBottom: 18,
+  },
+  modalEmoji: {
+    fontSize: 30,
+  },
+  modalTitle: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: Colors.ink[900],
+  },
+  modalSub: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: Colors.ink[500],
+    marginTop: 2,
+  },
+  lessonsSectionLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    color: Colors.ink[700],
+    marginBottom: 10,
+  },
+  lessonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: Colors.ink[50],
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 8,
+  },
+  lessonNumBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  lessonNum: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 14,
+  },
+  lessonTitle: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 14,
+    color: Colors.ink[900],
+  },
+  lessonDuration: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: Colors.ink[500],
+    marginTop: 2,
+  },
+  modalFooter: {
+    marginTop: 18,
+  },
+  // Quiz Modal
+  quizOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(16,18,37,0.55)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  quizCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 24,
+    padding: 24,
+    width: "100%",
+    maxWidth: 400,
+  },
+  quizClose: {
+    alignSelf: "flex-end",
+    padding: 4,
+    marginBottom: 8,
+  },
+  quizIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: Colors.brand.primary50,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  quizLesson: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    color: Colors.brand.primary,
+    marginBottom: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  quizQuestion: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 17,
+    color: Colors.ink[900],
+    lineHeight: 24,
+    marginBottom: 18,
+  },
+  quizOptions: {
+    gap: 8,
+  },
+  optionChip: {
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: Colors.ink[200],
+    backgroundColor: Colors.ink[50],
+    overflow: "hidden",
+  },
+  optionPressable: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+  },
+  optionText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 14,
+    color: Colors.ink[800],
+    flex: 1,
+  },
+  // XP Toast
+  xpToast: {
+    position: "absolute",
+    bottom: 60,
+    alignSelf: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  xpToastText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 15,
+    color: Colors.white,
+  },
 });

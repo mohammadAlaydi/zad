@@ -23,7 +23,7 @@ export function Header({ title, showBack = true, right, transparent, onBack, lig
       style={[
         styles.container,
         {
-          paddingTop: insets.top + 6,
+          paddingTop: Math.max(insets.top, 24) + 16,
           backgroundColor: transparent || light ? "transparent" : Colors.white,
         },
       ]}

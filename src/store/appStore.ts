@@ -252,6 +252,97 @@ const seededAgents: AgentProfile[] = [
   { id: "a5", name: "Sunrise Financial", address: "9 Marina Walk, Dubai", distance: "2.1 km", rating: 4.0, openNow: false, lat: 25.0819, lng: 55.1367, floatLimit: 2500 },
 ];
 
+const seededBNPL: BNPLInstallment[] = [
+  {
+    id: "bnpl-1", merchantName: "Apple Store", totalAmount: 1299, installments: 12,
+    paidCount: 4, amountPerInstallment: 108.25, nextDueDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+    currency: "USD", lateFee: 5, status: "active",
+  },
+  {
+    id: "bnpl-2", merchantName: "Samsung Galaxy", totalAmount: 799, installments: 6,
+    paidCount: 5, amountPerInstallment: 133.17, nextDueDate: new Date(Date.now() + 14 * 86400000).toISOString(),
+    currency: "USD", lateFee: 5, status: "active",
+  },
+  {
+    id: "bnpl-3", merchantName: "IKEA Furniture", totalAmount: 450, installments: 3,
+    paidCount: 3, amountPerInstallment: 150, nextDueDate: new Date(Date.now() - 5 * 86400000).toISOString(),
+    currency: "USD", lateFee: 0, status: "completed",
+  },
+];
+
+const seededVouchers: Voucher[] = [
+  {
+    id: "v1", type: "gift_card", merchant: "Amazon", value: 50, currency: "USD",
+    code: "AMZN-X9K2-7YBP", expiresAt: new Date(Date.now() + 90 * 86400000).toISOString(),
+    isUsed: false,
+  },
+  {
+    id: "v2", type: "mobile_topup", merchant: "du Telecom", value: 25, currency: "USD",
+    code: "DU-TOP-4521-H", expiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
+    isUsed: false,
+  },
+  {
+    id: "v3", type: "service_credit", merchant: "Netflix", value: 15, currency: "USD",
+    code: "NFLX-2024-Q1ZZ", expiresAt: new Date(Date.now() - 10 * 86400000).toISOString(),
+    redeemedAt: new Date(Date.now() - 20 * 86400000).toISOString(), isUsed: true,
+  },
+];
+
+const seededGoals: WalletGoal[] = [
+  {
+    id: "g1", name: "New Laptop", emoji: "💻", targetAmount: 1500, savedAmount: 620,
+    currency: "USD", createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
+  },
+  {
+    id: "g2", name: "Vacation", emoji: "✈️", targetAmount: 3000, savedAmount: 1850,
+    currency: "USD", createdAt: new Date(Date.now() - 60 * 86400000).toISOString(),
+  },
+];
+
+const seededScheduled: ScheduledPayment[] = [
+  {
+    id: "sp1", recipient: "Roaa Ali", recipientPhone: "0101663645", amount: 200,
+    currency: "USD", frequency: "monthly", nextDate: new Date(Date.now() + 5 * 86400000).toISOString(),
+    type: "transfer", isActive: true, note: "Monthly allowance",
+  },
+  {
+    id: "sp2", recipient: "Etisalat", amount: 85, currency: "USD",
+    frequency: "monthly", nextDate: new Date(Date.now() + 12 * 86400000).toISOString(),
+    type: "bill", isActive: true,
+  },
+];
+
+const seededSavings: SavingsPlan[] = [
+  {
+    id: "sav1", name: "Emergency Fund", emoji: "🛡️", targetAmount: 5000, savedAmount: 2400,
+    contributionAmount: 200, frequency: "monthly", interestRate: 2.5,
+    currency: "USD", createdAt: new Date(Date.now() - 90 * 86400000).toISOString(), isActive: true,
+  },
+  {
+    id: "sav2", name: "Ramadan Savings", emoji: "🌙", targetAmount: 1000, savedAmount: 750,
+    contributionAmount: 50, frequency: "weekly",
+    lockUntil: new Date(Date.now() + 45 * 86400000).toISOString(),
+    currency: "USD", createdAt: new Date(Date.now() - 20 * 86400000).toISOString(), isActive: true,
+  },
+];
+
+const seededReferrals: Referral[] = [
+  { id: "r1", name: "Ahmed Karimi", joinedAt: new Date(Date.now() - 15 * 86400000).toISOString(), pointsEarned: 250 },
+  { id: "r2", name: "Sara Nasser", joinedAt: new Date(Date.now() - 40 * 86400000).toISOString(), pointsEarned: 250 },
+];
+
+const seededStocks: StockHolding[] = [
+  { id: "stk1", ticker: "AAPL", companyName: "Apple Inc.", shares: 3, avgBuyPrice: 171.5, currentPrice: 189.3, currency: "USD" },
+  { id: "stk2", ticker: "AMZN", companyName: "Amazon.com Inc.", shares: 2, avgBuyPrice: 178.2, currentPrice: 192.1, currency: "USD" },
+  { id: "stk3", ticker: "TSLA", companyName: "Tesla Inc.", shares: 5, avgBuyPrice: 245.0, currentPrice: 218.4, currency: "USD" },
+];
+
+const seededCrypto: CryptoHolding[] = [
+  { id: "cry1", symbol: "BTC", name: "Bitcoin", amount: 0.05, avgBuyPrice: 58000, currentPrice: 67400, currency: "USD" },
+  { id: "cry2", symbol: "ETH", name: "Ethereum", amount: 0.8, avgBuyPrice: 3100, currentPrice: 3520, currency: "USD" },
+  { id: "cry3", symbol: "SOL", name: "Solana", amount: 12, avgBuyPrice: 145, currentPrice: 168, currency: "USD" },
+];
+
 export const useApp = create<AppState>()(
   persist(
     (set) => ({
@@ -276,6 +367,7 @@ export const useApp = create<AppState>()(
       cards: seededCards,
 
       visaDirectTxs: [],
+
       sendVisaDirect: (tx) =>
         set((s) => ({
           visaDirectTxs: [tx, ...s.visaDirectTxs],
@@ -304,23 +396,23 @@ export const useApp = create<AppState>()(
           ],
         })),
 
-      bnplInstallments: [],
+      bnplInstallments: seededBNPL,
       addBNPL: (item) => set((s) => ({ bnplInstallments: [item, ...s.bnplInstallments] })),
       repayBNPL: (id) =>
         set((s) => ({ bnplInstallments: s.bnplInstallments.map((b) => b.id === id ? { ...b, paidCount: Math.min(b.paidCount + 1, b.installments) } : b) })),
 
-      vouchers: [],
+      vouchers: seededVouchers,
       addVoucher: (v) => set((s) => ({ vouchers: [v, ...s.vouchers] })),
       redeemVoucher: (id) =>
         set((s) => ({ vouchers: s.vouchers.map((v) => v.id === id ? { ...v, isUsed: true, redeemedAt: new Date().toISOString() } : v) })),
 
       loyaltyPoints: 1240,
       loyaltyLevel: "Silver",
-      referrals: [],
+      referrals: seededReferrals,
       redeemLoyaltyPoints: (points) => set((s) => ({ loyaltyPoints: Math.max(0, s.loyaltyPoints - points) })),
       addReferral: (r) => set((s) => ({ referrals: [r, ...s.referrals] })),
 
-      goals: [],
+      goals: seededGoals,
       addGoal: (g) => set((s) => ({ goals: [g, ...s.goals] })),
       depositGoal: (id, amount) =>
         set((s) => ({
@@ -333,14 +425,14 @@ export const useApp = create<AppState>()(
           balances: { ...s.balances, [s.activeCurrency]: s.balances[s.activeCurrency] + amount },
         })),
 
-      scheduledPayments: [],
+      scheduledPayments: seededScheduled,
       addScheduledPayment: (p) => set((s) => ({ scheduledPayments: [p, ...s.scheduledPayments] })),
       toggleScheduledPayment: (id) =>
         set((s) => ({ scheduledPayments: s.scheduledPayments.map((p) => p.id === id ? { ...p, isActive: !p.isActive } : p) })),
       deleteScheduledPayment: (id) =>
         set((s) => ({ scheduledPayments: s.scheduledPayments.filter((p) => p.id !== id) })),
 
-      savingsPlans: [],
+      savingsPlans: seededSavings,
       addSavingsPlan: (p) => set((s) => ({ savingsPlans: [p, ...s.savingsPlans] })),
       contributeSavings: (id, amount) =>
         set((s) => ({
@@ -353,7 +445,7 @@ export const useApp = create<AppState>()(
           balances: { ...s.balances, [s.activeCurrency]: s.balances[s.activeCurrency] + amount },
         })),
 
-      stockHoldings: [],
+      stockHoldings: seededStocks,
       buyStock: (ticker, shares, price, currency) =>
         set((s) => {
           const existing = s.stockHoldings.find((h) => h.ticker === ticker);
@@ -374,7 +466,7 @@ export const useApp = create<AppState>()(
           balances: { ...s.balances, [s.activeCurrency]: s.balances[s.activeCurrency] + shares * price },
         })),
 
-      cryptoHoldings: [],
+      cryptoHoldings: seededCrypto,
       buyCrypto: (symbol, amount, price, currency) =>
         set((s) => {
           const existing = s.cryptoHoldings.find((h) => h.symbol === symbol);
@@ -408,7 +500,7 @@ export const useApp = create<AppState>()(
       signOut: () => set({ isAuthenticated: false, hasOnboarded: false }),
     }),
     {
-      name: "zadpay-store-v4",
+      name: "zadpay-store-v5",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         hasOnboarded: s.hasOnboarded,

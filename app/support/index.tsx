@@ -4,285 +4,206 @@ import {
   Text,
   Pressable,
   TextInput,
-  FlatList,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   StatusBar,
 } from "react-native";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { MotiView } from "moti";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
-import {
-  useSupportStore,
-  getBotReply,
-  type ChatMessage,
-  type SupportTicket,
-} from "@/store/supportStore";
 import { useApp } from "@/store/appStore";
 
-export default function SupportChat() {
+// ─── Types ─────────────────────────────────────────────────────────────────────
+type Sender = "bot" | "user" | "agent";
+
+type Message = {
+  id: string;
+  text: string;
+  sender: Sender;
+  agentName?: string;
+};
+
+// ─── Canned responses ──────────────────────────────────────────────────────────
+function getBotReply(text: string, balance: number): string {
+  const lower = text.toLowerCase();
+  if (lower.includes("balance")) {
+    return `Your current wallet balance is $${balance.toFixed(2)}. Is there anything else I can help you with?`;
+  }
+  if (lower.includes("transfer") || lower.includes("send")) {
+    return "To send money, go to the Send Money screen from your home page. You can send to any ZADPay user by phone or email.";
+  }
+  if (lower.includes("agent") || lower.includes("human") || lower.includes("person")) {
+    return "Connecting you to a live agent...";
+  }
+  if (lower.includes("issue") || lower.includes("problem") || lower.includes("report")) {
+    return "I'm sorry to hear that. Could you describe the issue in more detail? I'll do my best to assist or escalate it to our team.";
+  }
+  return "Thank you for your message! I'm looking into that for you. If I can't help, I can connect you to a live agent.";
+}
+
+// ─── Seed messages ─────────────────────────────────────────────────────────────
+const SEED_MESSAGES: Message[] = [
+  { id: "seed-1", text: "Hello! I'm ZADPay Assistant 👋", sender: "bot" },
+  { id: "seed-2", text: "How can I help you today?", sender: "bot" },
+];
+
+const QUICK_REPLIES = ["Check Balance", "Report Issue", "Transfer Help", "Talk to Agent"];
+
+// ─── Bubble component ──────────────────────────────────────────────────────────
+function Bubble({ msg, index }: { msg: Message; index: number }) {
+  const isUser = msg.sender === "user";
+  const isAgent = msg.sender === "agent";
+
+  return (
+    <MotiView
+      from={{ opacity: 0, translateY: 8 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ type: "timing", duration: 280, delay: 0 }}
+      style={[styles.bubbleRow, isUser ? styles.bubbleRowRight : styles.bubbleRowLeft]}
+    >
+      {!isUser && (
+        <View style={[styles.avatar, isAgent ? styles.avatarAgent : styles.avatarBot]}>
+          <Text style={styles.avatarText}>{isAgent ? "S" : "Z"}</Text>
+        </View>
+      )}
+      <View style={styles.bubbleColumn}>
+        {isAgent && (
+          <Text style={styles.agentName}>{msg.agentName ?? "Support Agent (Sara)"}</Text>
+        )}
+        <View
+          style={[
+            styles.bubble,
+            isUser ? styles.bubbleUser : isAgent ? styles.bubbleAgent : styles.bubbleBot,
+          ]}
+        >
+          <Text style={[styles.bubbleText, isUser && styles.bubbleTextUser]}>{msg.text}</Text>
+        </View>
+      </View>
+    </MotiView>
+  );
+}
+
+// ─── Quick reply chip ──────────────────────────────────────────────────────────
+function QuickChip({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}>
+      <Text style={styles.chipText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+// ─── Main Screen ───────────────────────────────────────────────────────────────
+export default function SupportScreen() {
   const insets = useSafeAreaInsets();
-  const { user } = useApp();
-  const {
-    tickets,
-    activeTicketId,
-    faqCategories,
-    addTicket,
-    addMessage,
-    setActiveTicket,
-  } = useSupportStore();
+  const { balances, activeCurrency } = useApp();
+  const balance = balances?.[activeCurrency] ?? 0;
 
+  const [messages, setMessages] = useState<Message[]>(SEED_MESSAGES);
   const [input, setInput] = useState("");
-  const [showFAQ, setShowFAQ] = useState(true);
-  const flatRef = useRef<FlatList>(null);
-
-  const activeTicket = tickets.find((t) => t.id === activeTicketId);
-
-  /* Start a new ticket when user picks a FAQ category */
-  const startTicket = (category: string) => {
-    const id = `ticket-${Date.now()}`;
-    const greeting: ChatMessage = {
-      id: `m-${Date.now()}`,
-      text: `Hi ${user.fullName.split(" ")[0]}! Welcome to ZADPay support.`,
-      sender: "bot",
-      timestamp: new Date().toISOString(),
-    };
-    const reply: ChatMessage = {
-      id: `m-${Date.now() + 1}`,
-      text: getBotReply(category),
-      sender: "bot",
-      timestamp: new Date().toISOString(),
-    };
-    const ticket: SupportTicket = {
-      id,
-      subject: category,
-      status: "open",
-      messages: [greeting, reply],
-      createdAt: new Date().toISOString(),
-      category,
-    };
-    addTicket(ticket);
-    setActiveTicket(id);
-    setShowFAQ(false);
-  };
-
-  /* Send a user message */
-  const send = () => {
-    if (!input.trim() || !activeTicketId) return;
-    const msg: ChatMessage = {
-      id: `m-${Date.now()}`,
-      text: input.trim(),
-      sender: "user",
-      timestamp: new Date().toISOString(),
-    };
-    addMessage(activeTicketId, msg);
-    setInput("");
-
-    /* Simulate bot reply */
-    setTimeout(() => {
-      const auto: ChatMessage = {
-        id: `m-${Date.now()}`,
-        text: "Thank you for the information. Let me look into this for you. If you'd like to speak with a live agent, tap the escalate button above.",
-        sender: "bot",
-        timestamp: new Date().toISOString(),
-      };
-      addMessage(activeTicketId, auto);
-    }, 1200);
-  };
+  const [showChips, setShowChips] = useState(true);
+  const [isAgentMode, setIsAgentMode] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    if (activeTicket?.messages.length) {
-      setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 200);
-    }
-  }, [activeTicket?.messages.length]);
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+  }, [messages.length]);
 
-  /* ─── FAQ selection view ─── */
-  if (showFAQ && !activeTicket) {
-    return (
-      <Screen bg={Colors.surface.background}>
-        <StatusBar barStyle="dark-content" />
-        <Header title="Support" />
-        <View style={styles.faqContainer}>
-          <View style={styles.faqGreeting}>
-            <Ionicons name="chatbubbles" size={48} color={Colors.brand.primary} />
-            <Text style={styles.faqTitle}>
-              Hi {user.fullName.split(" ")[0]},{"\n"}how can we help you?
-            </Text>
-            <Text style={styles.faqSub}>Choose a topic to get started</Text>
-          </View>
-          {/* FAQ grid — 3 per row */}
-          {[0, 3].map((rowStart) => (
-            <View key={rowStart} style={styles.faqRow}>
-              {faqCategories.slice(rowStart, rowStart + 3).map((cat) => (
-                <Pressable
-                  key={cat.key}
-                  onPress={() => startTicket(cat.key)}
-                  style={({ pressed }) => [
-                    styles.faqTile,
-                    pressed && { opacity: 0.7 },
-                  ]}
-                >
-                  <View style={styles.faqIcon}>
-                    <Ionicons
-                      name={cat.icon as any}
-                      size={22}
-                      color={Colors.brand.primary}
-                    />
-                  </View>
-                  <Text style={styles.faqLabel}>{cat.label}</Text>
-                </Pressable>
-              ))}
-            </View>
-          ))}
-
-          {/* Previous tickets */}
-          {tickets.length > 0 && (
-            <View style={styles.prevSection}>
-              <Text style={styles.prevTitle}>Previous Conversations</Text>
-              {tickets.slice(0, 3).map((t) => (
-                <Pressable
-                  key={t.id}
-                  onPress={() => {
-                    setActiveTicket(t.id);
-                    setShowFAQ(false);
-                  }}
-                  style={styles.prevRow}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.prevSubject}>
-                      {t.category.charAt(0).toUpperCase() + t.category.slice(1)}
-                    </Text>
-                    <Text style={styles.prevDate}>
-                      {new Date(t.createdAt).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      t.status === "resolved"
-                        ? styles.badgeResolved
-                        : t.status === "escalated"
-                        ? styles.badgeEscalated
-                        : styles.badgeOpen,
-                    ]}
-                  >
-                    <Text style={styles.statusText}>{t.status}</Text>
-                  </View>
-                </Pressable>
-              ))}
-            </View>
-          )}
-        </View>
-      </Screen>
-    );
+  function addMessage(msg: Message) {
+    setMessages((prev) => [...prev, msg]);
   }
 
-  /* ─── Chat view ─── */
-  const messages = activeTicket?.messages ?? [];
-  const isEscalated = activeTicket?.status === "escalated";
+  function handleSend(text?: string) {
+    const content = (text ?? input).trim();
+    if (!content) return;
+    setInput("");
+    setShowChips(false);
+
+    const userMsg: Message = { id: `u-${Date.now()}`, text: content, sender: "user" };
+    addMessage(userMsg);
+
+    const replyText = getBotReply(content, balance);
+    const isAgentTrigger = replyText === "Connecting you to a live agent...";
+
+    setTimeout(() => {
+      addMessage({ id: `b-${Date.now()}`, text: replyText, sender: "bot" });
+
+      if (isAgentTrigger) {
+        setTimeout(() => {
+          setIsAgentMode(true);
+          addMessage({
+            id: `ag-${Date.now()}`,
+            text: "Hi there! This is Sara from ZADPay support. How can I assist you today?",
+            sender: "agent",
+            agentName: "Support Agent (Sara)",
+          });
+        }, 2000);
+      }
+    }, 1000);
+  }
 
   return (
     <Screen bg={Colors.surface.background}>
       <StatusBar barStyle="dark-content" />
       <Header
-        title={isEscalated ? "Live Agent" : "Support Chat"}
-        onBack={() => {
-          setActiveTicket(null);
-          setShowFAQ(true);
-        }}
+        title="Support"
         right={
-          !isEscalated ? (
-            <Pressable
-              onPress={() => {
-                if (activeTicketId) {
-                  useSupportStore.getState().escalateTicket(activeTicketId);
-                  const agentMsg: ChatMessage = {
-                    id: `m-${Date.now()}`,
-                    text: "You've been connected to a live agent. Please hold while we connect you — an agent will respond shortly.",
-                    sender: "agent",
-                    timestamp: new Date().toISOString(),
-                  };
-                  addMessage(activeTicketId, agentMsg);
-                }
-              }}
-              style={styles.escalateBtn}
-            >
-              <Ionicons name="person" size={14} color={Colors.white} />
-              <Text style={styles.escalateTxt}>Agent</Text>
-            </Pressable>
+          isAgentMode ? (
+            <View style={styles.agentBadge}>
+              <View style={styles.agentDot} />
+              <Text style={styles.agentBadgeText}>Sara</Text>
+            </View>
           ) : undefined
         }
       />
+
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={10}
+        keyboardVerticalOffset={insets.bottom + 8}
       >
-        <FlatList
-          ref={flatRef}
-          data={messages}
-          keyExtractor={(m) => m.id}
-          contentContainerStyle={{ padding: 16, paddingBottom: 8 }}
-          renderItem={({ item }) => {
-            const isUser = item.sender === "user";
-            const isAgent = item.sender === "agent";
-            return (
-              <View
-                style={[
-                  styles.bubble,
-                  isUser
-                    ? styles.bubbleUser
-                    : isAgent
-                    ? styles.bubbleAgent
-                    : styles.bubbleBot,
-                ]}
-              >
-                {isAgent && (
-                  <Text style={styles.agentLabel}>Live Agent</Text>
-                )}
-                <Text
-                  style={[
-                    styles.bubbleText,
-                    isUser && { color: Colors.white },
-                  ]}
-                >
-                  {item.text}
-                </Text>
-                <Text
-                  style={[
-                    styles.timeText,
-                    isUser && { color: "rgba(255,255,255,0.6)" },
-                  ]}
-                >
-                  {new Date(item.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-              </View>
-            );
-          }}
-        />
+        <ScrollView
+          ref={scrollRef}
+          style={styles.flex}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {messages.map((msg, i) => (
+            <Bubble key={msg.id} msg={msg} index={i} />
+          ))}
+
+          {showChips && (
+            <MotiView
+              from={{ opacity: 0, translateY: 6 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 300, delay: 300 }}
+              style={styles.chipsRow}
+            >
+              {QUICK_REPLIES.map((label) => (
+                <QuickChip key={label} label={label} onPress={() => handleSend(label)} />
+              ))}
+            </MotiView>
+          )}
+        </ScrollView>
+
         <View style={[styles.inputBar, { paddingBottom: insets.bottom + 8 }]}>
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder="Type your message..."
+            placeholder="Type a message..."
             placeholderTextColor={Colors.ink[400]}
             style={styles.textInput}
-            multiline
+            returnKeyType="send"
+            onSubmitEditing={() => handleSend()}
           />
           <Pressable
-            onPress={send}
-            style={[
-              styles.sendBtn,
-              !input.trim() && { opacity: 0.4 },
-            ]}
+            onPress={() => handleSend()}
             disabled={!input.trim()}
+            style={[styles.sendBtn, !input.trim() && styles.sendBtnDisabled]}
           >
             <Ionicons name="send" size={18} color={Colors.white} />
           </Pressable>
@@ -293,127 +214,83 @@ export default function SupportChat() {
 }
 
 const styles = StyleSheet.create({
-  /* FAQ */
-  faqContainer: { flex: 1, paddingHorizontal: 18 },
-  faqGreeting: { alignItems: "center", marginTop: 20, marginBottom: 28 },
-  faqTitle: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 20,
-    color: Colors.ink[900],
-    textAlign: "center",
-    marginTop: 14,
-    lineHeight: 28,
+  flex: {
+    flex: 1,
   },
-  faqSub: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
-    color: Colors.ink[500],
-    marginTop: 6,
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    gap: 6,
   },
-  faqGrid: {
+  /* Bubble rows */
+  bubbleRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
+    alignItems: "flex-end",
+    gap: 8,
+    marginBottom: 4,
   },
-  faqTile: {
-    width: "31%",
-    backgroundColor: Colors.white,
+  bubbleRowLeft: {
+    alignSelf: "flex-start",
+    maxWidth: "85%",
+  },
+  bubbleRowRight: {
+    alignSelf: "flex-end",
+    flexDirection: "row-reverse",
+    maxWidth: "75%",
+  },
+  bubbleColumn: {
+    flexShrink: 1,
+  },
+  /* Avatars */
+  avatar: {
+    width: 32,
+    height: 32,
     borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 6,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    minHeight: 100,
-    shadowColor: "#101225",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-  },
-  faqIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: Colors.brand.primary50,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    flexShrink: 0,
   },
-  faqLabel: {
+  avatarBot: {
+    backgroundColor: Colors.brand.primary,
+  },
+  avatarAgent: {
+    backgroundColor: Colors.accent.green,
+  },
+  avatarText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 13,
+    color: Colors.white,
+  },
+  agentName: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 11,
-    color: Colors.ink[800],
-    textAlign: "center",
-    lineHeight: 15,
+    fontSize: 10,
+    color: Colors.accent.green,
+    marginBottom: 3,
+    marginLeft: 2,
   },
-  /* Previous tickets */
-  prevSection: { marginTop: 20 },
-  prevTitle: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: Colors.ink[900],
-    marginBottom: 10,
-  },
-  prevRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-  },
-  prevSubject: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 14,
-    color: Colors.ink[800],
-  },
-  prevDate: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 11,
-    color: Colors.ink[400],
-    marginTop: 2,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  badgeOpen: { backgroundColor: Colors.accent.greenSoft },
-  badgeEscalated: { backgroundColor: "#FFF3E0" },
-  badgeResolved: { backgroundColor: Colors.ink[100] },
-  statusText: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 11,
-    color: Colors.ink[700],
-    textTransform: "capitalize",
-  },
-  /* Chat */
+  /* Bubbles */
   bubble: {
-    maxWidth: "80%",
     borderRadius: 18,
-    padding: 12,
-    marginBottom: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   bubbleUser: {
-    alignSelf: "flex-end",
     backgroundColor: Colors.brand.primary,
     borderBottomRightRadius: 4,
   },
   bubbleBot: {
-    alignSelf: "flex-start",
     backgroundColor: Colors.white,
     borderBottomLeftRadius: 4,
+    shadowColor: Colors.ink[900],
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   bubbleAgent: {
-    alignSelf: "flex-start",
-    backgroundColor: "#E8F5E9",
+    backgroundColor: Colors.accent.greenSoft,
     borderBottomLeftRadius: 4,
-  },
-  agentLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 10,
-    color: Colors.accent.green,
-    marginBottom: 4,
   },
   bubbleText: {
     fontFamily: "Inter_400Regular",
@@ -421,19 +298,40 @@ const styles = StyleSheet.create({
     color: Colors.ink[800],
     lineHeight: 20,
   },
-  timeText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 10,
-    color: Colors.ink[400],
-    marginTop: 4,
-    textAlign: "right",
+  bubbleTextUser: {
+    color: Colors.white,
   },
-  /* Input */
+  /* Quick reply chips */
+  chipsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 8,
+    marginLeft: 40,
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.white,
+    borderWidth: 1.5,
+    borderColor: Colors.brand.primary,
+  },
+  chipPressed: {
+    backgroundColor: Colors.brand.primary50,
+  },
+  chipText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: Colors.brand.primary,
+  },
+  /* Input bar */
   inputBar: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     paddingHorizontal: 14,
     paddingTop: 10,
+    gap: 10,
     borderTopWidth: 1,
     borderTopColor: Colors.ink[100],
     backgroundColor: Colors.white,
@@ -448,29 +346,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.ink[900],
     maxHeight: 100,
-    marginRight: 10,
   },
   sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: Colors.brand.primary,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 2,
   },
-  escalateBtn: {
+  sendBtnDisabled: {
+    opacity: 0.4,
+  },
+  /* Agent mode badge in header */
+  agentBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.accent.green,
-    borderRadius: 16,
+    gap: 5,
+    backgroundColor: Colors.accent.greenSoft,
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    gap: 4,
+    paddingVertical: 5,
+    borderRadius: 20,
   },
-  escalateTxt: {
+  agentDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: Colors.accent.green,
+  },
+  agentBadgeText: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 11,
-    color: Colors.white,
+    fontSize: 12,
+    color: Colors.accent.green,
   },
 });

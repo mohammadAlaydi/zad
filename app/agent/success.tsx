@@ -32,7 +32,7 @@ export default function AgentSuccess() {
 
   return (
     <Screen bg={Colors.white} scroll>
-      <View style={[styles.topSection, { paddingTop: insets.top + 16 }]}>
+      <View style={[styles.topSection, { paddingTop: Math.max(insets.top, 24) + 20 }]}>
         {/* Checkmark */}
         <MotiView
           from={{ opacity: 0, scale: 0.4 }}

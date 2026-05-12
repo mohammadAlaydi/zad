@@ -47,7 +47,7 @@ export default function SendSuccess() {
 
   return (
     <Screen scroll bg={Colors.white}>
-      <View style={[styles.topSection, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.topSection, { paddingTop: Math.max(insets.top, 24) + 20 }]}>
         {/* Illustration */}
         <MotiView
           from={{ opacity: 0, scale: 0.7 }}

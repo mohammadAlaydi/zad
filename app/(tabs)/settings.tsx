@@ -45,7 +45,7 @@ export default function Settings() {
         start={{ x: 0.1, y: 0 }}
         end={{ x: 0.9, y: 1 }}
         style={{
-          paddingTop: insets.top + 10,
+          paddingTop: Math.max(insets.top, 24) + 20,
           paddingBottom: 30,
           paddingHorizontal: 20,
         }}

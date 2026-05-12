@@ -38,7 +38,7 @@ export default function Home() {
       <StatusBar barStyle="dark-content" backgroundColor={Colors.surface.background} translucent />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 110 }}
+        contentContainerStyle={{ paddingTop: Math.max(insets.top, 24) + 20, paddingBottom: insets.bottom + 110 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.brand.primary} />}
       >
         {/* Header row: avatar + greeting + notification */}
@@ -151,6 +151,14 @@ export default function Home() {
               { label: "Invest",      icon: "trending-up",       color: "#1FCFA5", bg: "#D7F7EE", route: "/invest" },
               { label: "Crypto",      icon: "logo-bitcoin",      color: "#F2B441", bg: "#FDF6DD", route: "/crypto" },
               { label: "Bills",       icon: "receipt",           color: "#5B2C9C", bg: "#F4EFFA", route: "/bills" },
+              { label: "Support",    icon: "chatbubble-ellipses", color: "#1FCFA5", bg: "#D7F7EE", route: "/support" },
+              { label: "Microloans", icon: "cash-outline",         color: "#F2B441", bg: "#FDF6DD", route: "/microloans" },
+              { label: "Insurance",  icon: "shield-checkmark",     color: "#5B2C9C", bg: "#F4EFFA", route: "/insurance" },
+              { label: "Learn",      icon: "school",               color: "#E25563", bg: "#FBE3E5", route: "/learn" },
+              { label: "Fraud",      icon: "eye",                  color: "#1FCFA5", bg: "#D7F7EE", route: "/fraud" },
+              { label: "Merchant",   icon: "storefront",           color: "#F2B441", bg: "#FDF6DD", route: "/merchant" },
+              { label: "POS",        icon: "radio",                color: "#5B2C9C", bg: "#F4EFFA", route: "/pos" },
+              { label: "Payroll",    icon: "people",               color: "#E25563", bg: "#FBE3E5", route: "/payroll" },
             ] as const).map((item, i) => (
               <MotiView
                 key={item.label}
