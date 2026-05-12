@@ -1,8 +1,7 @@
 {
   "expo": {
     "name": "ZADPAY",
-    "slug": "zadpay",
-    "owner": "mohammadalaydi",
+    "slug": "zad",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "zadpay",
@@ -72,8 +71,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "3a43ceff-2f2d-41fb-9688-bbdc7a9a29b1"
+        "projectId": "743a3880-0a0c-401e-9599-b010c09cf2b8"
       }
-    }
+    },
+    "owner": "basel_exee"
   }
 }

@@ -196,6 +196,73 @@ export default function Settings() {
             onPress={() => router.push("/settings/help")}
           />
 
+          {/* ── Dev 2 Features ── */}
+          <View style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: Colors.brand.primary50 }}>
+            <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 12, color: Colors.brand.primary }}>
+              DEV 2 FEATURES
+            </Text>
+          </View>
+          <ListRow
+            icon={<Ionicons name="chatbubbles-outline" size={16} color={Colors.brand.primary} />}
+            title="Support Chatbot (F9)"
+            onPress={() => router.push("/support")}
+          />
+          <ListRow
+            icon={<Ionicons name="grid-outline" size={16} color={Colors.brand.primary} />}
+            title="Admin Dashboard (F10)"
+            onPress={() => router.push("/admin")}
+          />
+          <ListRow
+            icon={<Ionicons name="storefront-outline" size={16} color={Colors.brand.primary} />}
+            title="Merchant Dashboard (F15)"
+            onPress={() => router.push("/merchant")}
+          />
+          <ListRow
+            icon={<Ionicons name="cart-outline" size={16} color={Colors.brand.primary} />}
+            title="OAuth Checkout (F18)"
+            onPress={() => router.push("/checkout")}
+          />
+          <ListRow
+            icon={<Ionicons name="shield-outline" size={16} color={Colors.brand.primary} />}
+            title="Fraud Detection (F31)"
+            onPress={() => router.push("/fraud")}
+          />
+          <ListRow
+            icon={<Ionicons name="logo-whatsapp" size={16} color="#25D366" />}
+            title="WhatsApp Bot (F7)"
+            onPress={() => router.push("/whatsapp")}
+          />
+          <ListRow
+            icon={<Ionicons name="phone-portrait-outline" size={16} color={Colors.brand.primary} />}
+            title="NFC Soft POS (F20)"
+            onPress={() => router.push("/nfc-pos")}
+          />
+          <ListRow
+            icon={<Ionicons name="megaphone-outline" size={16} color={Colors.brand.primary} />}
+            title="Marketing Dashboard (F21)"
+            onPress={() => router.push("/marketing")}
+          />
+          <ListRow
+            icon={<Ionicons name="cash-outline" size={16} color={Colors.brand.primary} />}
+            title="Payroll Module (F14)"
+            onPress={() => router.push("/payroll")}
+          />
+          <ListRow
+            icon={<Ionicons name="wallet-outline" size={16} color={Colors.brand.primary} />}
+            title="Microloans (F25)"
+            onPress={() => router.push("/microloans")}
+          />
+          <ListRow
+            icon={<Ionicons name="umbrella-outline" size={16} color={Colors.brand.primary} />}
+            title="Microinsurance (F27)"
+            onPress={() => router.push("/insurance")}
+          />
+          <ListRow
+            icon={<Ionicons name="school-outline" size={16} color={Colors.brand.primary} />}
+            title="Financial Literacy (F30)"
+            onPress={() => router.push("/learn")}
+          />
+
           {/* ── Danger ── */}
           <ListRow
             icon={<Ionicons name="close-circle-outline" size={16} color={Colors.accent.red} />}
