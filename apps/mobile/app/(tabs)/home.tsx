@@ -1,7 +1,8 @@
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+import type { WalletTransactionResponse } from "@zadpay/validation";
 import { router } from "expo-router";
 import { MotiView } from "moti";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   View,
@@ -19,20 +20,75 @@ import { BalanceCard } from "@/components/BalanceCard";
 import { Screen } from "@/components/Screen";
 import { ServiceTile } from "@/components/ServiceTile";
 import { TransactionRow } from "@/components/TransactionRow";
+import { useMyAccounts, useAccountBalance, useMyTransactions } from "@/features/wallet";
+import { queryClient } from "@/lib/api/queryClient";
 import { useApp } from "@/store/appStore";
+import type { Transaction as LegacyTransaction } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+// API → legacy TransactionRow shape. Picks the entry that touches one of
+// the user's own accounts and signs the display amount accordingly.
+function toLegacyTx(api: WalletTransactionResponse, myAccountIds: Set<string>): LegacyTransaction {
+  const mine = api.entries.find((e) => myAccountIds.has(e.accountId));
+  const minorUnits = mine === undefined ? 0n : BigInt(mine.amount);
+  const signed = mine?.direction === "credit" ? minorUnits : -minorUnits;
+  const major = Number(signed) / 100; // USD assumption; multi-currency display lands later
+  const name =
+    api.type === "transfer"
+      ? mine?.direction === "credit"
+        ? "Money Received"
+        : "Money Sent"
+      : api.type.replace(/^\w/, (c) => c.toUpperCase());
+  return {
+    id: api.id,
+    name,
+    category: api.type,
+    amount: major,
+    currency: (mine?.currency ?? "USD") as LegacyTransaction["currency"],
+    date: api.createdAt,
+  };
+}
 
 export default function Home() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { user, balances, activeCurrency, transactions, setActiveCurrency } = useApp();
+  const { user, activeCurrency, setActiveCurrency } = useApp();
   const firstName = (user.fullName ?? "").split(" ")[0];
   const [refreshing, setRefreshing] = useState(false);
   const [currencyModalOpen, setCurrencyModalOpen] = useState(false);
 
+  // ── Real data from the api (PR-9/10/11). The activeCurrency UI state
+  // stays for the currency pill, but only USD is backed by a real wallet
+  // today; other currencies fall back to display "—".
+  const accounts = useMyAccounts();
+  const activeAccount = useMemo(
+    () => accounts.data?.accounts.find((a) => a.currency === activeCurrency),
+    [accounts.data, activeCurrency],
+  );
+  const balance = useAccountBalance(activeAccount?.id);
+  const transactions = useMyTransactions({ page: 0, pageSize: 5 });
+
+  const myAccountIds = useMemo(
+    () => new Set(accounts.data?.accounts.map((a) => a.id) ?? []),
+    [accounts.data],
+  );
+  const recent = useMemo(
+    () => (transactions.data?.transactions ?? []).map((tx) => toLegacyTx(tx, myAccountIds)),
+    [transactions.data, myAccountIds],
+  );
+
+  const displayBalance = useMemo(() => {
+    if (balance.data === undefined) return 0;
+    return Number(BigInt(balance.data.balance.amount)) / 100;
+  }, [balance.data]);
+
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 800);
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["wallet", "accounts"] }),
+      queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] }),
+      queryClient.invalidateQueries({ queryKey: ["wallet", "transactions"] }),
+    ]).finally(() => setRefreshing(false));
   };
 
   const services = [
@@ -105,7 +161,7 @@ export default function Home() {
           </Pressable>
 
           <BalanceCard
-            amount={balances[activeCurrency]}
+            amount={displayBalance}
             currency={activeCurrency}
             iban={user.username}
             onGetQr={() => router.push("/qr-display")}
@@ -418,16 +474,42 @@ export default function Home() {
               <Text style={styles.seeAll}>{t("home.seeAll")}</Text>
             </Pressable>
           </View>
-          {transactions.slice(0, 5).map((tx, i) => (
-            <MotiView
-              key={tx.id}
-              from={{ opacity: 0, translateY: 10 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ delay: 200 + i * 60, duration: 380 }}
+          {transactions.isLoading && recent.length === 0 ? (
+            <Text
+              style={{
+                color: Colors.ink[500],
+                fontFamily: "Inter_400Regular",
+                fontSize: 13,
+                paddingVertical: 18,
+                textAlign: "center",
+              }}
             >
-              <TransactionRow tx={tx} />
-            </MotiView>
-          ))}
+              Loading transactions…
+            </Text>
+          ) : recent.length === 0 ? (
+            <Text
+              style={{
+                color: Colors.ink[500],
+                fontFamily: "Inter_400Regular",
+                fontSize: 13,
+                paddingVertical: 18,
+                textAlign: "center",
+              }}
+            >
+              No transactions yet
+            </Text>
+          ) : (
+            recent.map((tx, i) => (
+              <MotiView
+                key={tx.id}
+                from={{ opacity: 0, translateY: 10 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ delay: 200 + i * 60, duration: 380 }}
+              >
+                <TransactionRow tx={tx} />
+              </MotiView>
+            ))
+          )}
         </View>
       </ScrollView>
     </Screen>
