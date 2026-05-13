@@ -1,0 +1,18 @@
+# Acceptance: the add-card screen is the PCI-safe placeholder from PR-12
+# (audit S0-1). No card-entry inputs are present.
+# Prerequisite: already logged in.
+
+appId: com.zadpay.app
+name: Add-card is the PCI-safe placeholder
+---
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- openLink: "zadpay://topup/add-card"
+- assertVisible: "Card entry happens here"
+- assertVisible: "See docs/audit.md S0-1 and ADR-0007."
+- assertNotVisible:
+    text: "Card number"
+- assertNotVisible:
+    text: "CVV"
+- tapOn: "Back"

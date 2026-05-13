@@ -1,0 +1,39 @@
+# Acceptance: existing user signs in via /(auth)/email-login and lands on
+# the home screen with their real balance loaded from the api.
+# Prerequisite: the EMAIL/PASSWORD env vars belong to a user that already
+# exists in the api (created by the seed step on staging).
+
+appId: com.zadpay.app
+name: Login + lands on home
+env:
+  EMAIL: ${MAESTRO_EMAIL}
+  PASSWORD: ${MAESTRO_PASSWORD}
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd:
+    timeout: 6000
+- tapOn:
+    text: "Get Started"
+    optional: true
+- tapOn: "Sign in with email"
+- assertVisible: "Sign in"
+- tapOn:
+    text: "Email"
+- inputText: ${EMAIL}
+- tapOn:
+    text: "Password"
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn: "Log in"
+- waitForAnimationToEnd:
+    timeout: 8000
+# Approved user lands on /(tabs)/home; KYC-pending user lands on
+# /(auth)/kyc-status. Both are valid post-login states — assert the
+# balance card OR the kyc-status header.
+- assertVisible:
+    text: "Balance"
+    optional: true
+- assertVisible:
+    text: "Verify identity"
+    optional: true

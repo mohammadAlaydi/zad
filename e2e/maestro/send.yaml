@@ -1,0 +1,16 @@
+# Acceptance: send-money entry screen loads. Full transfer flow tests
+# wait on the app/send/* migration (deferred from PR-12 into a follow-up).
+# Until then this flow only validates the UI demo path renders.
+
+appId: com.zadpay.app
+name: Send screen renders (legacy UI demo)
+---
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- openLink: "zadpay://send"
+- assertVisible:
+    text: "Send"
+- tapOn:
+    text: "Back"
+    optional: true

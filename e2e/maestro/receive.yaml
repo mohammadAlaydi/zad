@@ -1,0 +1,13 @@
+# Acceptance: receive screen loads with the user's QR. The QR encoding is
+# legacy UI today; PR-future wires it to the user's wallet accountId once
+# the receive screen migrates per ADR-0003.
+
+appId: com.zadpay.app
+name: Receive screen renders
+---
+- launchApp
+- waitForAnimationToEnd:
+    timeout: 5000
+- openLink: "zadpay://receive"
+- assertVisible:
+    text: "Receive"

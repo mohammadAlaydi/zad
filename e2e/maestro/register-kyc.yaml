@@ -1,0 +1,48 @@
+# Acceptance: a fresh user registers, completes the in-memory KYC flow
+# (provider auto-approves after ~3 s), and lands on home with a USD wallet
+# automatically created by the identity.UserRegistered subscription.
+
+appId: com.zadpay.app
+name: Register + KYC + lands on home
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd:
+    timeout: 6000
+- evalScript: ${output.email = "maestro-" + Date.now() + "@example.com"}
+- tapOn:
+    text: "Get Started"
+    optional: true
+- openLink: "zadpay://(auth)/email-register"
+- assertVisible: "Create account"
+- tapOn:
+    text: "Email"
+- inputText: ${output.email}
+- tapOn:
+    text: "Password"
+- inputText: "MaestroPass-1234567"
+- hideKeyboard
+- tapOn: "Sign up"
+- waitForAnimationToEnd:
+    timeout: 8000
+- assertVisible: "Verify identity"
+- tapOn:
+    text: "Upload"
+    index: 0
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible: "Uploaded"
+- tapOn:
+    text: "Upload"
+    index: 0
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn: "Submit for review"
+# InMemoryKycProvider auto-approves after 3 s; allow up to 15.
+- extendedWaitUntil:
+    visible: "Approved"
+    timeout: 15000
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible:
+    text: "Balance"
