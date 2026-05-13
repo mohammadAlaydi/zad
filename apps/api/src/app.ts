@@ -19,9 +19,11 @@ import {
 } from "./infra/metrics/index.js";
 import { registerIdentityModule } from "./modules/identity/index.js";
 import { registerKycModule } from "./modules/kyc/index.js";
+import { registerWalletModule } from "./modules/wallet/index.js";
 import { registerErrorHandler } from "./shared/errors/handler.js";
 import type { EventBus } from "./shared/events/EventBus.js";
 import { registerHealthRoutes } from "./shared/health/routes.js";
+import { registerIdempotencyHooks } from "./shared/middleware/idempotency.js";
 import { registerRequestContext } from "./shared/middleware/request-context.js";
 
 export interface AppDeps {
@@ -81,6 +83,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await app.register(fastifySwaggerUi, { routePrefix: "/docs" });
 
   registerErrorHandler(app);
+  registerIdempotencyHooks(app);
 
   // Per-request metrics. Cardinality is bounded because `route` is the
   // matched route pattern, not the literal URL.
@@ -125,7 +128,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     // KycProvider implementation with no auto-approval.
     inMemoryAutoApproveMs: 3000,
   });
-  // PR-9 registers `wallet`.
+  await registerWalletModule(app, deps.prisma, deps.events, {
+    defaultCurrency: "USD",
+  });
 
   return app;
 }

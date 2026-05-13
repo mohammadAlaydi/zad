@@ -161,3 +161,82 @@ model KycDocument {
   @@map("documents")
   @@schema("kyc")
 }
+
+// ──────────────────────────────────────────────────────────────────────
+// wallet.* — double-entry ledger per ADR-0007. Balances are derived from
+// SUM(ledger_entries); the account_balances projection is updated in the
+// same DB transaction that posts entries (so it can never drift). No SQL
+// FK to identity — userId is a soft reference.
+// ──────────────────────────────────────────────────────────────────────
+
+model WalletAccount {
+  id        String   @id @default(uuid()) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  currency  String   @db.VarChar(3)
+  type      String   @db.VarChar(30) // 'wallet' | 'reserve' | 'fee' | 'external_clearing'
+  status    String   @default("active") @db.VarChar(20) // 'active' | 'frozen' | 'closed'
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ledgerEntries WalletLedgerEntry[]
+  balance       WalletAccountBalance?
+
+  @@unique([ownerId, currency, type])
+  @@index([ownerId])
+  @@map("accounts")
+  @@schema("wallet")
+}
+
+model WalletTransaction {
+  id             String    @id @default(uuid()) @db.Uuid
+  idempotencyKey String    @unique @map("idempotency_key") @db.Uuid
+  type           String    @db.VarChar(40) // 'transfer' | 'topup' | 'withdrawal' | 'fee' | 'reversal' | 'adjustment'
+  status         String    @db.VarChar(20) // 'pending' | 'posted' | 'reversed'
+  createdAt      DateTime  @default(now()) @map("created_at")
+  postedAt       DateTime? @map("posted_at")
+  metadata       Json      @default("{}")
+
+  ledgerEntries WalletLedgerEntry[]
+
+  @@index([createdAt])
+  @@map("transactions")
+  @@schema("wallet")
+}
+
+/// Postgres trigger (`enforce_ledger_balance` in the initial migration)
+/// ensures every transaction's debits + credits sum to zero — no
+/// half-posted transactions.
+model WalletLedgerEntry {
+  id            String   @id @default(uuid()) @db.Uuid
+  transactionId String   @map("transaction_id") @db.Uuid
+  accountId     String   @map("account_id") @db.Uuid
+  direction     String   @db.VarChar(6) // 'debit' | 'credit'
+  /// Always positive minor units; direction carries the sign.
+  amount        Decimal  @db.Decimal(38, 0)
+  currency      String   @db.VarChar(3)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  transaction WalletTransaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  account     WalletAccount     @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([accountId, createdAt])
+  @@index([transactionId])
+  @@map("ledger_entries")
+  @@schema("wallet")
+}
+
+/// Materialized projection of SUM(ledger_entries). Updated by the same
+/// transaction that posts entries — reads are O(1) instead of O(N). The
+/// nightly reconciliation job recomputes from ledger_entries and pages
+/// on-call if there's any drift.
+model WalletAccountBalance {
+  accountId String   @id @map("account_id") @db.Uuid
+  amount    Decimal  @db.Decimal(38, 0)
+  currency  String   @db.VarChar(3)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  account WalletAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("account_balances")
+  @@schema("wallet")
+}

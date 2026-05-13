@@ -2,3 +2,4 @@
 // Imported as `@zadpay/validation` (this barrel).
 export * from "./auth/index.js";
 export * from "./kyc/index.js";
+export * from "./wallet/index.js";
