@@ -8,7 +8,6 @@ import { Button } from "@/components/Button";
 import { Screen } from "@/components/Screen";
 import { useHaptic } from "@/hooks/useHaptic";
 import { CongratsIllustration } from "@/illustrations/CongratsIllustration";
-import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 const CONFETTI = [
@@ -24,7 +23,6 @@ const CONFETTI = [
 export default function Congrats() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { setAuthenticated } = useApp();
   const haptic = useHaptic();
 
   useEffect(() => {
@@ -125,10 +123,11 @@ export default function Congrats() {
       >
         <Button
           title={t("common.continue")}
-          onPress={() => {
-            setAuthenticated(true);
-            router.replace("/(tabs)/home");
-          }}
+          // The phone-based onboarding wizard is a UI demo. Real registration
+          // happens via /v1/auth/register (PR-4). Route to the email register
+          // screen here; PR-7 (KYC migration) rebuilds the full wizard
+          // against the real KYC endpoints.
+          onPress={() => router.replace("/(auth)/email-register")}
         />
       </MotiView>
     </Screen>

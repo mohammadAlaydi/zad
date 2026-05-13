@@ -5,21 +5,26 @@ import { MotiView, MotiText } from "moti";
 import { useEffect } from "react";
 import { View, Text, Dimensions } from "react-native";
 import { Easing } from "react-native-reanimated";
+import { useAuthSession } from "@/features/auth";
 import { useApp } from "@/store/appStore";
 
 const { width, height } = Dimensions.get("window");
 
 export default function Splash() {
-  const { hasOnboarded, isAuthenticated } = useApp();
+  const { hasOnboarded } = useApp();
+  const { isAuthenticated, bootstrapped } = useAuthSession();
 
   useEffect(() => {
+    // Wait for the silent refresh attempt (bootstrapAuth in _layout.tsx)
+    // so a returning user doesn't see /(auth)/welcome flicker through.
+    if (!bootstrapped) return;
     const t = setTimeout(() => {
       if (!hasOnboarded) router.replace("/onboarding");
       else if (!isAuthenticated) router.replace("/(auth)/welcome");
       else router.replace("/(tabs)/home");
     }, 2200);
     return () => clearTimeout(t);
-  }, [hasOnboarded, isAuthenticated]);
+  }, [hasOnboarded, isAuthenticated, bootstrapped]);
 
   return (
     <LinearGradient

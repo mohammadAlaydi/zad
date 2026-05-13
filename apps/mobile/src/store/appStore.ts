@@ -173,7 +173,6 @@ export type CryptoHolding = {
 export type AppState = {
   bootstrapped: boolean;
   hasOnboarded: boolean;
-  isAuthenticated: boolean;
   user: {
     fullName: string;
     username: string;
@@ -226,7 +225,6 @@ export type AppState = {
   buyCrypto: (symbol: string, amount: number, price: number, currency: Currency) => void;
   sellCrypto: (symbol: string, amount: number, price: number) => void;
   setOnboarded: (v: boolean) => void;
-  setAuthenticated: (v: boolean) => void;
   toggleHideBalance: () => void;
   setBiometric: (v: boolean) => void;
   setFaceId: (v: boolean) => void;
@@ -235,7 +233,6 @@ export type AppState = {
   updateUser: (patch: Partial<AppState["user"]>) => void;
   addTransaction: (t: Transaction) => void;
   addCard: (c: SavedCard) => void;
-  signOut: () => void;
 };
 
 const seededTransactions: Transaction[] = [
@@ -612,7 +609,6 @@ export const useApp = create<AppState>()(
     (set) => ({
       bootstrapped: false,
       hasOnboarded: false,
-      isAuthenticated: false,
       user: {
         fullName: "Mahmoud Hafez",
         username: "@Mahmoudhafez",
@@ -851,7 +847,6 @@ export const useApp = create<AppState>()(
         })),
 
       setOnboarded: (v) => set({ hasOnboarded: v }),
-      setAuthenticated: (v) => set({ isAuthenticated: v }),
       toggleHideBalance: () => set((s) => ({ hideBalance: !s.hideBalance })),
       setBiometric: (v) => set({ biometricEnabled: v }),
       setFaceId: (v) => set({ faceIdEnabled: v }),
@@ -860,14 +855,13 @@ export const useApp = create<AppState>()(
       updateUser: (patch) => set((s) => ({ user: { ...s.user, ...patch } })),
       addTransaction: (t) => set((s) => ({ transactions: [t, ...s.transactions] })),
       addCard: (c) => set((s) => ({ cards: [...s.cards, c] })),
-      signOut: () => set({ isAuthenticated: false, hasOnboarded: false }),
     }),
     {
-      name: "zadpay-store-v5",
+      // Bump the persist name to invalidate stale records with isAuthenticated/setAuthenticated.
+      name: "zadpay-store-v6",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         hasOnboarded: s.hasOnboarded,
-        isAuthenticated: s.isAuthenticated,
         user: s.user,
         balances: s.balances,
         activeCurrency: s.activeCurrency,

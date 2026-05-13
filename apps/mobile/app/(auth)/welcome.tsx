@@ -61,17 +61,34 @@ export default function Welcome() {
           <View style={s.dividerLine} />
         </View>
 
-        {/* Social buttons */}
+        {/* Social buttons — demo only; OAuth lands in a follow-up. */}
         <View style={s.socialRow}>
-          <Pressable onPress={() => router.replace("/(tabs)/home")} style={s.socialBtn}>
+          <Pressable onPress={() => router.push("/(auth)/email-login")} style={s.socialBtn}>
             <Ionicons name="logo-google" size={18} color="#DB4437" />
             <Text style={s.socialText}>{t("auth.google")}</Text>
           </Pressable>
-          <Pressable onPress={() => router.replace("/(tabs)/home")} style={s.socialBtn}>
+          <Pressable onPress={() => router.push("/(auth)/email-login")} style={s.socialBtn}>
             <Ionicons name="logo-apple" size={20} color={Colors.ink[900]} />
             <Text style={s.socialText}>{t("auth.apple")}</Text>
           </Pressable>
         </View>
+
+        {/* Real email auth — bridges to PR-4's /v1/auth endpoints while the
+            phone-based wizard above remains a UI demo. */}
+        <Pressable
+          onPress={() => router.push("/(auth)/email-login")}
+          style={{ alignSelf: "center", marginTop: 14, padding: 8 }}
+        >
+          <Text
+            style={{
+              color: Colors.brand.primary,
+              fontFamily: "Inter_500Medium",
+              fontSize: 13,
+            }}
+          >
+            Sign in with email
+          </Text>
+        </Pressable>
 
         {/* Terms */}
         <Text style={s.termsText}>

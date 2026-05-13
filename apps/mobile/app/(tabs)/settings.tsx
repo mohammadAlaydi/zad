@@ -10,6 +10,7 @@ import { Button } from "@/components/Button";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
 import { Switch } from "@/components/Switch";
+import { useLogout } from "@/features/auth";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -24,8 +25,8 @@ export default function Settings() {
     setBiometric,
     setFaceId,
     toggleHideBalance,
-    signOut,
   } = useApp();
+  const { logout } = useLogout();
   const [confirmClose, setConfirmClose] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
 
@@ -480,8 +481,7 @@ export default function Settings() {
             <Pressable
               onPress={() => {
                 setConfirmLogout(false);
-                signOut();
-                router.replace("/(auth)/welcome");
+                void logout().then(() => router.replace("/(auth)/welcome"));
               }}
               style={{ marginTop: 12 }}
             >
