@@ -20,6 +20,15 @@ const EnvSchema = z
     // Comma-separated allowlist for the /metrics endpoint.
     METRICS_ALLOWLIST: z.string().default("127.0.0.1,::1"),
 
+    // ── Identity / auth (ADR-0006) ──────────────────────────────────
+    // Ed25519 keys as PEM (PKCS#8 / SPKI). Generate with `pnpm api keygen`.
+    JWT_SIGNING_KEY: z.string().min(1),
+    JWT_VERIFY_KEY: z.string().min(1),
+    // HMAC-SHA256 server-side secret for refresh-token storage hashes.
+    REFRESH_TOKEN_PEPPER: z.string().min(32),
+    ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+    REFRESH_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(604800),
+
     SENTRY_DSN: z.string().url().optional(),
     OTLP_ENDPOINT: z.string().url().optional(),
   })

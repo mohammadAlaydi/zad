@@ -3,13 +3,14 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
+  previewFeatures = ["multiSchema", "postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  schemas  = ["identity", "kyc", "wallet", "shared"]
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  schemas    = ["identity", "kyc", "wallet", "shared"]
+  extensions = [citext]
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -70,4 +71,48 @@ model IdempotencyKey {
   @@index([expiresAt])
   @@map("idempotency_keys")
   @@schema("shared")
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// identity.* — auth, user accounts, refresh tokens. See ADR-0006.
+// No cross-schema FKs — other modules reference users by id only.
+// ──────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.Citext
+  passwordHash String   @map("password_hash")
+  kycStatus    String   @default("not_started") @map("kyc_status") @db.VarChar(20)
+  roles        String[] @default(["customer"])
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+  @@schema("identity")
+}
+
+/// Refresh tokens are one-time-use with rotation. Reuse of a revoked token
+/// from the same `family` triggers full-family revocation (ADR-0006).
+/// `tokenHash` is the argon2id-hashed token; the plaintext is shown to the
+/// client exactly once at issue time.
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  family    String    @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  // null until rotated; set to the new token's id so we can detect replay.
+  rotatedTo String?   @map("rotated_to") @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([family])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+  @@schema("identity")
 }

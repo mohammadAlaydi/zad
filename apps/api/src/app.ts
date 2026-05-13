@@ -5,6 +5,9 @@ import fastifyCors from "@fastify/cors";
 import fastifyHelmet from "@fastify/helmet";
 import fastifyRateLimit from "@fastify/rate-limit";
 import fastifySensible from "@fastify/sensible";
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUi from "@fastify/swagger-ui";
+import type { PrismaClient } from "@prisma/client";
 import fastify, { type FastifyInstance } from "fastify";
 import { redis } from "./infra/cache/redis.js";
 import { env } from "./infra/config/env.js";
@@ -14,13 +17,20 @@ import {
   httpRequestsTotal,
   register as metricsRegister,
 } from "./infra/metrics/index.js";
+import { registerIdentityModule } from "./modules/identity/index.js";
 import { registerErrorHandler } from "./shared/errors/handler.js";
+import type { EventBus } from "./shared/events/EventBus.js";
 import { registerHealthRoutes } from "./shared/health/routes.js";
 import { registerRequestContext } from "./shared/middleware/request-context.js";
 
+export interface AppDeps {
+  prisma: PrismaClient;
+  events: EventBus;
+}
+
 // Factory — no side effects, no `listen()`. server.ts owns the lifecycle.
-// Tests can call buildApp() to get an in-memory Fastify instance.
-export async function buildApp(): Promise<FastifyInstance> {
+// Tests can call buildApp() with in-memory deps to get a Fastify instance.
+export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = fastify({
     logger: loggerOptions,
     // Honor X-Request-Id from the client (e.g. mobile app) or generate UUID v4.
@@ -55,6 +65,20 @@ export async function buildApp(): Promise<FastifyInstance> {
     keyGenerator: (req) => req.ip,
   });
 
+  // OpenAPI / Swagger UI — modules contribute schemas via their route opts.
+  await app.register(fastifySwagger, {
+    openapi: {
+      info: { title: "ZADPAY API", version: "0.0.0" },
+      components: {
+        securitySchemes: {
+          bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+        },
+      },
+      servers: [{ url: "/" }],
+    },
+  });
+  await app.register(fastifySwaggerUi, { routePrefix: "/docs" });
+
   registerErrorHandler(app);
 
   // Per-request metrics. Cardinality is bounded because `route` is the
@@ -85,9 +109,15 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await registerHealthRoutes(app);
 
-  // Module routes register here as they land — PR-4 (identity), PR-6 (kyc),
-  // PR-9 (wallet). Each module exposes a `register(app)` function from its
-  // barrel; this file calls them in dependency order.
+  // Module routes — ordered by dependency.
+  await registerIdentityModule(app, deps.prisma, deps.events, {
+    jwtSigningKeyPem: env.JWT_SIGNING_KEY,
+    jwtVerifyKeyPem: env.JWT_VERIFY_KEY,
+    refreshTokenPepper: env.REFRESH_TOKEN_PEPPER,
+    accessTokenTtlSeconds: env.ACCESS_TOKEN_TTL_SECONDS,
+    refreshTokenTtlSeconds: env.REFRESH_TOKEN_TTL_SECONDS,
+  });
+  // PR-6 registers `kyc`; PR-9 registers `wallet`.
 
   return app;
 }

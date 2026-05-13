@@ -1,2 +1,4 @@
-// Zod request/response schemas shared between mobile and api — populated PR-by-PR per module.
-export {};
+// Zod request/response schemas shared between mobile and api.
+// Imported as `@zadpay/validation` (this barrel) or by sub-path like
+// `@zadpay/validation/auth` for tighter import surfaces in modules.
+export * from "./auth/index.js";

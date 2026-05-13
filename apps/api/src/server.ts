@@ -4,16 +4,18 @@ import "./instrument.js";
 import { buildApp } from "./app.js";
 import { connectRedis, disconnectRedis } from "./infra/cache/redis.js";
 import { env } from "./infra/config/env.js";
-import { connectDatabase, disconnectDatabase } from "./infra/database/prisma.js";
+import { connectDatabase, disconnectDatabase, prisma } from "./infra/database/prisma.js";
 import { logger } from "./infra/logger/index.js";
 import { shutdownQueues } from "./infra/queue/index.js";
+import { InProcessEventBus } from "./shared/events/InProcessEventBus.js";
 
 async function start(): Promise<void> {
   try {
     await connectDatabase();
     await connectRedis();
 
-    const app = await buildApp();
+    const events = new InProcessEventBus();
+    const app = await buildApp({ prisma, events });
     await app.listen({ host: env.HOST, port: env.PORT });
     logger.info({ host: env.HOST, port: env.PORT, env: env.NODE_ENV }, "API listening");
 

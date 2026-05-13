@@ -156,6 +156,14 @@ export default tseslint.config(
     },
   },
 
+  // 6b. Tests are allowed to reach into module internals — they're testing them.
+  {
+    files: ["**/test/**/*.ts", "**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": "off",
+    },
+  },
+
   // 7. Config files — allow CJS, relax some rules
   {
     files: ["**/*.config.{js,cjs,mjs,ts}", "**/babel.config.js", "**/metro.config.js"],

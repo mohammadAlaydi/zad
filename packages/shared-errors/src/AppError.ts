@@ -19,42 +19,44 @@ export abstract class AppError extends Error {
   }
 }
 
+// `code` typed as `string` (not the literal) so per-module subclasses can
+// narrow it (e.g. `IDENTITY.INVALID_CREDENTIALS`) — see ADR-0009.
 export class ValidationError extends AppError {
-  readonly code = "COMMON.VALIDATION";
+  readonly code: string = "COMMON.VALIDATION";
   readonly httpStatus = 400;
 }
 
 export class UnauthorizedError extends AppError {
-  readonly code = "COMMON.UNAUTHORIZED";
+  readonly code: string = "COMMON.UNAUTHORIZED";
   readonly httpStatus = 401;
 }
 
 export class ForbiddenError extends AppError {
-  readonly code = "COMMON.FORBIDDEN";
+  readonly code: string = "COMMON.FORBIDDEN";
   readonly httpStatus = 403;
 }
 
 export class NotFoundError extends AppError {
-  readonly code = "COMMON.NOT_FOUND";
+  readonly code: string = "COMMON.NOT_FOUND";
   readonly httpStatus = 404;
 }
 
 export class ConflictError extends AppError {
-  readonly code = "COMMON.CONFLICT";
+  readonly code: string = "COMMON.CONFLICT";
   readonly httpStatus = 409;
 }
 
 export class UnprocessableError extends AppError {
-  readonly code = "COMMON.UNPROCESSABLE";
+  readonly code: string = "COMMON.UNPROCESSABLE";
   readonly httpStatus = 422;
 }
 
 export class RateLimitedError extends AppError {
-  readonly code = "COMMON.RATE_LIMITED";
+  readonly code: string = "COMMON.RATE_LIMITED";
   readonly httpStatus = 429;
 }
 
 export class InternalError extends AppError {
-  readonly code = "COMMON.INTERNAL";
+  readonly code: string = "COMMON.INTERNAL";
   readonly httpStatus = 500;
 }
