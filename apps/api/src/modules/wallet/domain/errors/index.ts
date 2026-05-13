@@ -42,3 +42,17 @@ export class AccountAlreadyExists extends ConflictError {
     super("An account of this type and currency already exists for this user");
   }
 }
+
+export class SameAccountTransfer extends UnprocessableError {
+  override readonly code = "WALLET.SAME_ACCOUNT_TRANSFER";
+  constructor() {
+    super("Source and destination accounts must differ");
+  }
+}
+
+export class InvalidAmount extends UnprocessableError {
+  override readonly code = "WALLET.INVALID_AMOUNT";
+  constructor() {
+    super("Amount must be a positive integer");
+  }
+}

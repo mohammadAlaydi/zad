@@ -63,3 +63,20 @@ export const WalletTransactionListResponseSchema = z.object({
   total: z.number().int().nonnegative(),
 });
 export type WalletTransactionListResponse = z.infer<typeof WalletTransactionListResponseSchema>;
+
+// ── POST /v1/wallet/transfers ──────────────────────────────────────────
+// Sender + amount + receiver. Receiver is identified by accountId for
+// PR-10; PR-future adds receiver-by-phone / receiver-by-username flows.
+export const TransferRequestSchema = z.object({
+  sourceAccountId: z.string().uuid(),
+  destAccountId: z.string().uuid(),
+  amount: MoneyJsonSchema,
+  note: z.string().max(280).optional(),
+});
+export type TransferRequest = z.infer<typeof TransferRequestSchema>;
+
+// Response is the posted transaction (same shape as listing entries).
+export const TransferResponseSchema = z.object({
+  transaction: WalletTransactionResponseSchema,
+});
+export type TransferResponse = z.infer<typeof TransferResponseSchema>;

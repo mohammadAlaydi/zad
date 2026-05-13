@@ -5,15 +5,18 @@ import type { FastifyInstance } from "fastify";
 import { logger } from "../../infra/logger/index.js";
 import type { EventBus } from "../../shared/events/EventBus.js";
 import type { UserRegistered } from "../identity/index.js";
+import { CreateTransferCommand } from "./application/commands/CreateTransfer.js";
 import { EnsureUserWalletCommand } from "./application/commands/EnsureUserWallet.js";
 import { GetAccountBalanceQuery } from "./application/queries/GetAccountBalance.js";
 import { GetMyAccountsQuery } from "./application/queries/GetMyAccounts.js";
 import { ListMyTransactionsQuery } from "./application/queries/ListMyTransactions.js";
+import { PrismaTransferWriter } from "./infrastructure/adapters/PrismaTransferWriter.js";
 import { RandomIdGenerator } from "./infrastructure/adapters/RandomIdGenerator.js";
 import { SystemClock } from "./infrastructure/adapters/SystemClock.js";
 import { PrismaAccountRepository } from "./infrastructure/repositories/PrismaAccountRepository.js";
 import { PrismaTransactionRepository } from "./infrastructure/repositories/PrismaTransactionRepository.js";
 import { registerWalletRoutes } from "./interface/routes/accounts.js";
+import { registerTransferRoutes } from "./interface/routes/transfers.js";
 
 export interface WalletModuleConfig {
   // Default currency for the auto-created wallet on user registration.
@@ -30,8 +33,10 @@ export async function registerWalletModule(
   const transactions = new PrismaTransactionRepository(prisma);
   const ids = new RandomIdGenerator();
   const clock = new SystemClock();
+  const writer = new PrismaTransferWriter(prisma, ids);
 
   const ensureUserWallet = new EnsureUserWalletCommand({ accounts, ids, clock, events });
+  const createTransfer = new CreateTransferCommand({ accounts, writer, ids, clock, events });
   const myAccounts = new GetMyAccountsQuery({ accounts });
   const accountBalance = new GetAccountBalanceQuery({ accounts });
   const myTransactions = new ListMyTransactionsQuery({ transactions });
@@ -50,4 +55,5 @@ export async function registerWalletModule(
   });
 
   await registerWalletRoutes(app, { myAccounts, accountBalance, myTransactions });
+  await registerTransferRoutes(app, { createTransfer });
 }
