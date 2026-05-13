@@ -1,0 +1,13 @@
+{
+  "name": "@zadpay/api",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "~5.4.0"
+  }
+}
