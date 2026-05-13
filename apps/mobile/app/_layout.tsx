@@ -1,4 +1,8 @@
 import "../global.css";
+// Sentry must initialise before any feature module loads — keep this
+// import at the top of the file.
+import "@/lib/sentry/instrument";
+
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -16,6 +20,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { bootstrapAuth } from "@/features/auth";
 import { queryClient } from "@/lib/api/queryClient";
+import { ErrorBoundary } from "@/lib/error-boundary";
 import "@/i18n";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -42,19 +47,21 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <StatusBar style="auto" />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              animation: "fade",
-              contentStyle: { backgroundColor: "#FFFFFF" },
-            }}
-          />
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider>
+            <StatusBar style="auto" />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: "fade",
+                contentStyle: { backgroundColor: "#FFFFFF" },
+              }}
+            />
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

@@ -6,6 +6,11 @@ import { z } from "zod";
 // EAS-managed env vars (preview/production).
 const ConfigSchema = z.object({
   apiBaseUrl: z.string().url(),
+  // Sentry DSN is optional in dev (null/undefined skips init), required
+  // in production builds — enforced at the EAS profile level via
+  // appEnv === "production" + non-null sentryDsn.
+  sentryDsn: z.string().url().nullable().optional(),
+  appEnv: z.enum(["development", "preview", "production"]).default("development"),
 });
 
 const raw = Constants.expoConfig?.extra ?? {};
