@@ -1,3 +1,5 @@
+import { Ionicons } from "@expo/vector-icons";
+import { MotiView } from "moti";
 import { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -10,13 +12,11 @@ import {
   StyleSheet,
   StatusBar,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
-import { Colors } from "@/theme/colors";
 import { useApp } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 type Sender = "bot" | "user" | "agent";
@@ -72,9 +72,7 @@ function Bubble({ msg, index }: { msg: Message; index: number }) {
         </View>
       )}
       <View style={styles.bubbleColumn}>
-        {isAgent && (
-          <Text style={styles.agentName}>{msg.agentName ?? "Support Agent (Sara)"}</Text>
-        )}
+        {isAgent && <Text style={styles.agentName}>{msg.agentName ?? "Support Agent (Sara)"}</Text>}
         <View
           style={[
             styles.bubble,
@@ -91,7 +89,10 @@ function Bubble({ msg, index }: { msg: Message; index: number }) {
 // ─── Quick reply chip ──────────────────────────────────────────────────────────
 function QuickChip({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
+    >
       <Text style={styles.chipText}>{label}</Text>
     </Pressable>
   );

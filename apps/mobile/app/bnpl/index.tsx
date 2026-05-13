@@ -1,23 +1,15 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  Modal,
-  TextInput,
-  StyleSheet,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
 import { LinearGradient } from "expo-linear-gradient";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { MotiView } from "moti";
+import { useState } from "react";
+import { View, Text, Pressable, ScrollView, Modal, TextInput, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
-import { Colors } from "@/theme/colors";
 import type { BNPLInstallment, Currency } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 function statusColor(s: BNPLInstallment["status"]) {
@@ -49,7 +41,13 @@ function ProgressBar({ pct }: { pct: number }) {
   );
 }
 const pb = StyleSheet.create({
-  track: { height: 6, backgroundColor: Colors.ink[100], borderRadius: 3, overflow: "hidden", marginVertical: 8 },
+  track: {
+    height: 6,
+    backgroundColor: Colors.ink[100],
+    borderRadius: 3,
+    overflow: "hidden",
+    marginVertical: 8,
+  },
   fill: { height: "100%", borderRadius: 3 },
 });
 
@@ -97,7 +95,9 @@ function InstallmentCard({
       {/* Stats row */}
       <View style={card.statsRow}>
         <View style={card.statBlock}>
-          <Text style={card.statValue}>{item.paidCount}/{item.installments}</Text>
+          <Text style={card.statValue}>
+            {item.paidCount}/{item.installments}
+          </Text>
           <Text style={card.statLabel}>Installments</Text>
         </View>
         <View style={card.statDivider} />
@@ -110,7 +110,10 @@ function InstallmentCard({
         <View style={card.statDivider} />
         <View style={card.statBlock}>
           <Text style={card.statValue}>
-            {new Date(item.nextDueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            {new Date(item.nextDueDate).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
           </Text>
           <Text style={card.statLabel}>Next Due</Text>
         </View>
@@ -294,8 +297,20 @@ function NewBNPLModal({
           )}
 
           <View style={nm.actions}>
-            <Button title="Cancel" variant="secondary" size="md" onPress={onClose} style={{ flex: 1, marginRight: 8 }} />
-            <Button title="Add Plan" size="md" disabled={!canSubmit} onPress={handleAdd} style={{ flex: 1 }} />
+            <Button
+              title="Cancel"
+              variant="secondary"
+              size="md"
+              onPress={onClose}
+              style={{ flex: 1, marginRight: 8 }}
+            />
+            <Button
+              title="Add Plan"
+              size="md"
+              disabled={!canSubmit}
+              onPress={handleAdd}
+              style={{ flex: 1 }}
+            />
           </View>
         </Pressable>
       </Pressable>
@@ -320,7 +335,12 @@ const nm = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 20,
   },
-  title: { fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.ink[900], marginBottom: 20 },
+  title: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: Colors.ink[900],
+    marginBottom: 20,
+  },
   label: { fontFamily: "Inter_500Medium", fontSize: 13, color: Colors.ink[600], marginBottom: 6 },
   input: {
     borderWidth: 1.5,
@@ -370,7 +390,7 @@ export default function BNPLScreen() {
     .reduce((sum, b) => sum + (b.installments - b.paidCount) * b.amountPerInstallment, 0);
 
   const activeCount = bnplInstallments.filter(
-    (b) => b.status === "active" || b.status === "overdue"
+    (b) => b.status === "active" || b.status === "overdue",
   ).length;
 
   return (
@@ -397,16 +417,24 @@ export default function BNPLScreen() {
             >
               <Text style={s.summaryLabel}>Total Outstanding</Text>
               <Text style={s.summaryAmount}>
-                {activeCurrency} {totalOutstanding.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {activeCurrency}{" "}
+                {totalOutstanding.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </Text>
               <View style={s.summaryRow}>
                 <View style={s.summaryPill}>
                   <Ionicons name="card-outline" size={12} color="rgba(255,255,255,0.8)" />
-                  <Text style={s.summaryPillText}>{activeCount} active {activeCount === 1 ? "plan" : "plans"}</Text>
+                  <Text style={s.summaryPillText}>
+                    {activeCount} active {activeCount === 1 ? "plan" : "plans"}
+                  </Text>
                 </View>
                 <View style={s.summaryPill}>
                   <Ionicons name="wallet-outline" size={12} color="rgba(255,255,255,0.8)" />
-                  <Text style={s.summaryPillText}>Balance: {activeCurrency} {balances[activeCurrency].toLocaleString()}</Text>
+                  <Text style={s.summaryPillText}>
+                    Balance: {activeCurrency} {balances[activeCurrency].toLocaleString()}
+                  </Text>
                 </View>
               </View>
             </LinearGradient>
@@ -446,10 +474,7 @@ export default function BNPLScreen() {
       </ScrollView>
 
       {/* FAB */}
-      <Pressable
-        onPress={() => setShowModal(true)}
-        style={[s.fab, { bottom: insets.bottom + 24 }]}
-      >
+      <Pressable onPress={() => setShowModal(true)} style={[s.fab, { bottom: insets.bottom + 24 }]}>
         <Ionicons name="add" size={28} color={Colors.white} />
       </Pressable>
 
@@ -476,8 +501,18 @@ const s = StyleSheet.create({
     elevation: 6,
   },
   summaryCard: { padding: 22, borderRadius: 20 },
-  summaryLabel: { fontFamily: "Inter_500Medium", fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 6 },
-  summaryAmount: { fontFamily: "Inter_600SemiBold", fontSize: 30, color: Colors.white, marginBottom: 14 },
+  summaryLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: "rgba(255,255,255,0.75)",
+    marginBottom: 6,
+  },
+  summaryAmount: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 30,
+    color: Colors.white,
+    marginBottom: 14,
+  },
   summaryRow: { flexDirection: "row", gap: 8 },
   summaryPill: {
     flexDirection: "row",
@@ -499,8 +534,21 @@ const s = StyleSheet.create({
   },
   empty: { alignItems: "center", paddingTop: 80, paddingHorizontal: 32 },
   emptyEmoji: { fontSize: 56, marginBottom: 16 },
-  emptyTitle: { fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.ink[900], marginBottom: 8, textAlign: "center" },
-  emptySub: { fontFamily: "Inter_400Regular", fontSize: 14, color: Colors.ink[500], textAlign: "center", lineHeight: 21, marginBottom: 28 },
+  emptyTitle: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: Colors.ink[900],
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptySub: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: Colors.ink[500],
+    textAlign: "center",
+    lineHeight: 21,
+    marginBottom: 28,
+  },
   emptyBtn: {
     flexDirection: "row",
     alignItems: "center",

@@ -47,21 +47,21 @@ apps/api/src/modules/<bounded-context>/
    - Its public events (`events/`)
    - Its public commands (occasionally, when another module needs synchronous orchestration)
    - **Nothing else.**
-   ESLint rule: `no-restricted-imports` forbids `../<other-module>/(domain|application|infrastructure|interface)/**` everywhere. The only allowed cross-module path is `../<other-module>` (which resolves to the barrel).
+     ESLint rule: `no-restricted-imports` forbids `../<other-module>/(domain|application|infrastructure|interface)/**` everywhere. The only allowed cross-module path is `../<other-module>` (which resolves to the barrel).
 
 2. **No DB foreign keys across module boundaries.** Each module owns a Postgres **schema namespace**:
    - `identity.*` tables
    - `kyc.*` tables
    - `wallet.*` tables
    - `shared.*` (audit log, idempotency keys, event outbox)
-   References across schemas are by ID + an event-driven invariant, not by FK. The Prisma schema is split into multiple `*.prisma` fragments and merged via the multi-file feature (Prisma 5.15+).
+     References across schemas are by ID + an event-driven invariant, not by FK. The Prisma schema is split into multiple `*.prisma` fragments and merged via the multi-file feature (Prisma 5.15+).
 
 3. **Cross-module communication via the internal event bus.** Direct cross-module function calls are an architectural smell. The event bus interface lives at `apps/api/src/shared/events/bus.ts`:
 
    ```ts
    export interface EventBus {
      publish<E extends DomainEvent>(event: E): Promise<void>;
-     subscribe<E extends DomainEvent>(name: E['name'], handler: (e: E) => Promise<void>): void;
+     subscribe<E extends DomainEvent>(name: E["name"], handler: (e: E) => Promise<void>): void;
    }
    ```
 
@@ -79,10 +79,10 @@ apps/api/src/modules/<bounded-context>/
 
 ```ts
 // apps/api/src/modules/wallet/index.ts
-export { TransferCreatedEvent, TransferFailedEvent } from './domain/events';
+export { TransferCreatedEvent, TransferFailedEvent } from "./domain/events";
 // commands are exposed when another module needs synchronous orchestration
-export { CreateTransferCommand } from './application/commands/CreateTransfer';
-export type { Money } from './domain/value-objects/Money';
+export { CreateTransferCommand } from "./application/commands/CreateTransfer";
+export type { Money } from "./domain/value-objects/Money";
 // nothing else is exported.
 ```
 
@@ -91,12 +91,14 @@ export type { Money } from './domain/value-objects/Money';
 ```ts
 // application/commands/CreateTransfer.ts
 export class CreateTransferCommand {
-  constructor(private readonly deps: {
-    accounts: AccountRepository;       // a port
-    ledger: LedgerRepository;          // a port
-    events: EventBus;
-    clock: Clock;                      // injected for testability
-  }) {}
+  constructor(
+    private readonly deps: {
+      accounts: AccountRepository; // a port
+      ledger: LedgerRepository; // a port
+      events: EventBus;
+      clock: Clock; // injected for testability
+    },
+  ) {}
 
   async execute(input: CreateTransferInput): Promise<Result<TransferResult, TransferError>> {
     // 1. Load aggregates via repos
@@ -115,8 +117,8 @@ Exceptions are reserved for **unexpected** failures (DB down, malformed config).
 `tsyringe` with constructor injection. The composition root is `apps/api/src/server.ts`:
 
 ```ts
-container.register<EventBus>('EventBus', { useClass: InProcessEventBus });
-container.register<AccountRepository>('AccountRepository', { useClass: PrismaAccountRepository });
+container.register<EventBus>("EventBus", { useClass: InProcessEventBus });
+container.register<AccountRepository>("AccountRepository", { useClass: PrismaAccountRepository });
 // ... per module ...
 
 const app = await buildApp(container);
@@ -127,15 +129,18 @@ Each module exports a `register(container, fastify)` function — the only entry
 ## Consequences
 
 **Positive**
+
 - Extraction = take a module folder + its Prisma schema fragment + its shared deps → new repo. The HTTP layer ports trivially because Fastify routes are just functions. The event bus swap is a one-line change in the composition root.
 - Test isolation: a module's `domain/` and `application/` tests need no Postgres, no Redis, no Fastify. Repositories are mocked via the ports.
 - Reviewing a PR scoped to one module is bounded.
 
 **Negative**
+
 - Boilerplate. Every domain entity has a value object, a repo interface, a repo implementation, a use case, a route. We accept this — the cost is paid once per module and saves orders of magnitude when extracting.
 - The transactional outbox adds a write per published event. Negligible at the volumes we're targeting; if it becomes a bottleneck, batch the dispatcher.
 
 **Neutral / accept**
+
 - New engineers need an hour-long walkthrough to understand the layering. Documented in this ADR and in `docs/onboarding.md` (future).
 
 ## Alternatives considered
@@ -147,6 +152,7 @@ Each module exports a `register(container, fastify)` function — the only entry
 ## Rollout
 
 PR-2 (after the backend stack PR):
+
 - `apps/api/src/modules/identity/` skeleton (domain/application/infrastructure/interface).
 - `apps/api/src/modules/kyc/` skeleton.
 - `apps/api/src/modules/wallet/` skeleton.

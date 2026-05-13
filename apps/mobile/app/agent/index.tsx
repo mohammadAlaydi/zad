@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -107,15 +107,26 @@ export default function AgentScreen() {
 
               <View style={styles.agentInfo}>
                 <View style={styles.agentNameRow}>
-                  <Text style={styles.agentName} numberOfLines={1}>{agent.name}</Text>
-                  <View style={[styles.badge, agent.openNow ? styles.badgeOpen : styles.badgeClosed]}>
-                    <Text style={[styles.badgeText, agent.openNow ? styles.badgeTextOpen : styles.badgeTextClosed]}>
+                  <Text style={styles.agentName} numberOfLines={1}>
+                    {agent.name}
+                  </Text>
+                  <View
+                    style={[styles.badge, agent.openNow ? styles.badgeOpen : styles.badgeClosed]}
+                  >
+                    <Text
+                      style={[
+                        styles.badgeText,
+                        agent.openNow ? styles.badgeTextOpen : styles.badgeTextClosed,
+                      ]}
+                    >
                       {agent.openNow ? "Open" : "Closed"}
                     </Text>
                   </View>
                 </View>
 
-                <Text style={styles.agentAddress} numberOfLines={1}>{agent.address}</Text>
+                <Text style={styles.agentAddress} numberOfLines={1}>
+                  {agent.address}
+                </Text>
 
                 <View style={styles.agentMeta}>
                   <View style={styles.metaItem}>
@@ -125,9 +136,7 @@ export default function AgentScreen() {
                   <StarRating rating={agent.rating} />
                   <View style={styles.metaItem}>
                     <Ionicons name="wallet-outline" size={12} color={Colors.ink[400]} />
-                    <Text style={styles.metaText}>
-                      Up to ${agent.floatLimit.toLocaleString()}
-                    </Text>
+                    <Text style={styles.metaText}>Up to ${agent.floatLimit.toLocaleString()}</Text>
                   </View>
                 </View>
               </View>
@@ -212,7 +221,12 @@ const styles = StyleSheet.create({
   badgeText: { fontFamily: "Inter_600SemiBold", fontSize: 11 },
   badgeTextOpen: { color: Colors.accent.green },
   badgeTextClosed: { color: Colors.accent.red },
-  agentAddress: { color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12, marginBottom: 6 },
+  agentAddress: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    marginBottom: 6,
+  },
   agentMeta: { flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" },
   metaItem: { flexDirection: "row", alignItems: "center", gap: 3 },
   metaText: { color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 11 },

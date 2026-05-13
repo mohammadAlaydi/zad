@@ -1,14 +1,14 @@
-import { View, Text, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
 import { router, useLocalSearchParams } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { useTranslation } from "react-i18next";
+import { View, Text, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
-import { Colors } from "@/theme/colors";
 import type { VisaDirectTx } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
 
 const VISA_FEE = 1.5;
 
@@ -40,7 +40,12 @@ export default function VisaConfirm() {
     sendVisaDirect(tx);
     router.push({
       pathname: "/send/success",
-      params: { amount: amount, contactName: recipientName, mobile: "", message: "Visa Direct Transfer" },
+      params: {
+        amount: amount,
+        contactName: recipientName,
+        mobile: "",
+        message: "Visa Direct Transfer",
+      },
     });
   };
 

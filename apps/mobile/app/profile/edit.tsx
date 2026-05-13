@@ -1,18 +1,18 @@
-import { useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { MotiView } from "moti";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
 import { Avatar } from "@/components/Avatar";
+import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Input } from "@/components/Input";
+import { Screen } from "@/components/Screen";
+import { useHaptic } from "@/hooks/useHaptic";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
-import { useHaptic } from "@/hooks/useHaptic";
 
 export default function EditProfile() {
   const { t } = useTranslation();
@@ -30,7 +30,10 @@ export default function EditProfile() {
 
   const handleSave = () => {
     haptic.success();
-    updateUser({ fullName, username, phone, email, dob, gender });
+    // Gender is bound to a freeform text Input; cast covers the type gap.
+    // Proper picker UI lands in PR-5 (auth feature migration per ADR-0003).
+    const normalizedGender = gender === "Male" || gender === "Female" ? gender : undefined;
+    updateUser({ fullName, username, phone, email, dob, gender: normalizedGender });
     router.back();
   };
 
@@ -85,11 +88,7 @@ export default function EditProfile() {
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 100, duration: 360 }}
         >
-          <Input
-            label={t("auth.fullName")}
-            value={fullName}
-            onChangeText={setFullName}
-          />
+          <Input label={t("auth.fullName")} value={fullName} onChangeText={setFullName} />
           <Input
             label={t("auth.username")}
             value={username}
@@ -126,33 +125,15 @@ export default function EditProfile() {
             value={dob}
             onChangeText={setDob}
             placeholder="dd / mm / yy"
-            leftIcon={
-              <Ionicons
-                name="calendar-outline"
-                size={18}
-                color={Colors.ink[400]}
-              />
-            }
-            rightIcon={
-              <Ionicons
-                name="chevron-down"
-                size={18}
-                color={Colors.ink[400]}
-              />
-            }
+            leftIcon={<Ionicons name="calendar-outline" size={18} color={Colors.ink[400]} />}
+            rightIcon={<Ionicons name="chevron-down" size={18} color={Colors.ink[400]} />}
           />
           <Input
             label={t("auth.gender")}
             value={gender}
             onChangeText={setGender}
             placeholder={t("auth.chooseGender")}
-            rightIcon={
-              <Ionicons
-                name="chevron-down"
-                size={18}
-                color={Colors.ink[400]}
-              />
-            }
+            rightIcon={<Ionicons name="chevron-down" size={18} color={Colors.ink[400]} />}
           />
         </MotiView>
       </ScrollView>

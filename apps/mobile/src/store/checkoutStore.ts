@@ -40,13 +40,31 @@ type CheckoutState = {
 const sampleCart: CartItem[] = [
   { id: "ci1", name: "Wireless Earbuds Pro", price: 79.99, quantity: 1 },
   { id: "ci2", name: "Phone Case - Clear", price: 15.99, quantity: 2 },
-  { id: "ci3", name: "USB-C Cable 2m", price: 12.50, quantity: 1 },
+  { id: "ci3", name: "USB-C Cable 2m", price: 12.5, quantity: 1 },
 ];
 
 const sampleHistory = [
-  { id: "ph1", merchant: "TechStore", amount: 245.00, date: new Date(Date.now() - 604800000).toISOString(), items: 3 },
-  { id: "ph2", merchant: "FashionHub", amount: 89.50, date: new Date(Date.now() - 1209600000).toISOString(), items: 2 },
-  { id: "ph3", merchant: "GroceryMart", amount: 56.75, date: new Date(Date.now() - 2592000000).toISOString(), items: 8 },
+  {
+    id: "ph1",
+    merchant: "TechStore",
+    amount: 245.0,
+    date: new Date(Date.now() - 604800000).toISOString(),
+    items: 3,
+  },
+  {
+    id: "ph2",
+    merchant: "FashionHub",
+    amount: 89.5,
+    date: new Date(Date.now() - 1209600000).toISOString(),
+    items: 2,
+  },
+  {
+    id: "ph3",
+    merchant: "GroceryMart",
+    amount: 56.75,
+    date: new Date(Date.now() - 2592000000).toISOString(),
+    items: 8,
+  },
 ];
 
 export const useCheckoutStore = create<CheckoutState>((set, get) => ({

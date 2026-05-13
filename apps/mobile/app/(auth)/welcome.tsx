@@ -1,13 +1,13 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { MotiView } from "moti";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
 import { Button } from "@/components/Button";
 import { FlagSelect } from "@/components/FlagSelect";
 import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { WelcomeIllustration } from "@/illustrations/WelcomeIllustration";
 import { Colors } from "@/theme/colors";
 
@@ -45,10 +45,7 @@ export default function Welcome() {
       {/* Buttons section */}
       <View style={[s.bottomSection, { paddingBottom: insets.bottom + 18 }]}>
         {/* Sign Up */}
-        <Button
-          title={t("auth.signUp")}
-          onPress={() => router.push("/(auth)/signup")}
-        />
+        <Button title={t("auth.signUp")} onPress={() => router.push("/(auth)/signup")} />
 
         {/* Log In */}
         <Button
@@ -66,17 +63,11 @@ export default function Welcome() {
 
         {/* Social buttons */}
         <View style={s.socialRow}>
-          <Pressable
-            onPress={() => router.replace("/(tabs)/home")}
-            style={s.socialBtn}
-          >
+          <Pressable onPress={() => router.replace("/(tabs)/home")} style={s.socialBtn}>
             <Ionicons name="logo-google" size={18} color="#DB4437" />
             <Text style={s.socialText}>{t("auth.google")}</Text>
           </Pressable>
-          <Pressable
-            onPress={() => router.replace("/(tabs)/home")}
-            style={s.socialBtn}
-          >
+          <Pressable onPress={() => router.replace("/(tabs)/home")} style={s.socialBtn}>
             <Ionicons name="logo-apple" size={20} color={Colors.ink[900]} />
             <Text style={s.socialText}>{t("auth.apple")}</Text>
           </Pressable>
@@ -84,9 +75,7 @@ export default function Welcome() {
 
         {/* Terms */}
         <Text style={s.termsText}>
-          {t("auth.termsHint")}{" "}
-          <Text style={s.termsLink}>{t("auth.terms")}</Text>{" "}
-          {t("auth.and")}{" "}
+          {t("auth.termsHint")} <Text style={s.termsLink}>{t("auth.terms")}</Text> {t("auth.and")}{" "}
           <Text style={s.termsLink}>{t("auth.privacy")}</Text>
         </Text>
       </View>

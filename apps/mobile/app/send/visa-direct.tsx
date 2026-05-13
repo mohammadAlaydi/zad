@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
 import { AmountStepper } from "@/components/AmountStepper";
+import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Input } from "@/components/Input";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -115,14 +115,24 @@ const styles = StyleSheet.create({
   flagEmoji: { fontSize: 28, marginRight: 10 },
   balanceInfo: { flex: 1 },
   balanceName: { color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 },
-  balanceAvailable: { color: Colors.accent.green, fontFamily: "Inter_500Medium", fontSize: 12, marginTop: 2 },
+  balanceAvailable: {
+    color: Colors.accent.green,
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    marginTop: 2,
+  },
   visaBadge: {
     backgroundColor: "#1A1F71",
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  visaBadgeText: { color: Colors.white, fontFamily: "Inter_600SemiBold", fontSize: 13, letterSpacing: 1 },
+  visaBadgeText: {
+    color: Colors.white,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    letterSpacing: 1,
+  },
   sectionLabel: {
     color: Colors.ink[500],
     fontFamily: "Inter_400Regular",

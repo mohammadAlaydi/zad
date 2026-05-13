@@ -1,20 +1,28 @@
-import { useEffect, useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Header } from "@/components/Header";
-import { Colors } from "@/theme/colors";
+import { Screen } from "@/components/Screen";
 import { useHaptic } from "@/hooks/useHaptic";
+import { Colors } from "@/theme/colors";
 
 type Key = { d: string; sub?: string } | { d: "blank" } | { d: "del" };
 
 const ROWS: Key[][] = [
   [{ d: "1" }, { d: "2", sub: "abc" }, { d: "3", sub: "def" }],
-  [{ d: "4", sub: "ghi" }, { d: "5", sub: "jkl" }, { d: "6", sub: "mno" }],
-  [{ d: "7", sub: "pqrs" }, { d: "8", sub: "tuv" }, { d: "9", sub: "wxyz" }],
+  [
+    { d: "4", sub: "ghi" },
+    { d: "5", sub: "jkl" },
+    { d: "6", sub: "mno" },
+  ],
+  [
+    { d: "7", sub: "pqrs" },
+    { d: "8", sub: "tuv" },
+    { d: "9", sub: "wxyz" },
+  ],
   [{ d: "blank" }, { d: "0", sub: "+" }, { d: "del" }],
 ];
 
@@ -36,10 +44,7 @@ export default function ConfirmPasscode() {
     if (code.length === 6) {
       if (code === first) {
         haptic.success();
-        const id = setTimeout(
-          () => router.replace("/(auth)/congrats"),
-          260,
-        );
+        const id = setTimeout(() => router.replace("/(auth)/congrats"), 260);
         return () => clearTimeout(id);
       } else {
         haptic.heavy();
@@ -63,20 +68,17 @@ export default function ConfirmPasscode() {
           transition={{ type: "timing", duration: 320 }}
         >
           <Text style={styles.title}>{t("auth.confirmPasscode")}</Text>
-          <Text
-            style={[
-              styles.subtitle,
-              { color: err ? Colors.accent.red : Colors.ink[500] },
-            ]}
-          >
+          <Text style={[styles.subtitle, { color: err ? Colors.accent.red : Colors.ink[500] }]}>
             {err ? "Passcodes don't match. Try again." : t("auth.passcodeHint")}
           </Text>
         </MotiView>
 
         <MotiView
-          animate={{
-            translateX: err ? [-8, 8, -6, 6, -3, 0] : 0,
-          } as any}
+          animate={
+            {
+              translateX: err ? [-8, 8, -6, 6, -3, 0] : 0,
+            } as any
+          }
           transition={{ type: "timing", duration: 380 }}
           style={styles.dotsRow}
         >
@@ -90,8 +92,8 @@ export default function ConfirmPasscode() {
                   backgroundColor: err
                     ? Colors.accent.red
                     : filled
-                    ? Colors.brand.primary
-                    : Colors.ink[200],
+                      ? Colors.brand.primary
+                      : Colors.ink[200],
                 }}
                 transition={{ type: "timing", duration: 180 }}
                 style={styles.dot}
@@ -119,12 +121,14 @@ export default function ConfirmPasscode() {
                       android_ripple={{ color: Colors.ink[100], borderless: true }}
                     >
                       {({ pressed }) => (
-                        <View style={[StyleSheet.absoluteFill, styles.innerCell, pressed ? styles.keyCellPressed : null]}>
-                          <Ionicons
-                            name="backspace-outline"
-                            size={26}
-                            color={Colors.ink[700]}
-                          />
+                        <View
+                          style={[
+                            StyleSheet.absoluteFill,
+                            styles.innerCell,
+                            pressed ? styles.keyCellPressed : null,
+                          ]}
+                        >
+                          <Ionicons name="backspace-outline" size={26} color={Colors.ink[700]} />
                         </View>
                       )}
                     </Pressable>
@@ -139,7 +143,13 @@ export default function ConfirmPasscode() {
                     android_ripple={{ color: Colors.ink[100], borderless: true }}
                   >
                     {({ pressed }) => (
-                      <View style={[StyleSheet.absoluteFill, styles.innerCell, pressed ? styles.keyCellPressed : null]}>
+                      <View
+                        style={[
+                          StyleSheet.absoluteFill,
+                          styles.innerCell,
+                          pressed ? styles.keyCellPressed : null,
+                        ]}
+                      >
                         <Text style={styles.keyDigit}>{k.d}</Text>
                         {"sub" in k && k.sub ? (
                           <Text style={styles.keySub}>{k.sub.toUpperCase()}</Text>

@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router, useLocalSearchParams } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
-import { Button } from "@/components/Button";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AmountStepper } from "@/components/AmountStepper";
+import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -64,7 +64,12 @@ export default function AgentConfirm() {
                 size={14}
                 color={isCashIn ? Colors.accent.green : Colors.accent.red}
               />
-              <Text style={[styles.modePillText, { color: isCashIn ? Colors.accent.green : Colors.accent.red }]}>
+              <Text
+                style={[
+                  styles.modePillText,
+                  { color: isCashIn ? Colors.accent.green : Colors.accent.red },
+                ]}
+              >
                 {modeLabel}
               </Text>
             </View>
@@ -103,7 +108,9 @@ export default function AgentConfirm() {
               </View>
             ))}
           </View>
-          <Text style={styles.otpNote}>Share this code with the agent to complete the transaction</Text>
+          <Text style={styles.otpNote}>
+            Share this code with the agent to complete the transaction
+          </Text>
         </MotiView>
       </View>
 
@@ -135,7 +142,12 @@ const styles = StyleSheet.create({
   },
   agentAvatarText: { color: Colors.brand.primary, fontFamily: "Sora_700Bold", fontSize: 20 },
   agentInfo: { flex: 1 },
-  agentName: { color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 15, marginBottom: 4 },
+  agentName: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 15,
+    marginBottom: 4,
+  },
   modePill: { flexDirection: "row", alignItems: "center", gap: 5 },
   modePillText: { fontFamily: "Inter_600SemiBold", fontSize: 13 },
   sectionLabel: {

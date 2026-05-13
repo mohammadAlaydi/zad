@@ -1,3 +1,5 @@
+import { Ionicons } from "@expo/vector-icons";
+import { MotiView } from "moti";
 import { useState } from "react";
 import {
   View,
@@ -8,14 +10,11 @@ import {
   TextInput,
   StyleSheet,
   StatusBar,
-  Platform,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
+import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
-import { Button } from "@/components/Button";
 import { Colors } from "@/theme/colors";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -148,9 +147,7 @@ function PlanCard({
         <Text style={styles.planEmoji}>{plan.emoji}</Text>
         <View style={styles.planCardHeaderInfo}>
           <Text style={styles.planName}>{plan.name}</Text>
-          <Text style={styles.planCoverage}>
-            Coverage up to ${plan.coverage.toLocaleString()}
-          </Text>
+          <Text style={styles.planCoverage}>Coverage up to ${plan.coverage.toLocaleString()}</Text>
         </View>
         <View style={styles.planPriceCol}>
           <Text style={styles.planPrice}>${plan.premium}</Text>
@@ -302,7 +299,8 @@ export default function InsuranceScreen() {
                 <Text style={styles.modalEmoji}>{confirmPlan.emoji}</Text>
                 <Text style={styles.modalTitle}>{confirmPlan.name}</Text>
                 <Text style={styles.modalSub}>
-                  ${confirmPlan.premium}/month · Coverage up to ${confirmPlan.coverage.toLocaleString()}
+                  ${confirmPlan.premium}/month · Coverage up to $
+                  {confirmPlan.coverage.toLocaleString()}
                 </Text>
 
                 <View style={styles.benefitsSection}>
@@ -316,9 +314,7 @@ export default function InsuranceScreen() {
 
                 <View style={styles.deductionNote}>
                   <Ionicons name="wallet-outline" size={16} color={Colors.brand.primary} />
-                  <Text style={styles.deductionText}>
-                    Deducted monthly from wallet
-                  </Text>
+                  <Text style={styles.deductionText}>Deducted monthly from wallet</Text>
                 </View>
 
                 <Button

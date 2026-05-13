@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 export default function BillsPay() {
@@ -27,10 +27,7 @@ export default function BillsPay() {
     <Screen bg={Colors.white}>
       <Header title={t("bills.yourBills")} />
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 24 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
         showsVerticalScrollIndicator={false}
       >
         {bills.map((bill) => {
@@ -42,32 +39,22 @@ export default function BillsPay() {
               style={[
                 styles.billRow,
                 {
-                  borderColor: isActive
-                    ? Colors.brand.primary
-                    : Colors.ink[100],
+                  borderColor: isActive ? Colors.brand.primary : Colors.ink[100],
                 },
               ]}
             >
               <View style={styles.billIcon}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={20}
-                  color={Colors.brand.primary}
-                />
+                <Ionicons name="document-text-outline" size={20} color={Colors.brand.primary} />
               </View>
               <View style={styles.billInfo}>
-                <Text style={styles.billAmount}>
-                  {bill.amount.toFixed(2)} $
-                </Text>
+                <Text style={styles.billAmount}>{bill.amount.toFixed(2)} $</Text>
                 <Text style={styles.billMonth}>{bill.month}</Text>
               </View>
               <View
                 style={[
                   styles.radio,
                   {
-                    borderColor: isActive
-                      ? Colors.brand.primary
-                      : Colors.ink[300],
+                    borderColor: isActive ? Colors.brand.primary : Colors.ink[300],
                   },
                 ]}
               >
@@ -80,20 +67,11 @@ export default function BillsPay() {
 
       {/* Bottom sheet */}
       {selected && (
-        <View
-          style={[
-            styles.bottomSheet,
-            { paddingBottom: insets.bottom + 20 },
-          ]}
-        >
-          <Text style={styles.sheetTitle}>
-            {t("bills.paymentDetails")}
-          </Text>
+        <View style={[styles.bottomSheet, { paddingBottom: insets.bottom + 20 }]}>
+          <Text style={styles.sheetTitle}>{t("bills.paymentDetails")}</Text>
           <View style={styles.sheetRow}>
             <Text style={styles.sheetLabel}>{t("bills.serviceValue")}</Text>
-            <Text style={styles.sheetValue}>
-              {selected.amount.toFixed(2)} $
-            </Text>
+            <Text style={styles.sheetValue}>{selected.amount.toFixed(2)} $</Text>
           </View>
           <View style={styles.sheetRow}>
             <Text style={styles.sheetLabel}>{t("bills.serviceFee")}</Text>
@@ -101,14 +79,9 @@ export default function BillsPay() {
           </View>
           <View style={styles.sheetTotalRow}>
             <Text style={styles.sheetTotalLabel}>{t("common.total")}</Text>
-            <Text style={styles.sheetTotalValue}>
-              {total.toFixed(2)} $
-            </Text>
+            <Text style={styles.sheetTotalValue}>{total.toFixed(2)} $</Text>
           </View>
-          <Pressable
-            onPress={() => router.replace("/(tabs)/home")}
-            style={styles.payBtn}
-          >
+          <Pressable onPress={() => router.replace("/(tabs)/home")} style={styles.payBtn}>
             <Text style={styles.payBtnText}>{t("common.payNow")}</Text>
           </Pressable>
         </View>

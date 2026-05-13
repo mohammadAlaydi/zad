@@ -31,10 +31,10 @@ Audit reference: [audit §3 S0-2, S0-5, §4](../audit.md).
 ```ts
 // src/features/auth/store/authStore.ts
 type AuthSession = {
-  accessToken: string;          // in memory only, never persisted
-  expiresAt: number;            // ms epoch
+  accessToken: string; // in memory only, never persisted
+  expiresAt: number; // ms epoch
   userId: string;
-  kycStatus: 'pending' | 'submitted' | 'review' | 'approved' | 'rejected';
+  kycStatus: "pending" | "submitted" | "review" | "approved" | "rejected";
   roles: string[];
 };
 ```
@@ -46,7 +46,7 @@ Refresh state is **not** in Zustand. It is owned by the API client's interceptor
 let refreshInFlight: Promise<string> | null = null;
 
 api.onUnauthorized(async (originalRequest) => {
-  refreshInFlight ??= refreshAccessToken();      // single-flight
+  refreshInFlight ??= refreshAccessToken(); // single-flight
   try {
     const newAccess = await refreshInFlight;
     return api.retry(originalRequest, { accessToken: newAccess });
@@ -86,21 +86,27 @@ Single-flight prevents 5 parallel requests from triggering 5 refresh calls (whic
 - All secrets via environment variables. Validated at startup with **Zod** in `apps/api/src/infra/config/env.ts`:
 
   ```ts
-  export const env = z.object({
-    NODE_ENV: z.enum(['development', 'test', 'production']),
-    PORT: z.coerce.number().int().positive().default(3000),
-    DATABASE_URL: z.string().url(),
-    REDIS_URL: z.string().url(),
-    JWT_SIGNING_KEY: z.string().min(32),     // ed25519 private key, base64
-    JWT_VERIFY_KEY: z.string().min(32),      // ed25519 public key, base64
-    REFRESH_TOKEN_PEPPER: z.string().min(32),
-    SUMSUB_API_KEY: z.string().optional(),   // present in non-dev
-    SUMSUB_API_SECRET: z.string().optional(),
-    SENTRY_DSN: z.string().url().optional(),
-    OTLP_ENDPOINT: z.string().url().optional(),
-  }).superRefine((v, ctx) => {
-    if (v.NODE_ENV === 'production' && !v.SUMSUB_API_KEY) ctx.addIssue({ /* ... */ });
-  }).parse(process.env);
+  export const env = z
+    .object({
+      NODE_ENV: z.enum(["development", "test", "production"]),
+      PORT: z.coerce.number().int().positive().default(3000),
+      DATABASE_URL: z.string().url(),
+      REDIS_URL: z.string().url(),
+      JWT_SIGNING_KEY: z.string().min(32), // ed25519 private key, base64
+      JWT_VERIFY_KEY: z.string().min(32), // ed25519 public key, base64
+      REFRESH_TOKEN_PEPPER: z.string().min(32),
+      SUMSUB_API_KEY: z.string().optional(), // present in non-dev
+      SUMSUB_API_SECRET: z.string().optional(),
+      SENTRY_DSN: z.string().url().optional(),
+      OTLP_ENDPOINT: z.string().url().optional(),
+    })
+    .superRefine((v, ctx) => {
+      if (v.NODE_ENV === "production" && !v.SUMSUB_API_KEY)
+        ctx.addIssue({
+          /* ... */
+        });
+    })
+    .parse(process.env);
   ```
 
 - **App refuses to start** if validation fails. No env, no boot.
@@ -147,16 +153,19 @@ The current [.gitignore](../../.gitignore) already covers `.env*.local` — exte
 ## Consequences
 
 **Positive**
+
 - AsyncStorage tampering cannot impersonate a user (refresh token is in Keychain, server validates).
 - Replay attacks against refresh tokens detected and contained.
 - Secrets bound to environment, never to image.
 - Audit log is admissible evidence.
 
 **Negative**
+
 - Single-flight refresh adds complexity. Test coverage is mandatory on the interceptor.
 - Argon2id raises CPU per login by ~50–150 ms. Acceptable; logins are not in the hot path.
 
 **Neutral / accept**
+
 - Ed25519 is well-supported by `jose` and modern verifiers, less so by some legacy systems. We don't have legacy systems.
 - We use `accessible: AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY` on Android — refresh tokens become inaccessible until the device is first unlocked after boot. Trade-off: no background-refresh on a freshly-rebooted device until the user unlocks. Right trade for fintech.
 

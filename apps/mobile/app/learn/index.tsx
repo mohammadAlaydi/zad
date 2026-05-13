@@ -1,21 +1,12 @@
-import { useState, useRef } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Modal,
-  TextInput,
-  Animated,
-} from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
+import { useState } from "react";
+import { View, Text, Pressable, ScrollView, StyleSheet, Modal } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -209,15 +200,37 @@ type Badge = {
 };
 
 const BADGES: Badge[] = [
-  { id: "b1", label: "First Lesson", emoji: "🎖️", unlocked: true, desc: "Completed your first lesson" },
-  { id: "b2", label: "Quiz Master", emoji: "🧠", unlocked: false, desc: "Scored 100% on 3 quizzes" },
+  {
+    id: "b1",
+    label: "First Lesson",
+    emoji: "🎖️",
+    unlocked: true,
+    desc: "Completed your first lesson",
+  },
+  {
+    id: "b2",
+    label: "Quiz Master",
+    emoji: "🧠",
+    unlocked: false,
+    desc: "Scored 100% on 3 quizzes",
+  },
   { id: "b3", label: "Saver", emoji: "💰", unlocked: false, desc: "Completed Savings & Goals" },
   { id: "b4", label: "Investor", emoji: "📈", unlocked: false, desc: "Completed Investing Basics" },
 ];
 
 // ── Progress Ring ─────────────────────────────────────────────────────────────
 
-function ProgressRing({ pct, size = 64, stroke = 5, color }: { pct: number; size?: number; stroke?: number; color: string }) {
+function ProgressRing({
+  pct,
+  size = 64,
+  stroke = 5,
+  color,
+}: {
+  pct: number;
+  size?: number;
+  stroke?: number;
+  color: string;
+}) {
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const dash = (pct / 100) * circ;
@@ -252,7 +265,13 @@ function ProgressRing({ pct, size = 64, stroke = 5, color }: { pct: number; size
         }}
       />
       <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
-        <Text style={{ fontFamily: "Inter_700Bold", fontSize: size === 64 ? 14 : 11, color: Colors.ink[900] }}>
+        <Text
+          style={{
+            fontFamily: "Inter_700Bold",
+            fontSize: size === 64 ? 14 : 11,
+            color: Colors.ink[900],
+          }}
+        >
           {pct}%
         </Text>
       </View>
@@ -273,9 +292,7 @@ function XPToast({ visible, correct }: { visible: boolean; correct: boolean }) {
       ]}
       pointerEvents="none"
     >
-      <Text style={styles.xpToastText}>
-        {correct ? "+10 XP  🎉" : "Wrong answer  ❌"}
-      </Text>
+      <Text style={styles.xpToastText}>{correct ? "+10 XP  🎉" : "Wrong answer  ❌"}</Text>
     </MotiView>
   );
 }
@@ -348,7 +365,9 @@ export default function LearnScreen() {
             <View style={styles.xpTop}>
               <View>
                 <Text style={styles.xpLevel}>Level {level} Learner 🎓</Text>
-                <Text style={styles.xpSub}>{xp} / {xpMax} XP</Text>
+                <Text style={styles.xpSub}>
+                  {xp} / {xpMax} XP
+                </Text>
               </View>
               <View style={styles.streakBadge}>
                 <Text style={styles.streakText}>7 day streak 🔥</Text>
@@ -391,7 +410,9 @@ export default function LearnScreen() {
                   <Text style={styles.featuredBadgeText}>TOP PICK</Text>
                 </View>
                 <Text style={styles.featuredTitle}>Budgeting 101 📚</Text>
-                <Text style={styles.featuredSub}>Master the 50/30/20 rule and take control of your money</Text>
+                <Text style={styles.featuredSub}>
+                  Master the 50/30/20 rule and take control of your money
+                </Text>
                 <View style={styles.featuredMeta}>
                   <Ionicons name="time-outline" size={13} color="rgba(255,255,255,0.7)" />
                   <Text style={styles.featuredMetaText}>15 min · 3 lessons</Text>
@@ -463,14 +484,21 @@ export default function LearnScreen() {
                 transition={{ type: "spring", delay: 460 + i * 70 }}
               >
                 <View style={[styles.badgeCard, !b.unlocked && styles.badgeLocked]}>
-                  <View style={[styles.badgeIconCircle, b.unlocked && { backgroundColor: Colors.accent.amber + "22" }]}>
+                  <View
+                    style={[
+                      styles.badgeIconCircle,
+                      b.unlocked && { backgroundColor: Colors.accent.amber + "22" },
+                    ]}
+                  >
                     {b.unlocked ? (
                       <Text style={styles.badgeEmoji}>{b.emoji}</Text>
                     ) : (
                       <Ionicons name="lock-closed" size={22} color={Colors.ink[300]} />
                     )}
                   </View>
-                  <Text style={[styles.badgeLabel, !b.unlocked && { color: Colors.ink[400] }]}>{b.label}</Text>
+                  <Text style={[styles.badgeLabel, !b.unlocked && { color: Colors.ink[400] }]}>
+                    {b.label}
+                  </Text>
                   <Text style={styles.badgeDesc}>{b.desc}</Text>
                   {b.unlocked && (
                     <View style={styles.unlockedDot}>
@@ -485,7 +513,12 @@ export default function LearnScreen() {
       </ScrollView>
 
       {/* ── Course Modal ── */}
-      <Modal visible={!!selectedCourse} transparent animationType="slide" onRequestClose={closeCourse}>
+      <Modal
+        visible={!!selectedCourse}
+        transparent
+        animationType="slide"
+        onRequestClose={closeCourse}
+      >
         <Pressable style={styles.modalOverlay} onPress={closeCourse}>
           <MotiView
             from={{ translateY: 80, opacity: 0 }}
@@ -503,9 +536,17 @@ export default function LearnScreen() {
                     <Text style={styles.modalEmoji}>{selectedCourse.emoji}</Text>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.modalTitle}>{selectedCourse.title}</Text>
-                      <Text style={styles.modalSub}>{selectedCourse.completionPct}% complete · {selectedCourse.lessons.length} lessons</Text>
+                      <Text style={styles.modalSub}>
+                        {selectedCourse.completionPct}% complete · {selectedCourse.lessons.length}{" "}
+                        lessons
+                      </Text>
                     </View>
-                    <ProgressRing pct={selectedCourse.completionPct} size={52} stroke={4} color={selectedCourse.color} />
+                    <ProgressRing
+                      pct={selectedCourse.completionPct}
+                      size={52}
+                      stroke={4}
+                      color={selectedCourse.color}
+                    />
                   </View>
 
                   <Text style={styles.lessonsSectionLabel}>Lessons</Text>
@@ -524,14 +565,25 @@ export default function LearnScreen() {
                           setChosenIdx(null);
                         }}
                       >
-                        <View style={[styles.lessonNumBadge, { backgroundColor: selectedCourse.color + "22" }]}>
-                          <Text style={[styles.lessonNum, { color: selectedCourse.color }]}>{i + 1}</Text>
+                        <View
+                          style={[
+                            styles.lessonNumBadge,
+                            { backgroundColor: selectedCourse.color + "22" },
+                          ]}
+                        >
+                          <Text style={[styles.lessonNum, { color: selectedCourse.color }]}>
+                            {i + 1}
+                          </Text>
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text style={styles.lessonTitle}>{lesson.title}</Text>
                           <Text style={styles.lessonDuration}>{lesson.duration}</Text>
                         </View>
-                        <Ionicons name="play-circle-outline" size={24} color={selectedCourse.color} />
+                        <Ionicons
+                          name="play-circle-outline"
+                          size={24}
+                          color={selectedCourse.color}
+                        />
                       </Pressable>
                     </MotiView>
                   ))}
@@ -547,12 +599,7 @@ export default function LearnScreen() {
       </Modal>
 
       {/* ── Quiz Modal ── */}
-      <Modal
-        visible={!!selectedLesson}
-        transparent
-        animationType="fade"
-        onRequestClose={closeQuiz}
-      >
+      <Modal visible={!!selectedLesson} transparent animationType="fade" onRequestClose={closeQuiz}>
         <View style={styles.quizOverlay}>
           <MotiView
             from={{ scale: 0.92, opacity: 0 }}
@@ -580,14 +627,14 @@ export default function LearnScreen() {
                       showResult && isCorrect
                         ? Colors.accent.greenSoft
                         : showResult && isChosen && !isCorrect
-                        ? Colors.accent.redSoft
-                        : Colors.ink[50];
+                          ? Colors.accent.redSoft
+                          : Colors.ink[50];
                     const border =
                       showResult && isCorrect
                         ? Colors.accent.green
                         : showResult && isChosen && !isCorrect
-                        ? Colors.accent.red
-                        : Colors.ink[200];
+                          ? Colors.accent.red
+                          : Colors.ink[200];
 
                     return (
                       <MotiView
@@ -611,7 +658,11 @@ export default function LearnScreen() {
                             {opt.text}
                           </Text>
                           {showResult && isCorrect && (
-                            <Ionicons name="checkmark-circle" size={18} color={Colors.accent.green} />
+                            <Ionicons
+                              name="checkmark-circle"
+                              size={18}
+                              color={Colors.accent.green}
+                            />
                           )}
                           {showResult && isChosen && !isCorrect && (
                             <Ionicons name="close-circle" size={18} color={Colors.accent.red} />

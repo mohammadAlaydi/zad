@@ -1,3 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { MotiView } from "moti";
 import { useState } from "react";
 import {
   View,
@@ -9,17 +12,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
-import { Colors } from "@/theme/colors";
 import type { ScheduledFrequency } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
 
 type PaymentType = "transfer" | "bill";
 
@@ -172,7 +172,9 @@ export default function CreateScheduledPayment() {
                   <Text style={[styles.freqCardLabel, active && styles.freqCardLabelActive]}>
                     {f.label}
                   </Text>
-                  <Text style={[styles.freqCardDesc, active && { color: Colors.brand.primaryLight }]}>
+                  <Text
+                    style={[styles.freqCardDesc, active && { color: Colors.brand.primaryLight }]}
+                  >
                     {f.desc}
                   </Text>
                 </Pressable>

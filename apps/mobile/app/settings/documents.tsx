@@ -1,11 +1,11 @@
-import { View, Text, ScrollView, Alert } from "react-native";
-import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
+import { useTranslation } from "react-i18next";
+import { Text, ScrollView, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
 import { Header } from "@/components/Header";
 import { ListRow } from "@/components/ListRow";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 export default function Documents() {
@@ -54,39 +54,30 @@ export default function Documents() {
           }}
         >
           <ListRow
-            icon={
-              <Ionicons
-                name="document-text-outline"
-                size={18}
-                color={Colors.brand.primary}
-              />
-            }
+            icon={<Ionicons name="document-text-outline" size={18} color={Colors.brand.primary} />}
             title={t("documents.consolidated")}
             subtitle="To help fill out your taxes"
-            onPress={() => Alert.alert("Coming Soon", "Consolidated statements will be available in a future update.")}
+            onPress={() =>
+              Alert.alert(
+                "Coming Soon",
+                "Consolidated statements will be available in a future update.",
+              )
+            }
           />
           <ListRow
-            icon={
-              <Ionicons
-                name="person-outline"
-                size={18}
-                color={Colors.brand.primary}
-              />
-            }
+            icon={<Ionicons name="person-outline" size={18} color={Colors.brand.primary} />}
             title={t("documents.personal")}
-            onPress={() => Alert.alert("Coming Soon", "Personal documents will be available in a future update.")}
+            onPress={() =>
+              Alert.alert("Coming Soon", "Personal documents will be available in a future update.")
+            }
           />
           <ListRow
-            icon={
-              <Ionicons
-                name="file-tray-full-outline"
-                size={18}
-                color={Colors.brand.primary}
-              />
-            }
+            icon={<Ionicons name="file-tray-full-outline" size={18} color={Colors.brand.primary} />}
             title={t("documents.general")}
             divider={false}
-            onPress={() => Alert.alert("Coming Soon", "General documents will be available in a future update.")}
+            onPress={() =>
+              Alert.alert("Coming Soon", "General documents will be available in a future update.")
+            }
           />
         </MotiView>
       </ScrollView>

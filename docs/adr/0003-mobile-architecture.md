@@ -67,32 +67,41 @@ apps/mobile/
 
 ```ts
 // src/lib/api/client.ts
-import { z } from 'zod';
-import { Result, ok, err } from '@zadpay/errors';
+import { z } from "zod";
+import { Result, ok, err } from "@zadpay/errors";
 
 export const api = {
   async post<TReq, TRes>(
     path: string,
     body: TReq,
     schema: z.ZodType<TRes>,
-    opts?: { idempotencyKey?: string }
-  ): Promise<Result<TRes, ApiError>> { /* ... */ },
+    opts?: { idempotencyKey?: string },
+  ): Promise<Result<TRes, ApiError>> {
+    /* ... */
+  },
   // get, put, delete similar
 };
 
 // src/features/wallet/services/transferService.ts
-import { TransferRequestSchema, TransferResponseSchema } from '@zadpay/validation';
+import { TransferRequestSchema, TransferResponseSchema } from "@zadpay/validation";
 
 export async function createTransfer(req: TransferRequest, idempotencyKey: string) {
-  return api.post('/v1/wallet/transfers', req, TransferResponseSchema, { idempotencyKey });
+  return api.post("/v1/wallet/transfers", req, TransferResponseSchema, { idempotencyKey });
 }
 
 // src/features/wallet/hooks/useCreateTransfer.ts
 export function useCreateTransfer() {
   return useMutation({
     mutationFn: ({ req, key }: { req: TransferRequest; key: string }) =>
-      createTransfer(req, key).then(r => r.match({ ok: v => v, err: e => { throw e; } })),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wallet', 'balance'] }),
+      createTransfer(req, key).then((r) =>
+        r.match({
+          ok: (v) => v,
+          err: (e) => {
+            throw e;
+          },
+        }),
+      ),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] }),
   });
 }
 ```
@@ -103,15 +112,20 @@ Top-level guard lives in `app/_layout.tsx`:
 
 ```tsx
 function RootGuard({ children }: { children: React.ReactNode }) {
-  const auth = useAuthSession();           // hook over SecureStore + refresh
+  const auth = useAuthSession(); // hook over SecureStore + refresh
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    const inAuthGroup = segments[0] === '(auth)';
-    if (!auth.isAuthenticated && !inAuthGroup) router.replace('/(auth)/welcome');
-    else if (auth.isAuthenticated && auth.kycStatus !== 'approved' && !segments[0]?.startsWith('(auth)')) router.replace('/(auth)/personal-info');
-    else if (auth.isAuthenticated && inAuthGroup) router.replace('/(tabs)/home');
+    const inAuthGroup = segments[0] === "(auth)";
+    if (!auth.isAuthenticated && !inAuthGroup) router.replace("/(auth)/welcome");
+    else if (
+      auth.isAuthenticated &&
+      auth.kycStatus !== "approved" &&
+      !segments[0]?.startsWith("(auth)")
+    )
+      router.replace("/(auth)/personal-info");
+    else if (auth.isAuthenticated && inAuthGroup) router.replace("/(tabs)/home");
   }, [auth, segments]);
 
   return <>{children}</>;
@@ -130,7 +144,10 @@ Guard reads from a **derived** auth state (refresh-token presence + decoded JWT 
 Every server-touching screen has all three states wired:
 
 ```tsx
-const { data, isPending, error, refetch } = useQuery({ queryKey: ['wallet', 'balance'], queryFn: getBalance });
+const { data, isPending, error, refetch } = useQuery({
+  queryKey: ["wallet", "balance"],
+  queryFn: getBalance,
+});
 if (isPending) return <Skeleton variant="balance" />;
 if (error) return <ErrorState onRetry={refetch} message={error.message} />;
 return <BalanceCard amount={data.amount} currency={data.currency} />;
@@ -141,16 +158,19 @@ return <BalanceCard amount={data.amount} currency={data.currency} />;
 ## Consequences
 
 **Positive**
+
 - Each feature is portable. Moving a feature to another app is `mv src/features/X` + updating routes.
 - Removes the God store.
 - Async UX is consistent and predictable.
 - Code review can be scoped: a `kyc` PR doesn't touch `wallet` files.
 
 **Negative**
+
 - The migration is non-trivial. ~30 domains × current scattered code = many PRs. We do them feature-by-feature, not in one big bang.
 - Two state systems (Zustand + React Query) is more conceptual surface than one. We accept this — they solve different problems.
 
 **Neutral / accept**
+
 - ESLint's `no-restricted-imports` will yell at us during the migration window. Add a deprecation comment + suppression that fails after a date.
 
 ## Alternatives considered

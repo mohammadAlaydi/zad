@@ -1,5 +1,5 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useHaptic } from "@/hooks/useHaptic";
 import { Colors } from "@/theme/colors";
 
@@ -25,7 +25,8 @@ export function AmountStepper({ value, onChange, step = 50, symbol = "$" }: Prop
       </Pressable>
       <View style={styles.amountWrap}>
         <Text style={styles.amountText}>
-          {symbol} {value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {symbol}{" "}
+          {value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </Text>
       </View>
       <Pressable

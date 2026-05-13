@@ -1,13 +1,13 @@
-import { View, Text, Pressable, Dimensions } from "react-native";
-import { Button } from "@/components/Button";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import QRCode from "react-native-qrcode-svg";
+import { router } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, Dimensions } from "react-native";
+import QRCode from "react-native-qrcode-svg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -40,8 +40,21 @@ export default function QrDisplay() {
             width: "100%",
           }}
         >
-          <QRCode value={qrValue} size={width * 0.5} color={Colors.brand.primary} backgroundColor={Colors.white} />
-          <Text style={{ marginTop: 18, color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 13, textAlign: "center" }}>
+          <QRCode
+            value={qrValue}
+            size={width * 0.5}
+            color={Colors.brand.primary}
+            backgroundColor={Colors.white}
+          />
+          <Text
+            style={{
+              marginTop: 18,
+              color: Colors.ink[500],
+              fontFamily: "Inter_400Regular",
+              fontSize: 13,
+              textAlign: "center",
+            }}
+          >
             {t("receive.requestPayment")}
           </Text>
           <View style={{ flexDirection: "row", gap: 12, marginTop: 20, width: "100%" }}>
@@ -59,7 +72,9 @@ export default function QrDisplay() {
               })}
             >
               <Ionicons name="link" size={18} color={Colors.white} />
-              <Text style={{ color: Colors.white, fontFamily: "Inter_600SemiBold", fontSize: 13 }}>Share link</Text>
+              <Text style={{ color: Colors.white, fontFamily: "Inter_600SemiBold", fontSize: 13 }}>
+                Share link
+              </Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => ({
@@ -75,19 +90,47 @@ export default function QrDisplay() {
               })}
             >
               <Ionicons name="qr-code" size={18} color={Colors.white} />
-              <Text style={{ color: Colors.white, fontFamily: "Inter_600SemiBold", fontSize: 13 }}>Share QR</Text>
+              <Text style={{ color: Colors.white, fontFamily: "Inter_600SemiBold", fontSize: 13 }}>
+                Share QR
+              </Text>
             </Pressable>
           </View>
         </MotiView>
 
         {/* Balance hint */}
-        <View style={{ marginTop: 24, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: Colors.surface.background, borderRadius: 16, padding: 14, width: "100%" }}>
-          <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.brand.primary50, alignItems: "center", justifyContent: "center" }}>
+        <View
+          style={{
+            marginTop: 24,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
+            backgroundColor: Colors.surface.background,
+            borderRadius: 16,
+            padding: 14,
+            width: "100%",
+          }}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: Colors.brand.primary50,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Ionicons name="wallet-outline" size={18} color={Colors.brand.primary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}>{activeCurrency} Balance</Text>
-            <Text style={{ color: Colors.accent.green, fontFamily: "Inter_500Medium", fontSize: 12 }}>{balances[activeCurrency].toLocaleString()} $</Text>
+            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}>
+              {activeCurrency} Balance
+            </Text>
+            <Text
+              style={{ color: Colors.accent.green, fontFamily: "Inter_500Medium", fontSize: 12 }}
+            >
+              {balances[activeCurrency].toLocaleString()} $
+            </Text>
           </View>
         </View>
       </View>

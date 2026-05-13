@@ -1,15 +1,14 @@
-import { View, Text, Pressable, ScrollView } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
 import { Header } from "@/components/Header";
-import { useApp, Currency } from "@/store/appStore";
+import { Screen } from "@/components/Screen";
 import { CURRENCY_FLAGS } from "@/constants/currencyFlags";
-import { Colors } from "@/theme/colors";
 import { useHaptic } from "@/hooks/useHaptic";
+import { useApp, type Currency } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
 
 type Row = {
   code: string;
@@ -107,7 +106,14 @@ export default function AccountDetails() {
                 opacity: pressed ? 0.85 : 1,
               })}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 14 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 14,
+                  paddingHorizontal: 14,
+                }}
+              >
                 <Text style={{ fontSize: 28, marginRight: 14 }}>
                   {CURRENCY_FLAGS[c.code as keyof typeof CURRENCY_FLAGS]}
                 </Text>
@@ -132,11 +138,7 @@ export default function AccountDetails() {
                     {c.sub}
                   </Text>
                 </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={Colors.ink[400]}
-                />
+                <Ionicons name="chevron-forward" size={20} color={Colors.ink[400]} />
               </View>
             </Pressable>
           </MotiView>

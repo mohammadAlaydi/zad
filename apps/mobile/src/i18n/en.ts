@@ -30,7 +30,8 @@ const en = {
   },
   auth: {
     createTitle: "Create Your ZADPAY Account",
-    createSubtitle: "Zadpay is a powerful app that allows you to easily send, receive, and track all your transactions.",
+    createSubtitle:
+      "Zadpay is a powerful app that allows you to easily send, receive, and track all your transactions.",
     signUp: "Sign up",
     logIn: "Log in",
     continueWith: "or continue with",
@@ -155,7 +156,8 @@ const en = {
     topUpYour: "Top up your",
     zadpayWallet: "ZADPAY Wallet",
     addNewCardTitle: "Add new card",
-    addNewCardHint: "Enter your chosen card carefully. By adding the card we will save it to your chosen payment method.",
+    addNewCardHint:
+      "Enter your chosen card carefully. By adding the card we will save it to your chosen payment method.",
     cardNumber: "Card Number",
     expiryDate: "Expiry Date",
     cvv: "CVV",

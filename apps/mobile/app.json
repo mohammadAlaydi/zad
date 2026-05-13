@@ -11,9 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#4B1F8A"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zadpay.app",

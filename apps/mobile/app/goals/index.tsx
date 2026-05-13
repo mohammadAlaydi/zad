@@ -1,11 +1,11 @@
-import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
-import { router } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
 import { Ionicons } from "@expo/vector-icons";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { router } from "expo-router";
+import { MotiView } from "moti";
+import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -27,9 +27,7 @@ export default function GoalsScreen() {
           >
             <Text style={styles.emptyEmoji}>🎯</Text>
             <Text style={styles.emptyTitle}>No goals yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Start saving towards something meaningful
-            </Text>
+            <Text style={styles.emptySubtitle}>Start saving towards something meaningful</Text>
             <View style={{ marginTop: 28, width: "100%" }}>
               <Button
                 title="Create your first savings goal"
@@ -46,9 +44,7 @@ export default function GoalsScreen() {
           >
             {goals.map((goal, index) => {
               const progress =
-                goal.targetAmount > 0
-                  ? Math.min(goal.savedAmount / goal.targetAmount, 1)
-                  : 0;
+                goal.targetAmount > 0 ? Math.min(goal.savedAmount / goal.targetAmount, 1) : 0;
               const pct = Math.round(progress * 100);
               const remaining = Math.max(0, goal.targetAmount - goal.savedAmount);
 
@@ -60,10 +56,7 @@ export default function GoalsScreen() {
                   transition={{ type: "timing", duration: 300, delay: index * 60 }}
                 >
                   <Pressable
-                    style={({ pressed }) => [
-                      styles.goalCard,
-                      { opacity: pressed ? 0.92 : 1 },
-                    ]}
+                    style={({ pressed }) => [styles.goalCard, { opacity: pressed ? 0.92 : 1 }]}
                     onPress={() => router.push(`/goals/${goal.id}`)}
                   >
                     <View style={styles.goalHeader}>
@@ -76,11 +69,7 @@ export default function GoalsScreen() {
                         </Text>
                         <Text style={styles.goalPct}>{pct}% complete</Text>
                       </View>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={18}
-                        color={Colors.ink[400]}
-                      />
+                      <Ionicons name="chevron-forward" size={18} color={Colors.ink[400]} />
                     </View>
 
                     <View style={styles.progressTrack}>

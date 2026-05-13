@@ -1,7 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { View, Text, TextInput, Pressable, Modal, FlatList, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { COUNTRIES, Country } from "@/data/countries";
+import { COUNTRIES, type Country } from "@/data/countries";
 import { Colors } from "@/theme/colors";
 
 type Props = {
@@ -12,7 +12,13 @@ type Props = {
   placeholder?: string;
 };
 
-export function PhoneInput({ country, onCountryChange, value, onChangeText, placeholder = "Mobile Number" }: Props) {
+export function PhoneInput({
+  country,
+  onCountryChange,
+  value,
+  onChangeText,
+  placeholder = "Mobile Number",
+}: Props) {
   const [open, setOpen] = useState(false);
   const [focused, setFocused] = useState(false);
   return (
@@ -23,10 +29,7 @@ export function PhoneInput({ country, onCountryChange, value, onChangeText, plac
           { borderColor: focused ? Colors.brand.primary : Colors.ink[200] },
         ]}
       >
-        <Pressable
-          onPress={() => setOpen(true)}
-          style={styles.countryBtn}
-        >
+        <Pressable onPress={() => setOpen(true)} style={styles.countryBtn}>
           <Text style={styles.flagEmoji}>{country.flag}</Text>
           <Text style={styles.dialCode}>{country.dial}</Text>
           <Ionicons name="chevron-down" size={14} color={Colors.ink[500]} />

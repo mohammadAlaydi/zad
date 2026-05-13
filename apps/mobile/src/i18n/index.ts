@@ -1,9 +1,9 @@
+import * as Localization from "expo-localization";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import * as Localization from "expo-localization";
 import { I18nManager } from "react-native";
-import en from "./en";
 import ar from "./ar";
+import en from "./en";
 
 export const SUPPORTED_LOCALES = ["en", "ar"] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];

@@ -1,3 +1,5 @@
+import { Ionicons } from "@expo/vector-icons";
+import { MotiView } from "moti";
 import { useState } from "react";
 import {
   View,
@@ -10,11 +12,9 @@ import {
   Modal,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 const COINS = [
@@ -90,10 +90,7 @@ export default function SwapScreen() {
         >
           <View style={styles.sectionCard}>
             <Text style={styles.sectionLabel}>From</Text>
-            <Pressable
-              style={styles.coinSelector}
-              onPress={() => setPickerFor("from")}
-            >
+            <Pressable style={styles.coinSelector} onPress={() => setPickerFor("from")}>
               <Text style={styles.selectorEmoji}>{fromCoin.emoji}</Text>
               <View style={styles.selectorInfo}>
                 <Text style={styles.selectorSymbol}>{fromCoin.symbol}</Text>
@@ -134,10 +131,7 @@ export default function SwapScreen() {
         >
           <View style={styles.sectionCard}>
             <Text style={styles.sectionLabel}>To</Text>
-            <Pressable
-              style={styles.coinSelector}
-              onPress={() => setPickerFor("to")}
-            >
+            <Pressable style={styles.coinSelector} onPress={() => setPickerFor("to")}>
               <Text style={styles.selectorEmoji}>{toCoin.emoji}</Text>
               <View style={styles.selectorInfo}>
                 <Text style={styles.selectorSymbol}>{toCoin.symbol}</Text>
@@ -159,11 +153,7 @@ export default function SwapScreen() {
 
         {/* Swap Summary */}
         {amount && parseFloat(amount) > 0 && (
-          <MotiView
-            from={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 200 }}
-          >
+          <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 200 }}>
             <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryKey}>Rate</Text>
@@ -206,7 +196,7 @@ export default function SwapScreen() {
               Select {pickerFor === "from" ? "From" : "To"} Coin
             </Text>
             {COINS.filter((c) =>
-              pickerFor === "from" ? c.symbol !== toSymbol : c.symbol !== fromSymbol
+              pickerFor === "from" ? c.symbol !== toSymbol : c.symbol !== fromSymbol,
             ).map((c) => (
               <Pressable
                 key={c.symbol}
@@ -229,7 +219,12 @@ export default function SwapScreen() {
                 </View>
                 <Text style={styles.pickerPrice}>{formatPrice(c.currentPrice)}</Text>
                 {(pickerFor === "from" ? fromSymbol : toSymbol) === c.symbol && (
-                  <Ionicons name="checkmark-circle" size={20} color={Colors.brand.primary} style={{ marginLeft: 8 }} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color={Colors.brand.primary}
+                    style={{ marginLeft: 8 }}
+                  />
                 )}
               </Pressable>
             ))}

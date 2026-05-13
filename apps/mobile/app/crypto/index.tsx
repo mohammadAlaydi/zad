@@ -1,10 +1,10 @@
+import { router } from "expo-router";
+import { MotiView } from "moti";
 import { useState, useMemo } from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
-import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
 import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -41,13 +41,17 @@ export default function CryptoScreen() {
           style={[styles.tab, activeTab === "market" && styles.tabActive]}
           onPress={() => setActiveTab("market")}
         >
-          <Text style={[styles.tabText, activeTab === "market" && styles.tabTextActive]}>Market</Text>
+          <Text style={[styles.tabText, activeTab === "market" && styles.tabTextActive]}>
+            Market
+          </Text>
         </Pressable>
         <Pressable
           style={[styles.tab, activeTab === "wallet" && styles.tabActive]}
           onPress={() => setActiveTab("wallet")}
         >
-          <Text style={[styles.tabText, activeTab === "wallet" && styles.tabTextActive]}>Wallet</Text>
+          <Text style={[styles.tabText, activeTab === "wallet" && styles.tabTextActive]}>
+            Wallet
+          </Text>
         </Pressable>
       </View>
 
@@ -108,8 +112,8 @@ export default function CryptoScreen() {
                           coin.change > 0
                             ? Colors.accent.greenSoft
                             : coin.change < 0
-                            ? Colors.accent.redSoft
-                            : Colors.ink[100],
+                              ? Colors.accent.redSoft
+                              : Colors.ink[100],
                       },
                     ]}
                   >
@@ -121,12 +125,13 @@ export default function CryptoScreen() {
                             coin.change > 0
                               ? Colors.accent.green
                               : coin.change < 0
-                              ? Colors.accent.red
-                              : Colors.ink[500],
+                                ? Colors.accent.red
+                                : Colors.ink[500],
                         },
                       ]}
                     >
-                      {coin.change > 0 ? "+" : ""}{coin.change.toFixed(1)}%
+                      {coin.change > 0 ? "+" : ""}
+                      {coin.change.toFixed(1)}%
                     </Text>
                   </View>
                 </View>
@@ -135,10 +140,7 @@ export default function CryptoScreen() {
           ))}
 
           {/* Swap shortcut */}
-          <Pressable
-            style={styles.swapBanner}
-            onPress={() => router.push("/crypto/swap")}
-          >
+          <Pressable style={styles.swapBanner} onPress={() => router.push("/crypto/swap")}>
             <Text style={styles.swapBannerEmoji}>🔄</Text>
             <View style={{ flex: 1 }}>
               <Text style={styles.swapBannerTitle}>Swap Crypto</Text>
@@ -176,13 +178,8 @@ export default function CryptoScreen() {
               <View style={styles.emptyState}>
                 <Text style={styles.emptyEmoji}>₿</Text>
                 <Text style={styles.emptyTitle}>No crypto yet</Text>
-                <Text style={styles.emptySubtitle}>
-                  No crypto yet. Buy your first Bitcoin!
-                </Text>
-                <Pressable
-                  style={styles.emptyBtn}
-                  onPress={() => setActiveTab("market")}
-                >
+                <Text style={styles.emptySubtitle}>No crypto yet. Buy your first Bitcoin!</Text>
+                <Pressable style={styles.emptyBtn} onPress={() => setActiveTab("market")}>
                   <Text style={styles.emptyBtnText}>Browse Coins</Text>
                 </Pressable>
               </View>
@@ -214,16 +211,14 @@ export default function CryptoScreen() {
                     <View style={styles.coinInfo}>
                       <Text style={styles.coinName}>{h.symbol}</Text>
                       <Text style={styles.coinSymbol}>
-                        {h.amount < 0.001
-                          ? h.amount.toFixed(8)
-                          : h.amount.toFixed(6)}{" "}
-                        {h.symbol}
+                        {h.amount < 0.001 ? h.amount.toFixed(8) : h.amount.toFixed(6)} {h.symbol}
                       </Text>
                     </View>
                     <View style={styles.coinRight}>
                       <Text style={styles.coinPrice}>${value.toFixed(2)}</Text>
                       <Text style={styles.coinPriceUSD}>
-                        @ ${currentPrice >= 1000
+                        @ $
+                        {currentPrice >= 1000
                           ? `${(currentPrice / 1000).toFixed(1)}k`
                           : currentPrice.toFixed(2)}
                       </Text>

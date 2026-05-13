@@ -1,9 +1,9 @@
-import { useEffect } from "react";
-import { View, Text, Dimensions } from "react-native";
-import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { MotiView, MotiText } from "moti";
+import { useEffect } from "react";
+import { View, Text, Dimensions } from "react-native";
 import { Easing } from "react-native-reanimated";
 import { useApp } from "@/store/appStore";
 

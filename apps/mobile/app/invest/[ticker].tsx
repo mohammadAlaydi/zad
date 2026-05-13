@@ -1,3 +1,5 @@
+import { useLocalSearchParams } from "expo-router";
+import { MotiView } from "moti";
 import { useState, useMemo } from "react";
 import {
   View,
@@ -10,22 +12,62 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 const STOCKS = [
-  { ticker: "AAPL", companyName: "Apple Inc.", currentPrice: 182.5, sector: "Technology", emoji: "🍎", change: +1.8 },
-  { ticker: "MSFT", companyName: "Microsoft Corp.", currentPrice: 325.0, sector: "Technology", emoji: "🪟", change: +0.9 },
-  { ticker: "TSLA", companyName: "Tesla Inc.", currentPrice: 198.0, sector: "Automotive", emoji: "🚗", change: -2.1 },
-  { ticker: "AMZN", companyName: "Amazon.com Inc.", currentPrice: 178.0, sector: "E-Commerce", emoji: "📦", change: +0.5 },
-  { ticker: "GOOGL", companyName: "Alphabet Inc.", currentPrice: 172.0, sector: "Technology", emoji: "🔍", change: +1.2 },
-  { ticker: "META", companyName: "Meta Platforms", currentPrice: 512.0, sector: "Social Media", emoji: "👤", change: +2.3 },
+  {
+    ticker: "AAPL",
+    companyName: "Apple Inc.",
+    currentPrice: 182.5,
+    sector: "Technology",
+    emoji: "🍎",
+    change: +1.8,
+  },
+  {
+    ticker: "MSFT",
+    companyName: "Microsoft Corp.",
+    currentPrice: 325.0,
+    sector: "Technology",
+    emoji: "🪟",
+    change: +0.9,
+  },
+  {
+    ticker: "TSLA",
+    companyName: "Tesla Inc.",
+    currentPrice: 198.0,
+    sector: "Automotive",
+    emoji: "🚗",
+    change: -2.1,
+  },
+  {
+    ticker: "AMZN",
+    companyName: "Amazon.com Inc.",
+    currentPrice: 178.0,
+    sector: "E-Commerce",
+    emoji: "📦",
+    change: +0.5,
+  },
+  {
+    ticker: "GOOGL",
+    companyName: "Alphabet Inc.",
+    currentPrice: 172.0,
+    sector: "Technology",
+    emoji: "🔍",
+    change: +1.2,
+  },
+  {
+    ticker: "META",
+    companyName: "Meta Platforms",
+    currentPrice: 512.0,
+    sector: "Social Media",
+    emoji: "👤",
+    change: +2.3,
+  },
 ];
 
 const PRICE_HISTORY = [
@@ -65,13 +107,19 @@ export default function StockDetailScreen() {
       return;
     }
     if (amt > balance) {
-      Alert.alert("Insufficient balance", `Your ${activeCurrency} balance is $${balance.toFixed(2)}.`);
+      Alert.alert(
+        "Insufficient balance",
+        `Your ${activeCurrency} balance is $${balance.toFixed(2)}.`,
+      );
       return;
     }
     const shares = amt / currentPrice;
     buyStock(ticker!, shares, currentPrice, "USD");
     setDollarAmount("");
-    Alert.alert("Order Placed", `You bought ${shares.toFixed(4)} shares of ${ticker} for $${amt.toFixed(2)}.`);
+    Alert.alert(
+      "Order Placed",
+      `You bought ${shares.toFixed(4)} shares of ${ticker} for $${amt.toFixed(2)}.`,
+    );
   }
 
   function handleSell() {
@@ -81,13 +129,19 @@ export default function StockDetailScreen() {
       return;
     }
     if (!holding || shares > holding.shares) {
-      Alert.alert("Insufficient shares", `You only hold ${holding?.shares.toFixed(4) ?? 0} shares.`);
+      Alert.alert(
+        "Insufficient shares",
+        `You only hold ${holding?.shares.toFixed(4) ?? 0} shares.`,
+      );
       return;
     }
     sellStock(ticker!, shares, currentPrice);
     setSellShares("");
     const proceeds = shares * currentPrice;
-    Alert.alert("Order Placed", `Sold ${shares.toFixed(4)} shares of ${ticker} for $${proceeds.toFixed(2)}.`);
+    Alert.alert(
+      "Order Placed",
+      `Sold ${shares.toFixed(4)} shares of ${ticker} for $${proceeds.toFixed(2)}.`,
+    );
   }
 
   if (!stock) {
@@ -131,11 +185,20 @@ export default function StockDetailScreen() {
                 <View
                   style={[
                     styles.changeBadgeLg,
-                    { backgroundColor: stock.change >= 0 ? Colors.accent.greenSoft : Colors.accent.redSoft },
+                    {
+                      backgroundColor:
+                        stock.change >= 0 ? Colors.accent.greenSoft : Colors.accent.redSoft,
+                    },
                   ]}
                 >
-                  <Text style={[styles.changeTextLg, { color: stock.change >= 0 ? Colors.accent.green : Colors.accent.red }]}>
-                    {stock.change >= 0 ? "+" : ""}{stock.change.toFixed(1)}%
+                  <Text
+                    style={[
+                      styles.changeTextLg,
+                      { color: stock.change >= 0 ? Colors.accent.green : Colors.accent.red },
+                    ]}
+                  >
+                    {stock.change >= 0 ? "+" : ""}
+                    {stock.change.toFixed(1)}%
                   </Text>
                 </View>
               </View>
@@ -177,13 +240,17 @@ export default function StockDetailScreen() {
               style={[styles.tradeTab, tradeTab === "buy" && styles.tradeTabActive]}
               onPress={() => setTradeTab("buy")}
             >
-              <Text style={[styles.tradeTabText, tradeTab === "buy" && styles.tradeTabTextActive]}>Buy</Text>
+              <Text style={[styles.tradeTabText, tradeTab === "buy" && styles.tradeTabTextActive]}>
+                Buy
+              </Text>
             </Pressable>
             <Pressable
               style={[styles.tradeTab, tradeTab === "sell" && styles.tradeTabActive]}
               onPress={() => setTradeTab("sell")}
             >
-              <Text style={[styles.tradeTabText, tradeTab === "sell" && styles.tradeTabTextActive]}>Sell</Text>
+              <Text style={[styles.tradeTabText, tradeTab === "sell" && styles.tradeTabTextActive]}>
+                Sell
+              </Text>
             </Pressable>
           </View>
 
@@ -209,9 +276,7 @@ export default function StockDetailScreen() {
                   />
                 </View>
                 {sharesFromDollars > 0 && (
-                  <Text style={styles.sharesPreview}>
-                    = {sharesFromDollars.toFixed(6)} shares
-                  </Text>
+                  <Text style={styles.sharesPreview}>= {sharesFromDollars.toFixed(6)} shares</Text>
                 )}
                 <View style={styles.quickAmounts}>
                   {[10, 25, 50, 100].map((amt) => (
@@ -239,9 +304,7 @@ export default function StockDetailScreen() {
                 {holding ? (
                   <View style={styles.holdingInfo}>
                     <Text style={styles.holdingInfoLabel}>Your holdings</Text>
-                    <Text style={styles.holdingInfoValue}>
-                      {holding.shares.toFixed(6)} shares
-                    </Text>
+                    <Text style={styles.holdingInfoValue}>{holding.shares.toFixed(6)} shares</Text>
                     <Text style={styles.holdingInfoSub}>
                       Avg. buy price: ${holding.avgBuyPrice.toFixed(2)}
                     </Text>
@@ -270,16 +333,28 @@ export default function StockDetailScreen() {
                 )}
                 {holding && (
                   <View style={styles.quickAmounts}>
-                    <Pressable style={styles.quickBtn} onPress={() => setSellShares((holding.shares * 0.25).toFixed(6))}>
+                    <Pressable
+                      style={styles.quickBtn}
+                      onPress={() => setSellShares((holding.shares * 0.25).toFixed(6))}
+                    >
                       <Text style={styles.quickBtnText}>25%</Text>
                     </Pressable>
-                    <Pressable style={styles.quickBtn} onPress={() => setSellShares((holding.shares * 0.5).toFixed(6))}>
+                    <Pressable
+                      style={styles.quickBtn}
+                      onPress={() => setSellShares((holding.shares * 0.5).toFixed(6))}
+                    >
                       <Text style={styles.quickBtnText}>50%</Text>
                     </Pressable>
-                    <Pressable style={styles.quickBtn} onPress={() => setSellShares((holding.shares * 0.75).toFixed(6))}>
+                    <Pressable
+                      style={styles.quickBtn}
+                      onPress={() => setSellShares((holding.shares * 0.75).toFixed(6))}
+                    >
                       <Text style={styles.quickBtnText}>75%</Text>
                     </Pressable>
-                    <Pressable style={styles.quickBtn} onPress={() => setSellShares(holding.shares.toFixed(6))}>
+                    <Pressable
+                      style={styles.quickBtn}
+                      onPress={() => setSellShares(holding.shares.toFixed(6))}
+                    >
                       <Text style={styles.quickBtnText}>Max</Text>
                     </Pressable>
                   </View>

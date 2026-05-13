@@ -1,24 +1,16 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  TextInput,
-  Modal,
-  StyleSheet,
-} from "react-native";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
 import { LinearGradient } from "expo-linear-gradient";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { router } from "expo-router";
+import { MotiView } from "moti";
+import { useState } from "react";
+import { View, Text, Pressable, ScrollView, TextInput, Modal, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
-import { Colors } from "@/theme/colors";
 import type { SavingsPlan } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
 
 function isLocked(lockUntil?: string): boolean {
   if (!lockUntil) return false;
@@ -270,7 +262,8 @@ function PlanCard({
         <View style={cStyles.titleBlock}>
           <Text style={cStyles.planName}>{plan.name}</Text>
           <Text style={cStyles.planSaved}>
-            {plan.currency} {plan.savedAmount.toLocaleString()} of {plan.targetAmount.toLocaleString()}
+            {plan.currency} {plan.savedAmount.toLocaleString()} of{" "}
+            {plan.targetAmount.toLocaleString()}
           </Text>
         </View>
         <View style={cStyles.badgesCol}>
@@ -478,10 +471,7 @@ export default function SavingsPlans() {
       <Header title="Savings Plans" />
 
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 100 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
         {savingsPlans.length > 0 && (
@@ -527,10 +517,7 @@ export default function SavingsPlans() {
             <Text style={styles.emptySubtitle}>
               Set a goal, choose a contribution schedule, and watch your savings grow.
             </Text>
-            <Pressable
-              onPress={() => router.push("/savings/create")}
-              style={styles.emptyButton}
-            >
+            <Pressable onPress={() => router.push("/savings/create")} style={styles.emptyButton}>
               <Ionicons name="add-circle-outline" size={18} color={Colors.white} />
               <Text style={styles.emptyButtonText}>Create a Plan</Text>
             </Pressable>

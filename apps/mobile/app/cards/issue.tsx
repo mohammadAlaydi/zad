@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { View, Text, Pressable, ScrollView } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, ScrollView } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -45,17 +45,40 @@ export default function IssueCard() {
         contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 96 }}
         showsVerticalScrollIndicator={false}
       >
-        <MotiView from={{ opacity: 0, translateY: 8 }} animate={{ opacity: 1, translateY: 0 }} transition={{ duration: 320 }}>
-          <Text style={{ fontFamily: "Sora_700Bold", fontSize: 22, color: Colors.brand.primary, marginTop: 4, marginBottom: 6 }}>
+        <MotiView
+          from={{ opacity: 0, translateY: 8 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ duration: 320 }}
+        >
+          <Text
+            style={{
+              fontFamily: "Sora_700Bold",
+              fontSize: 22,
+              color: Colors.brand.primary,
+              marginTop: 4,
+              marginBottom: 6,
+            }}
+          >
             Choose Card Type
           </Text>
-          <Text style={{ fontFamily: "Inter_400Regular", fontSize: 14, color: Colors.ink[500], marginBottom: 24 }}>
+          <Text
+            style={{
+              fontFamily: "Inter_400Regular",
+              fontSize: 14,
+              color: Colors.ink[500],
+              marginBottom: 24,
+            }}
+          >
             Select how you want to use your new card
           </Text>
         </MotiView>
 
         {/* Virtual Card Option */}
-        <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 60, duration: 320 }}>
+        <MotiView
+          from={{ opacity: 0, translateY: 10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 60, duration: 320 }}
+        >
           <Pressable
             onPress={() => setSelected("virtual")}
             style={{
@@ -86,10 +109,19 @@ export default function IssueCard() {
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 16, color: Colors.ink[900] }}>
+                <Text
+                  style={{ fontFamily: "Inter_600SemiBold", fontSize: 16, color: Colors.ink[900] }}
+                >
                   Virtual Card
                 </Text>
-                <Text style={{ fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[500], marginTop: 2 }}>
+                <Text
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 13,
+                    color: Colors.ink[500],
+                    marginTop: 2,
+                  }}
+                >
                   Instant • Free
                 </Text>
               </View>
@@ -105,7 +137,9 @@ export default function IssueCard() {
               ].map((feat) => (
                 <View key={feat} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                   <Ionicons name="checkmark" size={14} color={Colors.accent.green} />
-                  <Text style={{ fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[600] }}>
+                  <Text
+                    style={{ fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[600] }}
+                  >
                     {feat}
                   </Text>
                 </View>
@@ -115,7 +149,11 @@ export default function IssueCard() {
         </MotiView>
 
         {/* Physical Card Option */}
-        <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 120, duration: 320 }}>
+        <MotiView
+          from={{ opacity: 0, translateY: 10 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 120, duration: 320 }}
+        >
           <Pressable
             onPress={() => setSelected("physical")}
             style={{
@@ -146,10 +184,19 @@ export default function IssueCard() {
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 16, color: Colors.ink[900] }}>
+                <Text
+                  style={{ fontFamily: "Inter_600SemiBold", fontSize: 16, color: Colors.ink[900] }}
+                >
                   Physical Card
                 </Text>
-                <Text style={{ fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[500], marginTop: 2 }}>
+                <Text
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 13,
+                    color: Colors.ink[500],
+                    marginTop: 2,
+                  }}
+                >
                   3–5 business days • $5 fee
                 </Text>
               </View>
@@ -158,18 +205,22 @@ export default function IssueCard() {
               )}
             </View>
             <View style={{ gap: 6 }}>
-              {[
-                "Use at ATMs worldwide",
-                "Tap to pay in stores",
-                "Accepted anywhere Visa is",
-              ].map((feat) => (
-                <View key={feat} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <Ionicons name="checkmark" size={14} color={Colors.accent.green} />
-                  <Text style={{ fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[600] }}>
-                    {feat}
-                  </Text>
-                </View>
-              ))}
+              {["Use at ATMs worldwide", "Tap to pay in stores", "Accepted anywhere Visa is"].map(
+                (feat) => (
+                  <View key={feat} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                    <Ionicons name="checkmark" size={14} color={Colors.accent.green} />
+                    <Text
+                      style={{
+                        fontFamily: "Inter_400Regular",
+                        fontSize: 13,
+                        color: Colors.ink[600],
+                      }}
+                    >
+                      {feat}
+                    </Text>
+                  </View>
+                ),
+              )}
             </View>
           </Pressable>
         </MotiView>
@@ -197,12 +248,7 @@ export default function IssueCard() {
               value={address}
               onChangeText={setAddress}
             />
-            <Input
-              label="City"
-              placeholder="e.g. Dubai"
-              value={city}
-              onChangeText={setCity}
-            />
+            <Input label="City" placeholder="e.g. Dubai" value={city} onChangeText={setCity} />
           </MotiView>
         )}
       </ScrollView>

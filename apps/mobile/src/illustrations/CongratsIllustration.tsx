@@ -3,7 +3,13 @@ import Svg, { Path, Rect, Circle, G } from "react-native-svg";
 export function CongratsIllustration({ size = 220 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 240 240" fill="none">
-      <G stroke="#1B1F36" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <G
+        stroke="#1B1F36"
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      >
         <Rect x={64} y={36} width={104} height={168} rx={18} />
         <Path d="M64 60 H168" />
         <Circle cx={116} cy={110} r={32} fill="#1FCFA5" stroke="#1FCFA5" />

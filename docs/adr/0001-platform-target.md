@@ -27,29 +27,32 @@ Audit reference: see [audit §1, §5](../audit.md).
   - Crash-free sessions > 99.5%
 - Brief items explicitly dropped and replaced with mobile equivalents:
 
-| Dropped (web) | Replaced with (mobile) |
-|---|---|
-| Lighthouse 95+ perf score | Cold-start TTI + JS frame budget |
-| <200 KB gzipped initial JS | Hermes bytecode + APK/IPA size |
-| Service worker for offline | React Query persisted cache + AsyncStorage + retry-with-backoff service layer |
-| WebP/AVIF + `srcset` | `expo-image` with `cachePolicy="memory-disk"` + native-resolution `@2x`/`@3x` assets |
-| CSP / unsafe-inline / unsafe-eval | TLS cert pinning + `react-native-ssl-pinning` (or `expo-network` + manual pinning) on the API client |
-| DOMPurify | RN renders text, not HTML — for the rare `WebView` (e.g. learn content), set `originWhitelist={['https://*']}` and `sandbox` |
-| httpOnly cookies for auth | `expo-secure-store` (Keychain on iOS, EncryptedSharedPreferences on Android) for refresh token + Authorization header for access token |
-| WCAG 2.1 AA | React Native a11y APIs: `accessibilityRole`, `accessibilityLabel`, `accessibilityState`, dynamic type scaling, RTL parity for `ar` locale; tested in Accessibility Scanner (Android) + Accessibility Inspector (iOS) |
+| Dropped (web)                     | Replaced with (mobile)                                                                                                                                                                                               |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lighthouse 95+ perf score         | Cold-start TTI + JS frame budget                                                                                                                                                                                     |
+| <200 KB gzipped initial JS        | Hermes bytecode + APK/IPA size                                                                                                                                                                                       |
+| Service worker for offline        | React Query persisted cache + AsyncStorage + retry-with-backoff service layer                                                                                                                                        |
+| WebP/AVIF + `srcset`              | `expo-image` with `cachePolicy="memory-disk"` + native-resolution `@2x`/`@3x` assets                                                                                                                                 |
+| CSP / unsafe-inline / unsafe-eval | TLS cert pinning + `react-native-ssl-pinning` (or `expo-network` + manual pinning) on the API client                                                                                                                 |
+| DOMPurify                         | RN renders text, not HTML — for the rare `WebView` (e.g. learn content), set `originWhitelist={['https://*']}` and `sandbox`                                                                                         |
+| httpOnly cookies for auth         | `expo-secure-store` (Keychain on iOS, EncryptedSharedPreferences on Android) for refresh token + Authorization header for access token                                                                               |
+| WCAG 2.1 AA                       | React Native a11y APIs: `accessibilityRole`, `accessibilityLabel`, `accessibilityState`, dynamic type scaling, RTL parity for `ar` locale; tested in Accessibility Scanner (Android) + Accessibility Inspector (iOS) |
 
 ## Consequences
 
 **Positive**
+
 - Engineering effort aligns with the real product surface; no thrash on web-only metrics.
 - Token-storage and CSP debates resolved at the platform level once, not per feature.
 - Smaller CI matrix; faster signal.
 
 **Negative**
+
 - If the business later wants a marketing web SPA or merchant web dashboard, that is a **separate project**, not a re-target of this repo. (Likely the right separation anyway — different domains, different perf budgets, different SEO needs.)
 - We don't get the "type your link to share" UX of a PWA. Accept this trade.
 
 **Neutral / accept**
+
 - Deep linking via `expo-linking` is mobile-only. The web export will not handle universal links.
 - Accessibility tooling differs: axe-core is replaced with platform a11y inspectors. CI gating shifts to manual a11y review on critical flows + linter rules (`eslint-plugin-react-native-a11y` not yet stable; use the `react-native` plugin's a11y rules).
 

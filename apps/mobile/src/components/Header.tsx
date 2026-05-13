@@ -1,7 +1,7 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { ReactNode } from "react";
+import { router } from "expo-router";
+import { type ReactNode } from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "@/theme/colors";
 
@@ -32,7 +32,13 @@ export function Header({ title, showBack = true, right, transparent, onBack, lig
         {showBack ? (
           <Pressable
             hitSlop={10}
-            onPress={() => (onBack ? onBack() : router.canGoBack() ? router.back() : router.replace("/(tabs)/home"))}
+            onPress={() =>
+              onBack
+                ? onBack()
+                : router.canGoBack()
+                  ? router.back()
+                  : router.replace("/(tabs)/home")
+            }
             style={[
               styles.backBtn,
               { backgroundColor: light ? "rgba(255,255,255,0.12)" : Colors.ink[50] },

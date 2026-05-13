@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { View, Text, ScrollView, Pressable, RefreshControl, Modal, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, ScrollView, Pressable, RefreshControl, Modal, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
-import { useApp, Currency } from "@/store/appStore";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { CURRENCY_FLAGS } from "@/constants/currencyFlags";
+import { useApp, type Currency } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 export default function Accounts() {
@@ -51,7 +51,11 @@ export default function Accounts() {
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 160 }]}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.brand.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.brand.primary}
+          />
         }
         showsVerticalScrollIndicator={false}
       >
@@ -88,12 +92,34 @@ export default function Accounts() {
                 <View style={{ flexDirection: "row", alignItems: "center", padding: 14 }}>
                   <Text style={{ fontSize: 26, marginRight: 12 }}>{CURRENCY_FLAGS[r.code]}</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 15 }}>{r.name}</Text>
-                    <Text style={{ color: Colors.accent.green, fontFamily: "Inter_500Medium", fontSize: 12, marginTop: 2 }}>
+                    <Text
+                      style={{
+                        color: Colors.ink[900],
+                        fontFamily: "Inter_600SemiBold",
+                        fontSize: 15,
+                      }}
+                    >
+                      {r.name}
+                    </Text>
+                    <Text
+                      style={{
+                        color: Colors.accent.green,
+                        fontFamily: "Inter_500Medium",
+                        fontSize: 12,
+                        marginTop: 2,
+                      }}
+                    >
                       Available {bal.toLocaleString()} {r.currencySymbol}
                     </Text>
                   </View>
-                  <Text style={{ color: Colors.accent.green, fontFamily: "Inter_600SemiBold", fontSize: 15, marginRight: 8 }}>
+                  <Text
+                    style={{
+                      color: Colors.accent.green,
+                      fontFamily: "Inter_600SemiBold",
+                      fontSize: 15,
+                      marginRight: 8,
+                    }}
+                  >
                     {bal.toLocaleString()} {r.currencySymbol}
                   </Text>
                   <Ionicons name="chevron-forward" size={18} color={Colors.ink[300]} />
@@ -122,15 +148,26 @@ export default function Accounts() {
           <View
             key={`${r.code}-${i}`}
             style={{
-              flexDirection: "row", alignItems: "center", backgroundColor: Colors.white,
-              borderRadius: 14, padding: 12, marginBottom: 10,
-              borderWidth: 1, borderColor: Colors.ink[100],
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: Colors.white,
+              borderRadius: 14,
+              padding: 12,
+              marginBottom: 10,
+              borderWidth: 1,
+              borderColor: Colors.ink[100],
             }}
           >
             <Text style={{ fontSize: 22, marginRight: 12 }}>{CURRENCY_FLAGS[r.code]}</Text>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: Colors.ink[900], fontFamily: "Inter_500Medium", fontSize: 14 }}>{r.name}</Text>
-              <Text style={{ color: Colors.accent.green, fontFamily: "Inter_400Regular", fontSize: 11 }}>{r.code}</Text>
+              <Text style={{ color: Colors.ink[900], fontFamily: "Inter_500Medium", fontSize: 14 }}>
+                {r.name}
+              </Text>
+              <Text
+                style={{ color: Colors.accent.green, fontFamily: "Inter_400Regular", fontSize: 11 }}
+              >
+                {r.code}
+              </Text>
             </View>
             <Pressable onPress={() => setShowAdd(true)} style={styles.addBtn}>
               <Text style={styles.addBtnText}>Add</Text>
@@ -144,7 +181,12 @@ export default function Accounts() {
       </View>
 
       {/* Modal */}
-      <Modal visible={showAdd} animationType="slide" transparent onRequestClose={() => setShowAdd(false)}>
+      <Modal
+        visible={showAdd}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAdd(false)}
+      >
         <Pressable style={styles.overlay} onPress={() => setShowAdd(false)} />
         <View style={[styles.modalSheet, { paddingBottom: insets.bottom + 22 }]}>
           <View style={styles.handle} />

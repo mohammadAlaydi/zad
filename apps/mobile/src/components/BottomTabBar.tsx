@@ -1,11 +1,11 @@
-import { View, Pressable, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { MotiView } from "moti";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { MotiView } from "moti";
 import { useTranslation } from "react-i18next";
-import { Colors } from "@/theme/colors";
+import { View, Pressable, Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHaptic } from "@/hooks/useHaptic";
+import { Colors } from "@/theme/colors";
 
 type Tab = {
   route: string;
@@ -20,10 +20,25 @@ export function BottomTabBar({ state }: any) {
   const haptic = useHaptic();
 
   const tabs: Tab[] = [
-    { route: "/(tabs)/home",     iconInactive: "home-outline",    iconActive: "home",        key: "home" },
-    { route: "/(tabs)/accounts", iconInactive: "wallet-outline",  iconActive: "wallet",      key: "accounts" },
-    { route: "/(tabs)/expenses", iconInactive: "stats-chart-outline", iconActive: "stats-chart", key: "expenses" },
-    { route: "/(tabs)/settings", iconInactive: "settings-outline", iconActive: "settings",   key: "settings" },
+    { route: "/(tabs)/home", iconInactive: "home-outline", iconActive: "home", key: "home" },
+    {
+      route: "/(tabs)/accounts",
+      iconInactive: "wallet-outline",
+      iconActive: "wallet",
+      key: "accounts",
+    },
+    {
+      route: "/(tabs)/expenses",
+      iconInactive: "stats-chart-outline",
+      iconActive: "stats-chart",
+      key: "expenses",
+    },
+    {
+      route: "/(tabs)/settings",
+      iconInactive: "settings-outline",
+      iconActive: "settings",
+      key: "settings",
+    },
   ];
 
   const active = state?.index ?? 0;
@@ -53,7 +68,10 @@ export function BottomTabBar({ state }: any) {
         return (
           <Pressable
             key={tab.key}
-            onPress={() => { haptic.selection(); router.replace(tab.route as any); }}
+            onPress={() => {
+              haptic.selection();
+              router.replace(tab.route as any);
+            }}
             style={{
               flex: focused ? 2 : 1,
               alignItems: "center",
@@ -71,7 +89,14 @@ export function BottomTabBar({ state }: any) {
               }}
             >
               {/* Inner View prevents Pressable flex issues on Android */}
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 5, justifyContent: "center" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 5,
+                  justifyContent: "center",
+                }}
+              >
                 <Ionicons
                   name={focused ? tab.iconActive : tab.iconInactive}
                   size={19}

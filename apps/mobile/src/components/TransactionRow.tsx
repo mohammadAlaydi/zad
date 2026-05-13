@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
-import { Avatar } from "./Avatar";
-import { Colors } from "@/theme/colors";
 import type { Transaction } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
+import { Avatar } from "./Avatar";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -19,7 +19,9 @@ function dateTimeLabel(date: string) {
 function formatAmount(amount: number): string {
   const abs = Math.abs(amount);
   const whole = Math.floor(abs);
-  const decimal = Math.round((abs - whole) * 100).toString().padStart(2, "0");
+  const decimal = Math.round((abs - whole) * 100)
+    .toString()
+    .padStart(2, "0");
   return `${whole.toLocaleString("en-US")},${decimal}`;
 }
 
@@ -31,8 +33,12 @@ export function TransactionRow({ tx }: { tx: Transaction }) {
     <View style={styles.row}>
       <Avatar name={tx.name} size={42} />
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>{tx.name}</Text>
-        <Text style={styles.category} numberOfLines={1}>{tx.category}</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {tx.name}
+        </Text>
+        <Text style={styles.category} numberOfLines={1}>
+          {tx.category}
+        </Text>
       </View>
       <View style={styles.amountWrap}>
         <Text style={[styles.amount, { color }]}>

@@ -1,8 +1,16 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { ReactNode } from "react";
-import { ViewStyle } from "react-native";
+import { type ReactNode } from "react";
+import { type ViewStyle } from "react-native";
 
-export function GradientBg({ children, style, colors }: { children?: ReactNode; style?: ViewStyle; colors?: [string, string, ...string[]] }) {
+export function GradientBg({
+  children,
+  style,
+  colors,
+}: {
+  children?: ReactNode;
+  style?: ViewStyle;
+  colors?: [string, string, ...string[]];
+}) {
   return (
     <LinearGradient
       colors={colors ?? ["#F4EFFA", "#FCE7F3"]}

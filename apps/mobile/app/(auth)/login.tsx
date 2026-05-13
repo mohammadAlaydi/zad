@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
-import { FlagSelect } from "@/components/FlagSelect";
 import { Button } from "@/components/Button";
+import { FlagSelect } from "@/components/FlagSelect";
+import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { PhoneInput } from "@/components/PhoneInput";
+import { Screen } from "@/components/Screen";
 import { COUNTRIES } from "@/data/countries";
 import { Colors } from "@/theme/colors";
 
@@ -28,14 +28,30 @@ export default function Login() {
         <Text style={styles.heading}>{t("auth.loginTitle")}</Text>
         <Text style={styles.subheading}>{t("auth.loginSubtitle")}</Text>
         <Text style={styles.fieldLabel}>{t("auth.phone")}</Text>
-        <PhoneInput country={country} onCountryChange={setCountry} value={phone} onChangeText={setPhone} />
+        <PhoneInput
+          country={country}
+          onCountryChange={setCountry}
+          value={phone}
+          onChangeText={setPhone}
+        />
         <View style={styles.spacer} />
-        <Input label={t("auth.password")} placeholder="••••••••" isPassword value={pwd} onChangeText={setPwd} />
+        <Input
+          label={t("auth.password")}
+          placeholder="••••••••"
+          isPassword
+          value={pwd}
+          onChangeText={setPwd}
+        />
       </View>
       <View style={[styles.bottom, { paddingBottom: insets.bottom + 24 }]}>
         <Button
           title={t("auth.logIn")}
-          onPress={() => router.push({ pathname: "/(auth)/verify-phone", params: { mode: "login", phone: `${country.dial}${phone}` } })}
+          onPress={() =>
+            router.push({
+              pathname: "/(auth)/verify-phone",
+              params: { mode: "login", phone: `${country.dial}${phone}` },
+            })
+          }
         />
       </View>
     </Screen>

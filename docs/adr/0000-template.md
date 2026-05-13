@@ -21,12 +21,15 @@ Use code blocks for paths, types, and signatures so the reader can act on this w
 ## Consequences
 
 **Positive**
+
 - What we get.
 
 **Negative**
+
 - What we give up.
 
 **Neutral / accept**
+
 - Knock-on effects we accept as part of this trade.
 
 ## Alternatives considered

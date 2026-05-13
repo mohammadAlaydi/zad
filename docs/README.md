@@ -8,19 +8,19 @@ This directory is the single source of truth for the production rebuild of ZADPA
 
 The architectural decisions are recorded as ADRs. Each is short, opinionated, and dated; supersede with a new ADR rather than editing in place.
 
-| # | Title | Tags |
-|---|---|---|
-| [0000](adr/0000-template.md) | ADR template | — |
-| [0001](adr/0001-platform-target.md) | Platform target — mobile-first, drop web-app targets | mobile |
-| [0002](adr/0002-monorepo-layout.md) | Monorepo layout — pnpm workspaces | ops, mobile, backend |
-| [0003](adr/0003-mobile-architecture.md) | Mobile architecture — feature folders, split state, typed service layer | mobile |
-| [0004](adr/0004-backend-stack.md) | Backend stack — Fastify + Prisma + Postgres + Redis + BullMQ + Pino + Zod | backend |
-| [0005](adr/0005-module-structure.md) | Backend module structure — hexagonal, no cross-imports, stubbed event bus | backend |
-| [0006](adr/0006-auth-secrets.md) | Auth, tokens, secrets, secure storage | backend, mobile, security |
-| [0007](adr/0007-money-movement.md) | Money movement — double-entry ledger, `Money` VO, idempotency | backend, data, security |
-| [0008](adr/0008-kyc.md) | KYC — provider adapter, status state machine, encrypted documents | backend, mobile, security |
-| [0009](adr/0009-observability-errors-testing.md) | Observability, error handling, testing | backend, mobile, ops |
-| [0010](adr/0010-cicd.md) | CI/CD — GitHub Actions, EAS for mobile, Docker for API | ops |
+| #                                                | Title                                                                     | Tags                      |
+| ------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------- |
+| [0000](adr/0000-template.md)                     | ADR template                                                              | —                         |
+| [0001](adr/0001-platform-target.md)              | Platform target — mobile-first, drop web-app targets                      | mobile                    |
+| [0002](adr/0002-monorepo-layout.md)              | Monorepo layout — pnpm workspaces                                         | ops, mobile, backend      |
+| [0003](adr/0003-mobile-architecture.md)          | Mobile architecture — feature folders, split state, typed service layer   | mobile                    |
+| [0004](adr/0004-backend-stack.md)                | Backend stack — Fastify + Prisma + Postgres + Redis + BullMQ + Pino + Zod | backend                   |
+| [0005](adr/0005-module-structure.md)             | Backend module structure — hexagonal, no cross-imports, stubbed event bus | backend                   |
+| [0006](adr/0006-auth-secrets.md)                 | Auth, tokens, secrets, secure storage                                     | backend, mobile, security |
+| [0007](adr/0007-money-movement.md)               | Money movement — double-entry ledger, `Money` VO, idempotency             | backend, data, security   |
+| [0008](adr/0008-kyc.md)                          | KYC — provider adapter, status state machine, encrypted documents         | backend, mobile, security |
+| [0009](adr/0009-observability-errors-testing.md) | Observability, error handling, testing                                    | backend, mobile, ops      |
+| [0010](adr/0010-cicd.md)                         | CI/CD — GitHub Actions, EAS for mobile, Docker for API                    | ops                       |
 
 ## Scope (locked, 2026-05-13)
 

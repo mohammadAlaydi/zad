@@ -1,3 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { MotiView } from "moti";
 import { useState } from "react";
 import {
   View,
@@ -10,13 +13,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { MotiView } from "moti";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -104,9 +104,7 @@ export default function FraudScreen() {
   };
 
   const handleMarkSafe = (id: string) => {
-    setAlerts((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "resolved" } : a))
-    );
+    setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, status: "resolved" } : a)));
     setReviewAlert(null);
     showToast("Alert marked as safe");
   };
@@ -197,11 +195,7 @@ export default function FraudScreen() {
                   <Ionicons
                     name={alert.icon as any}
                     size={20}
-                    color={
-                      alert.status === "warning"
-                        ? Colors.accent.amber
-                        : Colors.accent.green
-                    }
+                    color={alert.status === "warning" ? Colors.accent.amber : Colors.accent.green}
                   />
                 </View>
                 <View style={styles.alertBody}>
@@ -239,10 +233,7 @@ export default function FraudScreen() {
                   <View style={styles.alertFootRow}>
                     <Text style={styles.alertTime}>{alert.timestamp}</Text>
                     {alert.status === "warning" ? (
-                      <Pressable
-                        style={styles.reviewBtn}
-                        onPress={() => setReviewAlert(alert)}
-                      >
+                      <Pressable style={styles.reviewBtn} onPress={() => setReviewAlert(alert)}>
                         <Text style={styles.reviewBtnText}>Review</Text>
                       </Pressable>
                     ) : (
@@ -330,8 +321,14 @@ export default function FraudScreen() {
                 <>
                   {/* Header */}
                   <View style={styles.reviewHeader}>
-                    <View style={[styles.reviewIcon, { backgroundColor: Colors.accent.amber + "20" }]}>
-                      <Ionicons name={reviewAlert.icon as any} size={26} color={Colors.accent.amber} />
+                    <View
+                      style={[styles.reviewIcon, { backgroundColor: Colors.accent.amber + "20" }]}
+                    >
+                      <Ionicons
+                        name={reviewAlert.icon as any}
+                        size={26}
+                        color={Colors.accent.amber}
+                      />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.reviewTitle}>{reviewAlert.title}</Text>

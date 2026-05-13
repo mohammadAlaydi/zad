@@ -47,15 +47,18 @@ Final layout:
 ## Consequences
 
 **Positive**
+
 - Single source of truth for `Money`, request/response schemas, error codes.
 - Refactoring an API contract changes both ends in one PR; type errors light up immediately.
 - Independent CI for `apps/mobile` and `apps/api` (different toolchains, different runners).
 
 **Negative**
+
 - The move from flat repo → monorepo is a single mechanical PR (file moves + Metro/Babel/TS path updates). Real risk of breaking the existing mobile build during the move. Mitigation: do it in one PR, with a checklist; verify `expo start` boots before merging.
 - Metro is notoriously fussy about pnpm symlinks. We will likely need a custom `metro.config.js` that calls `pnpm`'s `node-linker=hoisted` mode for the mobile workspace, or sets `extraNodeModules`. This is well-trodden territory (Expo docs cover it).
 
 **Neutral / accept**
+
 - We do not adopt Nx or Turborepo. The dependency graph is two apps + three tiny packages; native pnpm scripts + GitHub Actions caching are enough. If the graph grows past ~6 packages, revisit.
 
 ## Alternatives considered
@@ -68,6 +71,7 @@ Final layout:
 ## Rollout
 
 PR-0 (the first PR after this ADR is approved):
+
 1. Create `pnpm-workspace.yaml`.
 2. Move existing repo contents into `apps/mobile/` preserving git history (`git mv`).
 3. Update [metro.config.js](../../metro.config.js) `watchFolders` + `resolver.nodeModulesPaths`.

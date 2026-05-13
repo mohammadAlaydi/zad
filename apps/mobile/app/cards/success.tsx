@@ -1,12 +1,12 @@
-import { View, Text, StyleSheet } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
 import { MotiView } from "moti";
+import { View, Text, StyleSheet } from "react-native";
 import { Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
 import { Button } from "@/components/Button";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -18,14 +18,17 @@ export default function CardSuccess() {
 
   // Get the most recently added card
   const latestCard = cards[cards.length - 1];
-  const maskedNumber = latestCard
-    ? `•••• •••• •••• ${latestCard.last4}`
-    : "•••• •••• •••• ••••";
+  const maskedNumber = latestCard ? `•••• •••• •••• ${latestCard.last4}` : "•••• •••• •••• ••••";
   const cardName = latestCard?.name ?? user.fullName ?? "CARD HOLDER";
 
   return (
     <Screen bg={Colors.surface.background}>
-      <View style={[styles.container, { paddingTop: Math.max(insets.top, 24) + 24, paddingBottom: insets.bottom + 24 }]}>
+      <View
+        style={[
+          styles.container,
+          { paddingTop: Math.max(insets.top, 24) + 24, paddingBottom: insets.bottom + 24 },
+        ]}
+      >
         {/* Animated checkmark */}
         <MotiView
           from={{ opacity: 0, scale: 0.4 }}
@@ -40,7 +43,12 @@ export default function CardSuccess() {
         <MotiView
           from={{ opacity: 0, translateY: 10 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ delay: 200, type: "timing", duration: 400, easing: Easing.out(Easing.cubic) }}
+          transition={{
+            delay: 200,
+            type: "timing",
+            duration: 400,
+            easing: Easing.out(Easing.cubic),
+          }}
           style={styles.titleWrap}
         >
           <Text style={styles.title}>Card Requested!</Text>
@@ -55,7 +63,12 @@ export default function CardSuccess() {
         <MotiView
           from={{ opacity: 0, translateY: 20 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ delay: 350, type: "timing", duration: 480, easing: Easing.out(Easing.cubic) }}
+          transition={{
+            delay: 350,
+            type: "timing",
+            duration: 480,
+            easing: Easing.out(Easing.cubic),
+          }}
           style={styles.cardWrap}
         >
           <LinearGradient
@@ -111,9 +124,7 @@ export default function CardSuccess() {
             style={styles.deliveryBanner}
           >
             <Ionicons name="time-outline" size={18} color={Colors.accent.amber} />
-            <Text style={styles.deliveryText}>
-              Estimated delivery: 3–5 business days
-            </Text>
+            <Text style={styles.deliveryText}>Estimated delivery: 3–5 business days</Text>
           </MotiView>
         )}
 
@@ -126,10 +137,7 @@ export default function CardSuccess() {
           transition={{ delay: 600, type: "timing", duration: 350 }}
           style={styles.buttonsWrap}
         >
-          <Button
-            title="Go to Home"
-            onPress={() => router.replace("/(tabs)/home")}
-          />
+          <Button title="Go to Home" onPress={() => router.replace("/(tabs)/home")} />
           <View style={{ height: 12 }} />
           <Button
             title="View My Cards"

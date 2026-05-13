@@ -1,4 +1,4 @@
-import { View, Text, Image, ImageSourcePropType } from "react-native";
+import { View, Text, Image, type ImageSourcePropType } from "react-native";
 import { Colors } from "@/theme/colors";
 
 type Props = { name?: string; uri?: string; size?: number; source?: ImageSourcePropType };
@@ -11,7 +11,12 @@ export function Avatar({ name, uri, size = 40, source }: Props) {
     return (
       <Image
         source={source ?? { uri }}
-        style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: Colors.ink[200] }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: Colors.ink[200],
+        }}
       />
     );
   }
@@ -26,7 +31,9 @@ export function Avatar({ name, uri, size = 40, source }: Props) {
         justifyContent: "center",
       }}
     >
-      <Text style={{ color: "#FFFFFF", fontFamily: "Inter_600SemiBold", fontSize: size * 0.42 }}>{initial}</Text>
+      <Text style={{ color: "#FFFFFF", fontFamily: "Inter_600SemiBold", fontSize: size * 0.42 }}>
+        {initial}
+      </Text>
     </View>
   );
 }

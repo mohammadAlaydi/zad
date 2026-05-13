@@ -1,28 +1,63 @@
-import { useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  StyleSheet,
-  TextInput,
-} from "react-native";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
+import { useState, useMemo } from "react";
+import { View, Text, ScrollView, Pressable, StyleSheet, TextInput } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 const STOCKS = [
-  { ticker: "AAPL", companyName: "Apple Inc.", currentPrice: 182.5, sector: "Technology", emoji: "🍎", change: +1.8 },
-  { ticker: "MSFT", companyName: "Microsoft Corp.", currentPrice: 325.0, sector: "Technology", emoji: "🪟", change: +0.9 },
-  { ticker: "TSLA", companyName: "Tesla Inc.", currentPrice: 198.0, sector: "Automotive", emoji: "🚗", change: -2.1 },
-  { ticker: "AMZN", companyName: "Amazon.com Inc.", currentPrice: 178.0, sector: "E-Commerce", emoji: "📦", change: +0.5 },
-  { ticker: "GOOGL", companyName: "Alphabet Inc.", currentPrice: 172.0, sector: "Technology", emoji: "🔍", change: +1.2 },
-  { ticker: "META", companyName: "Meta Platforms", currentPrice: 512.0, sector: "Social Media", emoji: "👤", change: +2.3 },
+  {
+    ticker: "AAPL",
+    companyName: "Apple Inc.",
+    currentPrice: 182.5,
+    sector: "Technology",
+    emoji: "🍎",
+    change: +1.8,
+  },
+  {
+    ticker: "MSFT",
+    companyName: "Microsoft Corp.",
+    currentPrice: 325.0,
+    sector: "Technology",
+    emoji: "🪟",
+    change: +0.9,
+  },
+  {
+    ticker: "TSLA",
+    companyName: "Tesla Inc.",
+    currentPrice: 198.0,
+    sector: "Automotive",
+    emoji: "🚗",
+    change: -2.1,
+  },
+  {
+    ticker: "AMZN",
+    companyName: "Amazon.com Inc.",
+    currentPrice: 178.0,
+    sector: "E-Commerce",
+    emoji: "📦",
+    change: +0.5,
+  },
+  {
+    ticker: "GOOGL",
+    companyName: "Alphabet Inc.",
+    currentPrice: 172.0,
+    sector: "Technology",
+    emoji: "🔍",
+    change: +1.2,
+  },
+  {
+    ticker: "META",
+    companyName: "Meta Platforms",
+    currentPrice: 512.0,
+    sector: "Social Media",
+    emoji: "👤",
+    change: +2.3,
+  },
 ];
 
 type Tab = "market" | "portfolio";
@@ -37,9 +72,7 @@ export default function InvestScreen() {
     if (!search.trim()) return STOCKS;
     const q = search.toLowerCase();
     return STOCKS.filter(
-      (s) =>
-        s.ticker.toLowerCase().includes(q) ||
-        s.companyName.toLowerCase().includes(q)
+      (s) => s.ticker.toLowerCase().includes(q) || s.companyName.toLowerCase().includes(q),
     );
   }, [search]);
 
@@ -117,18 +150,29 @@ export default function InvestScreen() {
                 </View>
                 <View style={styles.stockInfo}>
                   <Text style={styles.stockTicker}>{stock.ticker}</Text>
-                  <Text style={styles.stockName} numberOfLines={1}>{stock.companyName}</Text>
+                  <Text style={styles.stockName} numberOfLines={1}>
+                    {stock.companyName}
+                  </Text>
                 </View>
                 <View style={styles.stockRight}>
                   <Text style={styles.stockPrice}>${stock.currentPrice.toFixed(2)}</Text>
                   <View
                     style={[
                       styles.changeBadge,
-                      { backgroundColor: stock.change >= 0 ? Colors.accent.greenSoft : Colors.accent.redSoft },
+                      {
+                        backgroundColor:
+                          stock.change >= 0 ? Colors.accent.greenSoft : Colors.accent.redSoft,
+                      },
                     ]}
                   >
-                    <Text style={[styles.changeText, { color: stock.change >= 0 ? Colors.accent.green : Colors.accent.red }]}>
-                      {stock.change >= 0 ? "+" : ""}{stock.change.toFixed(1)}%
+                    <Text
+                      style={[
+                        styles.changeText,
+                        { color: stock.change >= 0 ? Colors.accent.green : Colors.accent.red },
+                      ]}
+                    >
+                      {stock.change >= 0 ? "+" : ""}
+                      {stock.change.toFixed(1)}%
                     </Text>
                   </View>
                 </View>
@@ -204,11 +248,20 @@ export default function InvestScreen() {
                       <View
                         style={[
                           styles.changeBadge,
-                          { backgroundColor: gainLoss >= 0 ? Colors.accent.greenSoft : Colors.accent.redSoft },
+                          {
+                            backgroundColor:
+                              gainLoss >= 0 ? Colors.accent.greenSoft : Colors.accent.redSoft,
+                          },
                         ]}
                       >
-                        <Text style={[styles.changeText, { color: gainLoss >= 0 ? Colors.accent.green : Colors.accent.red }]}>
-                          {gainLoss >= 0 ? "+" : ""}{gainLoss.toFixed(1)}%
+                        <Text
+                          style={[
+                            styles.changeText,
+                            { color: gainLoss >= 0 ? Colors.accent.green : Colors.accent.red },
+                          ]}
+                        >
+                          {gainLoss >= 0 ? "+" : ""}
+                          {gainLoss.toFixed(1)}%
                         </Text>
                       </View>
                     </View>

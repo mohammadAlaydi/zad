@@ -40,12 +40,17 @@ const defaultFAQs = [
 ];
 
 const botResponses: Record<string, string> = {
-  transactions: "I can help with transaction issues. Could you describe the problem? For example: failed transaction, wrong amount, or missing funds.",
+  transactions:
+    "I can help with transaction issues. Could you describe the problem? For example: failed transaction, wrong amount, or missing funds.",
   kyc: "For KYC issues, please make sure your ID documents are clear and not expired. If your verification is stuck, I can escalate to our team.",
-  cards: "For card issues, I can help with activation, blocking, or payment failures. What do you need help with?",
-  account: "I can assist with account settings, profile updates, or closing your account. What would you like to do?",
-  transfers: "For transfer issues, I can check the status or help resolve failed transfers. Please share your transfer reference number.",
-  security: "Security is our priority. I can help with suspicious activity, password resets, or device management. What concerns you?",
+  cards:
+    "For card issues, I can help with activation, blocking, or payment failures. What do you need help with?",
+  account:
+    "I can assist with account settings, profile updates, or closing your account. What would you like to do?",
+  transfers:
+    "For transfer issues, I can check the status or help resolve failed transfers. Please share your transfer reference number.",
+  security:
+    "Security is our priority. I can help with suspicious activity, password resets, or device management. What concerns you?",
 };
 
 export const useSupportStore = create<SupportState>((set) => ({
@@ -58,21 +63,21 @@ export const useSupportStore = create<SupportState>((set) => ({
   addMessage: (ticketId, msg) =>
     set((s) => ({
       tickets: s.tickets.map((t) =>
-        t.id === ticketId ? { ...t, messages: [...t.messages, msg] } : t
+        t.id === ticketId ? { ...t, messages: [...t.messages, msg] } : t,
       ),
     })),
 
   escalateTicket: (ticketId) =>
     set((s) => ({
       tickets: s.tickets.map((t) =>
-        t.id === ticketId ? { ...t, status: "escalated" as TicketStatus } : t
+        t.id === ticketId ? { ...t, status: "escalated" as TicketStatus } : t,
       ),
     })),
 
   resolveTicket: (ticketId) =>
     set((s) => ({
       tickets: s.tickets.map((t) =>
-        t.id === ticketId ? { ...t, status: "resolved" as TicketStatus } : t
+        t.id === ticketId ? { ...t, status: "resolved" as TicketStatus } : t,
       ),
     })),
 
@@ -80,5 +85,8 @@ export const useSupportStore = create<SupportState>((set) => ({
 }));
 
 export function getBotReply(category: string): string {
-  return botResponses[category] ?? "I'm here to help! Please describe your issue and I'll do my best to assist you.";
+  return (
+    botResponses[category] ??
+    "I'm here to help! Please describe your issue and I'll do my best to assist you."
+  );
 }

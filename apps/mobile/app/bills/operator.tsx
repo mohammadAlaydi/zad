@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router, useLocalSearchParams } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 export default function BillsOperator() {
@@ -26,22 +26,14 @@ export default function BillsOperator() {
     { name: "Zain Iraq", subtitle: "topup, bills, more", color: "#982D87" },
   ];
 
-  const services = [
-    "Postpaid bill",
-    "Internet package",
-    "Monthly subscription",
-    "Roaming",
-  ];
+  const services = ["Postpaid bill", "Internet package", "Monthly subscription", "Roaming"];
 
   if (step === "operators") {
     return (
       <Screen bg={Colors.white}>
         <Header title={t("bills.operators")} />
         <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: insets.bottom + 24 },
-          ]}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.heading}>Mobile operators</Text>
@@ -61,22 +53,14 @@ export default function BillsOperator() {
                 }}
                 style={styles.operatorRow}
               >
-                <View
-                  style={[styles.operatorBadge, { backgroundColor: op.color }]}
-                >
-                  <Text style={styles.operatorBadgeText}>
-                    {op.name.split(" ")[0].slice(0, 3)}
-                  </Text>
+                <View style={[styles.operatorBadge, { backgroundColor: op.color }]}>
+                  <Text style={styles.operatorBadgeText}>{op.name.split(" ")[0].slice(0, 3)}</Text>
                 </View>
                 <View style={styles.operatorInfo}>
                   <Text style={styles.operatorName}>{op.name}</Text>
                   <Text style={styles.operatorSub}>{op.subtitle}</Text>
                 </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={Colors.ink[400]}
-                />
+                <Ionicons name="chevron-forward" size={20} color={Colors.ink[400]} />
               </Pressable>
             </MotiView>
           ))}
@@ -89,10 +73,7 @@ export default function BillsOperator() {
     <Screen bg={Colors.white} keyboard>
       <Header title={selectedOperator} onBack={() => setStep("operators")} />
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 100 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
         keyboardShouldPersistTaps="handled"
       >
         <Input
@@ -107,16 +88,8 @@ export default function BillsOperator() {
         <Text style={styles.fieldLabel}>{selectedOperator}</Text>
 
         {/* Service dropdown trigger */}
-        <Pressable
-          onPress={() => setServiceOpen(!serviceOpen)}
-          style={styles.selectField}
-        >
-          <Text
-            style={[
-              styles.selectText,
-              !service ? styles.selectPlaceholder : null,
-            ]}
-          >
+        <Pressable onPress={() => setServiceOpen(!serviceOpen)} style={styles.selectField}>
+          <Text style={[styles.selectText, !service ? styles.selectPlaceholder : null]}>
             {service || t("bills.chooseService")}
           </Text>
           <Ionicons
@@ -158,11 +131,7 @@ export default function BillsOperator() {
                     {s}
                   </Text>
                   {isActive ? (
-                    <Ionicons
-                      name="checkmark"
-                      size={18}
-                      color={Colors.brand.primary}
-                    />
+                    <Ionicons name="checkmark" size={18} color={Colors.brand.primary} />
                   ) : null}
                 </Pressable>
               );

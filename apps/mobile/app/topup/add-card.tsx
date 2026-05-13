@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
+import { Screen } from "@/components/Screen";
 import { Switch } from "@/components/Switch";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
@@ -34,11 +34,18 @@ export default function AddCard() {
   const [save, setSave] = useState(true);
 
   const rawNumber = number.replace(/\s/g, "");
-  const canAdd = rawNumber.length >= 15 && expiry.length === 5 && cvv.length >= 3 && name.length > 2;
+  const canAdd =
+    rawNumber.length >= 15 && expiry.length === 5 && cvv.length >= 3 && name.length > 2;
 
   const handleAdd = () => {
     if (save) {
-      addCard({ id: "c-" + Date.now(), brand: "mastercard", last4: rawNumber.slice(-4), exp: expiry, name });
+      addCard({
+        id: "c-" + Date.now(),
+        brand: "mastercard",
+        last4: rawNumber.slice(-4),
+        exp: expiry,
+        name,
+      });
     }
     router.back();
   };
@@ -46,12 +53,23 @@ export default function AddCard() {
   return (
     <Screen bg={Colors.white} keyboard>
       <Header title={t("topup.addNewCardTitle")} />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 110 }}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 13, lineHeight: 20, marginBottom: 18 }}>
+          <Text
+            style={{
+              color: Colors.ink[500],
+              fontFamily: "Inter_400Regular",
+              fontSize: 13,
+              lineHeight: 20,
+              marginBottom: 18,
+            }}
+          >
             {t("topup.addNewCardHint")}
           </Text>
 
@@ -99,14 +117,30 @@ export default function AddCard() {
 
           <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}>
             <Switch value={save} onChange={setSave} />
-            <Text style={{ marginLeft: 10, color: Colors.ink[700], fontFamily: "Inter_500Medium", fontSize: 14 }}>
+            <Text
+              style={{
+                marginLeft: 10,
+                color: Colors.ink[700],
+                fontFamily: "Inter_500Medium",
+                fontSize: 14,
+              }}
+            >
               {t("topup.saveCard")}
             </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View style={{ position: "absolute", left: 18, right: 18, bottom: insets.bottom + 12, flexDirection: "row", gap: 10 }}>
+      <View
+        style={{
+          position: "absolute",
+          left: 18,
+          right: 18,
+          bottom: insets.bottom + 12,
+          flexDirection: "row",
+          gap: 10,
+        }}
+      >
         <Button
           title={t("topup.scanCard")}
           variant="secondary"
@@ -114,7 +148,12 @@ export default function AddCard() {
           style={{ flex: 1 }}
           icon={<Ionicons name="scan-outline" size={18} color={Colors.brand.primary} />}
         />
-        <Button title={t("topup.addCard")} disabled={!canAdd} onPress={handleAdd} style={{ flex: 1 }} />
+        <Button
+          title={t("topup.addCard")}
+          disabled={!canAdd}
+          onPress={handleAdd}
+          style={{ flex: 1 }}
+        />
       </View>
     </Screen>
   );

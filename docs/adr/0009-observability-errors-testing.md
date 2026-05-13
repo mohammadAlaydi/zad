@@ -29,21 +29,49 @@ Audit reference: [audit §3 S2-13, §3 S1-9](../audit.md).
 ```ts
 // packages/shared-errors/src/AppError.ts
 export abstract class AppError extends Error {
-  abstract readonly code: string;       // 'WALLET.INSUFFICIENT_BALANCE'
+  abstract readonly code: string; // 'WALLET.INSUFFICIENT_BALANCE'
   abstract readonly httpStatus: number; // 422
-  constructor(message: string, public readonly meta?: Record<string, unknown>) { super(message); }
+  constructor(
+    message: string,
+    public readonly meta?: Record<string, unknown>,
+  ) {
+    super(message);
+  }
 }
 
-export class ValidationError extends AppError { code = 'COMMON.VALIDATION'; httpStatus = 400; }
-export class UnauthorizedError extends AppError { code = 'COMMON.UNAUTHORIZED'; httpStatus = 401; }
-export class ForbiddenError extends AppError { code = 'COMMON.FORBIDDEN'; httpStatus = 403; }
-export class NotFoundError extends AppError { code = 'COMMON.NOT_FOUND'; httpStatus = 404; }
-export class ConflictError extends AppError { code = 'COMMON.CONFLICT'; httpStatus = 409; }
-export class UnprocessableError extends AppError { code = 'COMMON.UNPROCESSABLE'; httpStatus = 422; }
-export class RateLimitedError extends AppError { code = 'COMMON.RATE_LIMITED'; httpStatus = 429; }
+export class ValidationError extends AppError {
+  code = "COMMON.VALIDATION";
+  httpStatus = 400;
+}
+export class UnauthorizedError extends AppError {
+  code = "COMMON.UNAUTHORIZED";
+  httpStatus = 401;
+}
+export class ForbiddenError extends AppError {
+  code = "COMMON.FORBIDDEN";
+  httpStatus = 403;
+}
+export class NotFoundError extends AppError {
+  code = "COMMON.NOT_FOUND";
+  httpStatus = 404;
+}
+export class ConflictError extends AppError {
+  code = "COMMON.CONFLICT";
+  httpStatus = 409;
+}
+export class UnprocessableError extends AppError {
+  code = "COMMON.UNPROCESSABLE";
+  httpStatus = 422;
+}
+export class RateLimitedError extends AppError {
+  code = "COMMON.RATE_LIMITED";
+  httpStatus = 429;
+}
 
 // Per-module errors extend further:
-export class InsufficientBalanceError extends UnprocessableError { code = 'WALLET.INSUFFICIENT_BALANCE'; }
+export class InsufficientBalanceError extends UnprocessableError {
+  code = "WALLET.INSUFFICIENT_BALANCE";
+}
 ```
 
 - **Expected errors** flow as `Err(error)` through `Result<T, E>`. The HTTP layer maps them to `{ code, message, requestId }` payloads with the right status code.
@@ -54,30 +82,30 @@ export class InsufficientBalanceError extends UnprocessableError { code = 'WALLE
 
 `prom-client` registers:
 
-| Metric | Type | Labels |
-|---|---|---|
-| `http_requests_total` | counter | `{method, route, status}` |
-| `http_request_duration_seconds` | histogram | `{method, route, status}` (buckets: 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5) |
-| `db_query_duration_seconds` | histogram | `{operation, model}` (Prisma middleware) |
-| `cache_hits_total` | counter | `{cache}` |
-| `cache_misses_total` | counter | `{cache}` |
-| `queue_jobs_total` | counter | `{queue, status: completed\|failed\|stalled}` |
-| `queue_job_duration_seconds` | histogram | `{queue, jobName}` |
-| `wallet_transactions_total` | counter | `{type, status, currency}` |
-| `wallet_ledger_imbalance_total` | counter | `{}` — should always be 0; if not, page on-call |
-| `auth_logins_total` | counter | `{result: success\|failure, reason?}` |
-| `auth_refresh_replay_detected_total` | counter | `{}` — security alarm |
-| `nodejs_*` | gauge / histogram | from `prom-client` defaults |
+| Metric                               | Type              | Labels                                                                                   |
+| ------------------------------------ | ----------------- | ---------------------------------------------------------------------------------------- |
+| `http_requests_total`                | counter           | `{method, route, status}`                                                                |
+| `http_request_duration_seconds`      | histogram         | `{method, route, status}` (buckets: 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5) |
+| `db_query_duration_seconds`          | histogram         | `{operation, model}` (Prisma middleware)                                                 |
+| `cache_hits_total`                   | counter           | `{cache}`                                                                                |
+| `cache_misses_total`                 | counter           | `{cache}`                                                                                |
+| `queue_jobs_total`                   | counter           | `{queue, status: completed\|failed\|stalled}`                                            |
+| `queue_job_duration_seconds`         | histogram         | `{queue, jobName}`                                                                       |
+| `wallet_transactions_total`          | counter           | `{type, status, currency}`                                                               |
+| `wallet_ledger_imbalance_total`      | counter           | `{}` — should always be 0; if not, page on-call                                          |
+| `auth_logins_total`                  | counter           | `{result: success\|failure, reason?}`                                                    |
+| `auth_refresh_replay_detected_total` | counter           | `{}` — security alarm                                                                    |
+| `nodejs_*`                           | gauge / histogram | from `prom-client` defaults                                                              |
 
 - `/metrics` is **not behind auth** but **is** behind an IP allowlist (Prometheus scrape jobs only). Configurable via `METRICS_ALLOWLIST` env.
 
 ### Health checks
 
-| Path | Purpose | Behavior |
-|---|---|---|
-| `/health/live` | liveness | Returns 200 if process is alive. No DB checks. Used by orchestrator to decide kill/restart. |
-| `/health/ready` | readiness | Returns 200 if DB **and** Redis are connected and migrations are applied. Returns 503 otherwise. Used by load balancer to route traffic. |
-| `/health/startup` | startup | Returns 200 only after the first successful `/health/ready`. Used for slow-start grace periods. |
+| Path              | Purpose   | Behavior                                                                                                                                 |
+| ----------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `/health/live`    | liveness  | Returns 200 if process is alive. No DB checks. Used by orchestrator to decide kill/restart.                                              |
+| `/health/ready`   | readiness | Returns 200 if DB **and** Redis are connected and migrations are applied. Returns 503 otherwise. Used by load balancer to route traffic. |
+| `/health/startup` | startup   | Returns 200 only after the first successful `/health/ready`. Used for slow-start grace periods.                                          |
 
 ### Tracing — OpenTelemetry, ready-not-on
 
@@ -94,18 +122,19 @@ export class InsufficientBalanceError extends UnprocessableError { code = 'WALLE
 
 ### Testing — Vitest + Supertest + Testcontainers + Detox/Maestro
 
-| Layer | Tool | Scope | Coverage target |
-|---|---|---|---|
-| Backend unit (domain, application) | Vitest | Pure TS, no I/O. Domain invariants, value objects, use case orchestration with mocked ports. | 90%+ on `domain/` and `application/` |
-| Backend integration | Vitest + Supertest + Testcontainers | Fastify app booted with real Postgres + Redis (containers spun up per test file). End-to-end through HTTP. | 80%+ on `interface/` + `infrastructure/` |
-| Backend property-based | `fast-check` | Ledger invariants ([ADR-0007]). | Run subset on PR; full sample nightly |
-| Mobile unit | Vitest + React Native Testing Library | Hooks, services, reducers, pure UI snapshots. | 80%+ on `src/features/*/hooks` and `services` |
-| Mobile E2E | **Maestro** (chosen over Detox) | Critical flows: signup → KYC → login → top-up → send → receive | Specific flows, not coverage % |
-| Contract tests | Zod schemas in `packages/shared-validation` | If the backend's response schema changes, the mobile build breaks (type error). | Implicit |
+| Layer                              | Tool                                        | Scope                                                                                                      | Coverage target                               |
+| ---------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Backend unit (domain, application) | Vitest                                      | Pure TS, no I/O. Domain invariants, value objects, use case orchestration with mocked ports.               | 90%+ on `domain/` and `application/`          |
+| Backend integration                | Vitest + Supertest + Testcontainers         | Fastify app booted with real Postgres + Redis (containers spun up per test file). End-to-end through HTTP. | 80%+ on `interface/` + `infrastructure/`      |
+| Backend property-based             | `fast-check`                                | Ledger invariants ([ADR-0007]).                                                                            | Run subset on PR; full sample nightly         |
+| Mobile unit                        | Vitest + React Native Testing Library       | Hooks, services, reducers, pure UI snapshots.                                                              | 80%+ on `src/features/*/hooks` and `services` |
+| Mobile E2E                         | **Maestro** (chosen over Detox)             | Critical flows: signup → KYC → login → top-up → send → receive                                             | Specific flows, not coverage %                |
+| Contract tests                     | Zod schemas in `packages/shared-validation` | If the backend's response schema changes, the mobile build breaks (type error).                            | Implicit                                      |
 
 **Why Maestro over Detox:** YAML test definitions are reviewable; no Xcode + Android Studio glue per repo; runs against EAS preview builds in CI without much setup. Detox has more raw power for gesture-heavy flows but the cost is real and we don't need it for the slice.
 
 CI enforces:
+
 - PR fails if coverage on changed lines drops below the layer target.
 - PR fails on any test failure (including flaky tests — we retry once on a single specific seed if `fast-check` flakes, then fail).
 
@@ -117,15 +146,18 @@ CI enforces:
 ## Consequences
 
 **Positive**
+
 - Production incidents are diagnosable from logs + traces + metrics, not from "kubectl exec and hope."
 - Coverage gates prevent regression.
 - One error-payload shape across the API → uniform mobile handling.
 
 **Negative**
+
 - `Result` ergonomics in TS aren't as nice as throw/catch. Library helpers (`andThen`, `mapErr`) make it tolerable.
 - Property-based tests are slow; we run small budgets on PR, full budgets nightly.
 
 **Neutral / accept**
+
 - Metrics with high cardinality (e.g. user ID labels) can explode Prometheus. We never label by user ID. Cardinality budget audited per metric in code review.
 
 ## Alternatives considered

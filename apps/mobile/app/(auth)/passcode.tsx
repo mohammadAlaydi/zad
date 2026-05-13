@@ -1,20 +1,28 @@
-import { useEffect, useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Header } from "@/components/Header";
-import { Colors } from "@/theme/colors";
+import { Screen } from "@/components/Screen";
 import { useHaptic } from "@/hooks/useHaptic";
+import { Colors } from "@/theme/colors";
 
 type Key = { d: string; sub?: string } | { d: "blank" } | { d: "del" };
 
 const ROWS: Key[][] = [
   [{ d: "1" }, { d: "2", sub: "abc" }, { d: "3", sub: "def" }],
-  [{ d: "4", sub: "ghi" }, { d: "5", sub: "jkl" }, { d: "6", sub: "mno" }],
-  [{ d: "7", sub: "pqrs" }, { d: "8", sub: "tuv" }, { d: "9", sub: "wxyz" }],
+  [
+    { d: "4", sub: "ghi" },
+    { d: "5", sub: "jkl" },
+    { d: "6", sub: "mno" },
+  ],
+  [
+    { d: "7", sub: "pqrs" },
+    { d: "8", sub: "tuv" },
+    { d: "9", sub: "wxyz" },
+  ],
   [{ d: "blank" }, { d: "0", sub: "+" }, { d: "del" }],
 ];
 
@@ -65,9 +73,7 @@ export default function Passcode() {
                 key={i}
                 animate={{
                   scale: filled ? 1 : 0.85,
-                  backgroundColor: filled
-                    ? Colors.brand.primary
-                    : Colors.ink[200],
+                  backgroundColor: filled ? Colors.brand.primary : Colors.ink[200],
                 }}
                 transition={{ type: "timing", duration: 180 }}
                 style={styles.dot}
@@ -95,12 +101,14 @@ export default function Passcode() {
                       android_ripple={{ color: Colors.ink[100], borderless: true }}
                     >
                       {({ pressed }) => (
-                        <View style={[StyleSheet.absoluteFill, styles.innerCell, pressed ? styles.keyCellPressed : null]}>
-                          <Ionicons
-                            name="backspace-outline"
-                            size={26}
-                            color={Colors.ink[700]}
-                          />
+                        <View
+                          style={[
+                            StyleSheet.absoluteFill,
+                            styles.innerCell,
+                            pressed ? styles.keyCellPressed : null,
+                          ]}
+                        >
+                          <Ionicons name="backspace-outline" size={26} color={Colors.ink[700]} />
                         </View>
                       )}
                     </Pressable>
@@ -115,7 +123,13 @@ export default function Passcode() {
                     android_ripple={{ color: Colors.ink[100], borderless: true }}
                   >
                     {({ pressed }) => (
-                      <View style={[StyleSheet.absoluteFill, styles.innerCell, pressed ? styles.keyCellPressed : null]}>
+                      <View
+                        style={[
+                          StyleSheet.absoluteFill,
+                          styles.innerCell,
+                          pressed ? styles.keyCellPressed : null,
+                        ]}
+                      >
                         <Text style={styles.keyDigit}>{k.d}</Text>
                         {"sub" in k && k.sub ? (
                           <Text style={styles.keySub}>{k.sub.toUpperCase()}</Text>

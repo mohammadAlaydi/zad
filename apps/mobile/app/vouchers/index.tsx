@@ -1,23 +1,14 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  Modal,
-  StyleSheet,
-  Alert,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
 import { LinearGradient } from "expo-linear-gradient";
-import { Screen } from "@/components/Screen";
+import { MotiView } from "moti";
+import { useState } from "react";
+import { View, Text, Pressable, ScrollView, Modal, StyleSheet, Alert } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
-import { Button } from "@/components/Button";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
-import { Colors } from "@/theme/colors";
 import type { Voucher, Currency } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
 
 // ─── Voucher catalog ───────────────────────────────────────────────────────────
 type CatalogItem = {
@@ -31,14 +22,78 @@ type CatalogItem = {
 };
 
 const CATALOG: CatalogItem[] = [
-  { id: "cat1", type: "mobile_topup", merchant: "Etisalat", value: 20, price: 20, emoji: "📱", description: "Mobile top-up for Etisalat" },
-  { id: "cat2", type: "mobile_topup", merchant: "Du",       value: 50, price: 50, emoji: "📱", description: "Mobile top-up for Du" },
-  { id: "cat3", type: "gift_card",    merchant: "Amazon",   value: 25, price: 25, emoji: "🎁", description: "Amazon Gift Card" },
-  { id: "cat4", type: "gift_card",    merchant: "Apple",    value: 50, price: 50, emoji: "🍎", description: "Apple App Store / iTunes" },
-  { id: "cat5", type: "gift_card",    merchant: "Noon",     value: 100, price: 100, emoji: "🛍️", description: "Noon.com Gift Card" },
-  { id: "cat6", type: "service_credit", merchant: "Netflix", value: 15, price: 15, emoji: "🎬", description: "1-month Netflix credit" },
-  { id: "cat7", type: "service_credit", merchant: "Spotify", value: 10, price: 10, emoji: "🎵", description: "1-month Spotify Premium" },
-  { id: "cat8", type: "service_credit", merchant: "Careem", value: 30, price: 30, emoji: "🚗", description: "Careem ride credits" },
+  {
+    id: "cat1",
+    type: "mobile_topup",
+    merchant: "Etisalat",
+    value: 20,
+    price: 20,
+    emoji: "📱",
+    description: "Mobile top-up for Etisalat",
+  },
+  {
+    id: "cat2",
+    type: "mobile_topup",
+    merchant: "Du",
+    value: 50,
+    price: 50,
+    emoji: "📱",
+    description: "Mobile top-up for Du",
+  },
+  {
+    id: "cat3",
+    type: "gift_card",
+    merchant: "Amazon",
+    value: 25,
+    price: 25,
+    emoji: "🎁",
+    description: "Amazon Gift Card",
+  },
+  {
+    id: "cat4",
+    type: "gift_card",
+    merchant: "Apple",
+    value: 50,
+    price: 50,
+    emoji: "🍎",
+    description: "Apple App Store / iTunes",
+  },
+  {
+    id: "cat5",
+    type: "gift_card",
+    merchant: "Noon",
+    value: 100,
+    price: 100,
+    emoji: "🛍️",
+    description: "Noon.com Gift Card",
+  },
+  {
+    id: "cat6",
+    type: "service_credit",
+    merchant: "Netflix",
+    value: 15,
+    price: 15,
+    emoji: "🎬",
+    description: "1-month Netflix credit",
+  },
+  {
+    id: "cat7",
+    type: "service_credit",
+    merchant: "Spotify",
+    value: 10,
+    price: 10,
+    emoji: "🎵",
+    description: "1-month Spotify Premium",
+  },
+  {
+    id: "cat8",
+    type: "service_credit",
+    merchant: "Careem",
+    value: 30,
+    price: 30,
+    emoji: "🚗",
+    description: "Careem ride credits",
+  },
 ];
 
 function typeLabel(t: Voucher["type"]) {
@@ -102,9 +157,7 @@ function VoucherCard({
               <Text style={vc.usedText}>Used</Text>
             </View>
           ) : (
-            <Text style={vc.expiry}>
-              {daysLeft > 0 ? `${daysLeft}d left` : "Expired"}
-            </Text>
+            <Text style={vc.expiry}>{daysLeft > 0 ? `${daysLeft}d left` : "Expired"}</Text>
           )}
         </View>
 
@@ -161,21 +214,63 @@ const vc = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: Colors.surface.background,
   },
-  topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
-  typeTag: { backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  typeTag: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
   typeText: { fontFamily: "Inter_600SemiBold", fontSize: 11 },
-  usedBadge: { backgroundColor: "rgba(255,255,255,0.25)", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  usedBadge: {
+    backgroundColor: "rgba(255,255,255,0.25)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
   usedText: { fontFamily: "Inter_600SemiBold", fontSize: 11, color: Colors.white },
   expiry: { fontFamily: "Inter_500Medium", fontSize: 11, color: "rgba(255,255,255,0.8)" },
   merchant: { fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.white, marginBottom: 2 },
   value: { fontFamily: "Inter_600SemiBold", fontSize: 28, color: Colors.white, marginBottom: 16 },
   divider: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
-  notchLeft: { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.surface.background },
-  dashedLine: { flex: 1, height: 1, borderStyle: "dashed", borderWidth: 1, borderColor: "rgba(255,255,255,0.4)", marginHorizontal: 8 },
-  notchRight: { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.surface.background },
+  notchLeft: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.surface.background,
+  },
+  dashedLine: {
+    flex: 1,
+    height: 1,
+    borderStyle: "dashed",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
+    marginHorizontal: 8,
+  },
+  notchRight: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.surface.background,
+  },
   bottomRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  codeLabel: { fontFamily: "Inter_400Regular", fontSize: 11, color: "rgba(255,255,255,0.7)", marginBottom: 2 },
-  codeValue: { fontFamily: "Inter_600SemiBold", fontSize: 16, color: Colors.white, letterSpacing: 2 },
+  codeLabel: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: "rgba(255,255,255,0.7)",
+    marginBottom: 2,
+  },
+  codeValue: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: Colors.white,
+    letterSpacing: 2,
+  },
   redeemBtn: {
     backgroundColor: Colors.white,
     paddingHorizontal: 18,
@@ -208,10 +303,16 @@ function BuyModal({
         <Pressable style={bm.sheet} onPress={() => {}}>
           <View style={bm.handle} />
           <Text style={bm.title}>Buy a Voucher</Text>
-          <Text style={bm.balance}>Balance: {currency} {balance.toLocaleString()}</Text>
+          <Text style={bm.balance}>
+            Balance: {currency} {balance.toLocaleString()}
+          </Text>
 
           {/* Tabs */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginBottom: 16 }}
+          >
             <View style={bm.tabRow}>
               {(["mobile_topup", "gift_card", "service_credit"] as Voucher["type"][]).map((t) => (
                 <Pressable
@@ -265,9 +366,21 @@ const bm = StyleSheet.create({
     padding: 24,
     paddingBottom: 40,
   },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.ink[200], alignSelf: "center", marginBottom: 20 },
+  handle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.ink[200],
+    alignSelf: "center",
+    marginBottom: 20,
+  },
   title: { fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.ink[900], marginBottom: 4 },
-  balance: { fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[500], marginBottom: 16 },
+  balance: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: Colors.ink[500],
+    marginBottom: 16,
+  },
   tabRow: { flexDirection: "row", gap: 8 },
   tab: {
     paddingHorizontal: 14,
@@ -291,14 +404,20 @@ const bm = StyleSheet.create({
   itemEmoji: { fontSize: 24 },
   itemMerchant: { fontFamily: "Inter_600SemiBold", fontSize: 14, color: Colors.ink[900] },
   itemDesc: { fontFamily: "Inter_400Regular", fontSize: 12, color: Colors.ink[500], marginTop: 2 },
-  priceBadge: { backgroundColor: Colors.brand.primary50, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  priceBadge: {
+    backgroundColor: Colors.brand.primary50,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
   priceText: { fontFamily: "Inter_600SemiBold", fontSize: 13, color: Colors.brand.primary },
 });
 
 // ─── Main Screen ───────────────────────────────────────────────────────────────
 export default function VouchersScreen() {
   const insets = useSafeAreaInsets();
-  const { vouchers, addVoucher, redeemVoucher, activeCurrency, balances, addTransaction } = useApp();
+  const { vouchers, addVoucher, redeemVoucher, activeCurrency, balances, addTransaction } =
+    useApp();
   const [showBuy, setShowBuy] = useState(false);
   const [activeTab, setActiveTab] = useState<"active" | "used">("active");
 
@@ -336,14 +455,10 @@ export default function VouchersScreen() {
   }
 
   function handleRedeem(id: string) {
-    Alert.alert(
-      "Redeem Voucher",
-      "Mark this voucher as used?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Redeem", style: "destructive", onPress: () => redeemVoucher(id) },
-      ]
-    );
+    Alert.alert("Redeem Voucher", "Mark this voucher as used?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Redeem", style: "destructive", onPress: () => redeemVoucher(id) },
+    ]);
   }
 
   const totalValue = active.reduce((sum, v) => sum + v.value, 0);
@@ -372,7 +487,8 @@ export default function VouchersScreen() {
             >
               <Text style={s.summaryLabel}>Active Voucher Value</Text>
               <Text style={s.summaryAmount}>
-                {activeCurrency} {totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                {activeCurrency}{" "}
+                {totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </Text>
               <View style={s.summaryRow}>
                 <View style={s.pill}>
@@ -380,7 +496,11 @@ export default function VouchersScreen() {
                   <Text style={s.pillText}>{active.length} active</Text>
                 </View>
                 <View style={s.pill}>
-                  <Ionicons name="checkmark-circle-outline" size={12} color="rgba(255,255,255,0.85)" />
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={12}
+                    color="rgba(255,255,255,0.85)"
+                  />
                   <Text style={s.pillText}>{used.length} used</Text>
                 </View>
               </View>
@@ -428,21 +548,13 @@ export default function VouchersScreen() {
           </MotiView>
         ) : (
           displayed.map((v, i) => (
-            <VoucherCard
-              key={v.id}
-              voucher={v}
-              index={i}
-              onRedeem={() => handleRedeem(v.id)}
-            />
+            <VoucherCard key={v.id} voucher={v} index={i} onRedeem={() => handleRedeem(v.id)} />
           ))
         )}
       </ScrollView>
 
       {/* FAB */}
-      <Pressable
-        onPress={() => setShowBuy(true)}
-        style={[s.fab, { bottom: insets.bottom + 24 }]}
-      >
+      <Pressable onPress={() => setShowBuy(true)} style={[s.fab, { bottom: insets.bottom + 24 }]}>
         <Ionicons name="add" size={28} color={Colors.white} />
       </Pressable>
 
@@ -470,8 +582,18 @@ const s = StyleSheet.create({
     elevation: 5,
   },
   summaryCard: { padding: 22, borderRadius: 20 },
-  summaryLabel: { fontFamily: "Inter_500Medium", fontSize: 13, color: "rgba(255,255,255,0.8)", marginBottom: 4 },
-  summaryAmount: { fontFamily: "Inter_600SemiBold", fontSize: 28, color: Colors.white, marginBottom: 14 },
+  summaryLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: "rgba(255,255,255,0.8)",
+    marginBottom: 4,
+  },
+  summaryAmount: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 28,
+    color: Colors.white,
+    marginBottom: 14,
+  },
   summaryRow: { flexDirection: "row", gap: 8 },
   pill: {
     flexDirection: "row",
@@ -498,8 +620,21 @@ const s = StyleSheet.create({
   tabTextActive: { color: Colors.brand.primary },
   empty: { alignItems: "center", paddingTop: 60, paddingHorizontal: 32 },
   emptyEmoji: { fontSize: 54, marginBottom: 16 },
-  emptyTitle: { fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.ink[900], marginBottom: 8, textAlign: "center" },
-  emptySub: { fontFamily: "Inter_400Regular", fontSize: 14, color: Colors.ink[500], textAlign: "center", lineHeight: 21, marginBottom: 28 },
+  emptyTitle: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: Colors.ink[900],
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptySub: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: Colors.ink[500],
+    textAlign: "center",
+    lineHeight: 21,
+    marginBottom: 28,
+  },
   emptyBtn: {
     flexDirection: "row",
     alignItems: "center",

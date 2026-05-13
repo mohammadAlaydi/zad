@@ -1,17 +1,17 @@
-import { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Platform } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { MotiView } from "moti";
 import { Ionicons } from "@expo/vector-icons";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { router } from "expo-router";
+import { MotiView } from "moti";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
+import { useHaptic } from "@/hooks/useHaptic";
 import { SelfieIllustration } from "@/illustrations/SelfieIllustration";
 import { Colors } from "@/theme/colors";
-import { useHaptic } from "@/hooks/useHaptic";
 
 export default function Selfie() {
   const { t } = useTranslation();
@@ -22,8 +22,7 @@ export default function Selfie() {
   const cam = useRef<CameraView>(null);
 
   useEffect(() => {
-    if (stage === "capture" && Platform.OS !== "web" && !permission?.granted)
-      requestPermission();
+    if (stage === "capture" && Platform.OS !== "web" && !permission?.granted) requestPermission();
   }, [stage, permission]);
 
   if (stage === "intro") {
@@ -104,10 +103,7 @@ export default function Selfie() {
             borderRadius: 140,
             overflow: "hidden",
             borderWidth: 3,
-            borderColor:
-              stage === "done"
-                ? Colors.accent.green
-                : "rgba(255,255,255,0.55)",
+            borderColor: stage === "done" ? Colors.accent.green : "rgba(255,255,255,0.55)",
           }}
         >
           {Platform.OS !== "web" && permission?.granted ? (
@@ -121,11 +117,7 @@ export default function Selfie() {
                 justifyContent: "center",
               }}
             >
-              <Ionicons
-                name="happy-outline"
-                size={84}
-                color="rgba(255,255,255,0.35)"
-              />
+              <Ionicons name="happy-outline" size={84} color="rgba(255,255,255,0.35)" />
             </View>
           )}
 
@@ -176,9 +168,7 @@ export default function Selfie() {
               maxWidth: 280,
             }}
           >
-            {stage === "done"
-              ? "Looks great!"
-              : "Position your face inside the circle"}
+            {stage === "done" ? "Looks great!" : "Position your face inside the circle"}
           </Text>
         </MotiView>
       </View>

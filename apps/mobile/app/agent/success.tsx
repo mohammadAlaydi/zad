@@ -1,13 +1,13 @@
-import { useMemo } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router, useLocalSearchParams } from "expo-router";
 import { MotiView } from "moti";
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, StyleSheet } from "react-native";
 import { Easing } from "react-native-reanimated";
-import { Screen } from "@/components/Screen";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 export default function AgentSuccess() {
@@ -46,7 +46,12 @@ export default function AgentSuccess() {
         <MotiView
           from={{ opacity: 0, translateY: 12 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ delay: 250, type: "timing", duration: 450, easing: Easing.out(Easing.cubic) }}
+          transition={{
+            delay: 250,
+            type: "timing",
+            duration: 450,
+            easing: Easing.out(Easing.cubic),
+          }}
           style={styles.headingWrap}
         >
           <Text style={styles.successHeading}>Transaction Complete!</Text>
@@ -73,15 +78,30 @@ export default function AgentSuccess() {
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Type</Text>
-            <View style={[styles.typeBadge, { backgroundColor: isCashIn ? Colors.accent.greenSoft : Colors.accent.redSoft }]}>
-              <Text style={[styles.typeBadgeText, { color: isCashIn ? Colors.accent.green : Colors.accent.red }]}>
+            <View
+              style={[
+                styles.typeBadge,
+                { backgroundColor: isCashIn ? Colors.accent.greenSoft : Colors.accent.redSoft },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.typeBadgeText,
+                  { color: isCashIn ? Colors.accent.green : Colors.accent.red },
+                ]}
+              >
                 {modeLabel}
               </Text>
             </View>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Amount</Text>
-            <Text style={[styles.detailValue, { color: isCashIn ? Colors.accent.green : Colors.accent.red }]}>
+            <Text
+              style={[
+                styles.detailValue,
+                { color: isCashIn ? Colors.accent.green : Colors.accent.red },
+              ]}
+            >
               {isCashIn ? "+" : "-"}${amt.toFixed(2)}
             </Text>
           </View>
@@ -98,10 +118,7 @@ export default function AgentSuccess() {
       </MotiView>
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 20 }]}>
-        <Button
-          title="Done"
-          onPress={() => router.push("/(tabs)/home")}
-        />
+        <Button title="Done" onPress={() => router.push("/(tabs)/home")} />
       </View>
     </Screen>
   );

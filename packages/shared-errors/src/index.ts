@@ -1,15 +1,4 @@
-export {
-  andThen,
-  err,
-  isErr,
-  isOk,
-  map,
-  mapErr,
-  match,
-  ok,
-  unwrap,
-  unwrapOr,
-} from "./Result";
+export { andThen, err, isErr, isOk, map, mapErr, match, ok, unwrap, unwrapOr } from "./Result";
 export type { Err, Ok, Result } from "./Result";
 export {
   AppError,

@@ -1,15 +1,15 @@
-import { useEffect } from "react";
-import { View, Text } from "react-native";
-import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { MotiView } from "moti";
+import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
 import { Button } from "@/components/Button";
+import { Screen } from "@/components/Screen";
+import { useHaptic } from "@/hooks/useHaptic";
 import { CongratsIllustration } from "@/illustrations/CongratsIllustration";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
-import { useHaptic } from "@/hooks/useHaptic";
 
 const CONFETTI = [
   { left: "12%", top: "18%", color: Colors.brand.primary, delay: 0 },

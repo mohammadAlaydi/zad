@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { View, Text, ScrollView, Alert } from "react-native";
-import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Text, ScrollView, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { ListRow } from "@/components/ListRow";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -57,9 +57,7 @@ export default function Help() {
             placeholder={t("help.askPlaceholder")}
             value={q}
             onChangeText={setQ}
-            rightIcon={
-              <Ionicons name="search" size={18} color={Colors.ink[400]} />
-            }
+            rightIcon={<Ionicons name="search" size={18} color={Colors.ink[400]} />}
           />
         </MotiView>
 
@@ -78,31 +76,44 @@ export default function Help() {
           }}
         >
           <ListRow
-            icon={
-              <Ionicons
-                name="card-outline"
-                size={18}
-                color={Colors.brand.primary}
-              />
-            }
+            icon={<Ionicons name="card-outline" size={18} color={Colors.brand.primary} />}
             title="Dispute transactions"
-            onPress={() => Alert.alert("Dispute Transaction", "To dispute a transaction, select it from your history and tap 'Report an issue'.")}
+            onPress={() =>
+              Alert.alert(
+                "Dispute Transaction",
+                "To dispute a transaction, select it from your history and tap 'Report an issue'.",
+              )
+            }
           />
           <ListRow
             icon={<Ionicons name="close-circle-outline" size={18} color={Colors.brand.primary} />}
             title={t("help.cancel")}
-            onPress={() => Alert.alert("Cancel Transfer", "To cancel a transfer, go to your transaction history and select the pending transfer.")}
+            onPress={() =>
+              Alert.alert(
+                "Cancel Transfer",
+                "To cancel a transfer, go to your transaction history and select the pending transfer.",
+              )
+            }
           />
           <ListRow
-            icon={<Ionicons name="swap-horizontal-outline" size={18} color={Colors.brand.primary} />}
+            icon={
+              <Ionicons name="swap-horizontal-outline" size={18} color={Colors.brand.primary} />
+            }
             title="Refund request"
-            onPress={() => Alert.alert("Refund Request", "Refund requests are processed within 3-5 business days.")}
+            onPress={() =>
+              Alert.alert(
+                "Refund Request",
+                "Refund requests are processed within 3-5 business days.",
+              )
+            }
           />
           <ListRow
             icon={<Ionicons name="help-circle-outline" size={18} color={Colors.brand.primary} />}
             title="Account issues"
             divider={false}
-            onPress={() => Alert.alert("Account Issues", "For account issues, please contact our support team.")}
+            onPress={() =>
+              Alert.alert("Account Issues", "For account issues, please contact our support team.")
+            }
           />
         </MotiView>
 
@@ -119,16 +130,12 @@ export default function Help() {
           }}
         >
           <ListRow
-            icon={
-              <Ionicons
-                name="headset-outline"
-                size={18}
-                color={Colors.brand.primary}
-              />
-            }
+            icon={<Ionicons name="headset-outline" size={18} color={Colors.brand.primary} />}
             title={t("help.support")}
             divider={false}
-            onPress={() => Alert.alert("Support", "Contact us at support@zadpay.com or call +1-800-ZADPAY")}
+            onPress={() =>
+              Alert.alert("Support", "Contact us at support@zadpay.com or call +1-800-ZADPAY")
+            }
           />
         </MotiView>
       </ScrollView>

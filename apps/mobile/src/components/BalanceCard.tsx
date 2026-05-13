@@ -1,10 +1,10 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import { Colors } from "@/theme/colors";
 import { useApp } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
 
 type Props = {
   amount: number;
@@ -25,15 +25,28 @@ function CardPattern() {
       <Circle cx="290" cy="-10" r="100" fill="rgba(255,255,255,0.08)" />
       <Circle cx="-20" cy="190" r="110" fill="rgba(255,255,255,0.05)" />
       <Path d="M0 90 Q160 60 320 90" stroke="rgba(255,255,255,0.07)" strokeWidth="1" fill="none" />
-      <Path d="M0 110 Q160 80 320 110" stroke="rgba(255,255,255,0.06)" strokeWidth="1" fill="none" />
-      <Path d="M0 130 Q160 100 320 130" stroke="rgba(255,255,255,0.05)" strokeWidth="1" fill="none" />
+      <Path
+        d="M0 110 Q160 80 320 110"
+        stroke="rgba(255,255,255,0.06)"
+        strokeWidth="1"
+        fill="none"
+      />
+      <Path
+        d="M0 130 Q160 100 320 130"
+        stroke="rgba(255,255,255,0.05)"
+        strokeWidth="1"
+        fill="none"
+      />
     </Svg>
   );
 }
 
 export function BalanceCard({ amount, currency, iban, onGetQr }: Props) {
   const { hideBalance, toggleHideBalance } = useApp();
-  const formatted = amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const formatted = amount.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
   const symbol = currency === "AED" ? "AED " : "$ ";
 
   return (
@@ -59,7 +72,11 @@ export function BalanceCard({ amount, currency, iban, onGetQr }: Props) {
           <Text style={styles.balanceText}>
             {hideBalance ? `${symbol}****` : `${symbol}${formatted}`}
           </Text>
-          <Ionicons name={hideBalance ? "eye-off-outline" : "eye-outline"} size={18} color="rgba(255,255,255,0.55)" />
+          <Ionicons
+            name={hideBalance ? "eye-off-outline" : "eye-outline"}
+            size={18}
+            color="rgba(255,255,255,0.55)"
+          />
         </Pressable>
 
         <View style={styles.bottomArea}>

@@ -1,17 +1,17 @@
-import { useRef, useState, useCallback } from "react";
-import { View, Text, Dimensions, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
-import PagerView from "react-native-pager-view";
-import { MotiView } from "moti";
-import { Easing } from "react-native-reanimated";
 import { StatusBar } from "expo-status-bar";
+import { MotiView } from "moti";
+import { useRef, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Dimensions, StyleSheet } from "react-native";
+import PagerView from "react-native-pager-view";
+import { Easing } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { FlagSelect } from "@/components/FlagSelect";
-import { OnboardingTrust } from "@/illustrations/OnboardingTrust";
-import { OnboardingSpend } from "@/illustrations/OnboardingSpend";
 import { OnboardingReceive } from "@/illustrations/OnboardingReceive";
+import { OnboardingSpend } from "@/illustrations/OnboardingSpend";
+import { OnboardingTrust } from "@/illustrations/OnboardingTrust";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -95,10 +95,7 @@ export default function Onboarding() {
                   return (
                     <View
                       key={dotIdx}
-                      style={[
-                        styles.dot,
-                        isActive ? styles.dotActive : styles.dotInactive,
-                      ]}
+                      style={[styles.dot, isActive ? styles.dotActive : styles.dotInactive]}
                     />
                   );
                 })}

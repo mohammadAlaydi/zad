@@ -1,10 +1,16 @@
-import Svg, { Path, Circle, Rect, G, Line, Ellipse } from "react-native-svg";
+import Svg, { Path, Circle, G } from "react-native-svg";
 
 // "Trusted by millions" — handshake with people behind, hand-drawn style
 export function OnboardingTrust({ size = 240 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 240 240" fill="none">
-      <G stroke="#1B1F36" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none">
+      <G
+        stroke="#1B1F36"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      >
         {/* People silhouettes in background */}
         {/* Person left */}
         <Circle cx={68} cy={62} r={8} />
@@ -51,7 +57,7 @@ export function OnboardingTrust({ size = 240 }: { size?: number }) {
         <Path d="M62 148 C62 136 80 126 92 130 L108 138" strokeWidth={2} />
         <Path d="M62 148 L54 152" strokeWidth={2} />
         <Path d="M92 130 L96 126" strokeWidth={2} />
-        
+
         {/* Right hand */}
         <Path d="M178 148 C178 136 160 126 148 130 L132 138" strokeWidth={2} />
         <Path d="M178 148 L186 152" strokeWidth={2} />
@@ -63,7 +69,12 @@ export function OnboardingTrust({ size = 240 }: { size?: number }) {
 
         {/* Decorative arc under handshake */}
         <Path d="M72 168 C90 180 150 180 168 168" stroke="#1FCFA5" strokeWidth={2.5} />
-        <Path d="M80 174 C95 184 145 184 160 174" stroke="#1FCFA5" strokeWidth={1.5} opacity={0.5} />
+        <Path
+          d="M80 174 C95 184 145 184 160 174"
+          stroke="#1FCFA5"
+          strokeWidth={1.5}
+          opacity={0.5}
+        />
 
         {/* Checkmark badge */}
         <Circle cx={180} cy={96} r={14} fill="#1FCFA5" stroke="#1FCFA5" strokeWidth={2} />
@@ -73,10 +84,13 @@ export function OnboardingTrust({ size = 240 }: { size?: number }) {
         <Circle cx={48} cy={130} r={2.5} fill="#5B2C9C" />
         <Circle cx={196} cy={122} r={2} fill="#5B2C9C" />
         <Path d="M42 108 L46 104 L50 108" stroke="#5B2C9C" strokeWidth={1.5} />
-        
+
         {/* Dollar / trust symbols */}
         <Circle cx={54} cy={172} r={10} strokeWidth={1.5} />
-        <Path d="M54 166 V178 M50 170 C50 168 58 168 58 170 C58 172 50 174 50 176 C50 178 58 178 58 176" strokeWidth={1.3} />
+        <Path
+          d="M54 166 V178 M50 170 C50 168 58 168 58 170 C58 172 50 174 50 176 C50 178 58 178 58 176"
+          strokeWidth={1.3}
+        />
       </G>
     </Svg>
   );

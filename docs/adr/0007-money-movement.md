@@ -21,35 +21,56 @@ Floats are forbidden for money. Strings ("12.50") are ambiguous (locale, decimal
 
 ```ts
 // packages/shared-types/src/Money.ts
-export type Currency = 'USD' | 'AED' | 'CAD' | 'AUD' | 'EUR' | 'GBP' | 'SAR';
+export type Currency = "USD" | "AED" | "CAD" | "AUD" | "EUR" | "GBP" | "SAR";
 
 export class Money {
   private constructor(
-    public readonly amount: bigint,    // minor units (cents, fils, etc.)
+    public readonly amount: bigint, // minor units (cents, fils, etc.)
     public readonly currency: Currency,
   ) {}
 
   static of(amount: bigint | number, currency: Currency): Money {
-    if (typeof amount === 'number') {
-      if (!Number.isInteger(amount)) throw new Error('Money.of: number must be integer minor units');
+    if (typeof amount === "number") {
+      if (!Number.isInteger(amount))
+        throw new Error("Money.of: number must be integer minor units");
       return new Money(BigInt(amount), currency);
     }
     return new Money(amount, currency);
   }
 
-  add(other: Money): Money { this.assertSame(other); return new Money(this.amount + other.amount, this.currency); }
-  sub(other: Money): Money { this.assertSame(other); return new Money(this.amount - other.amount, this.currency); }
-  neg(): Money { return new Money(-this.amount, this.currency); }
-  isNegative(): boolean { return this.amount < 0n; }
-  isZero(): boolean { return this.amount === 0n; }
-  cmp(other: Money): -1 | 0 | 1 { this.assertSame(other); return this.amount === other.amount ? 0 : this.amount < other.amount ? -1 : 1; }
-
-  private assertSame(other: Money) {
-    if (other.currency !== this.currency) throw new Error(`Currency mismatch: ${this.currency} vs ${other.currency}`);
+  add(other: Money): Money {
+    this.assertSame(other);
+    return new Money(this.amount + other.amount, this.currency);
+  }
+  sub(other: Money): Money {
+    this.assertSame(other);
+    return new Money(this.amount - other.amount, this.currency);
+  }
+  neg(): Money {
+    return new Money(-this.amount, this.currency);
+  }
+  isNegative(): boolean {
+    return this.amount < 0n;
+  }
+  isZero(): boolean {
+    return this.amount === 0n;
+  }
+  cmp(other: Money): -1 | 0 | 1 {
+    this.assertSame(other);
+    return this.amount === other.amount ? 0 : this.amount < other.amount ? -1 : 1;
   }
 
-  toJSON() { return { amount: this.amount.toString(), currency: this.currency }; }
-  static fromJSON(j: { amount: string; currency: Currency }) { return new Money(BigInt(j.amount), j.currency); }
+  private assertSame(other: Money) {
+    if (other.currency !== this.currency)
+      throw new Error(`Currency mismatch: ${this.currency} vs ${other.currency}`);
+  }
+
+  toJSON() {
+    return { amount: this.amount.toString(), currency: this.currency };
+  }
+  static fromJSON(j: { amount: string; currency: Currency }) {
+    return new Money(BigInt(j.amount), j.currency);
+  }
 }
 ```
 
@@ -101,6 +122,7 @@ wallet.ledger_entries
 Wallet balance = `SUM(ledger_entries where account_id = X and posted_at IS NOT NULL)`, by currency.
 
 For perf:
+
 - A materialized projection (`wallet.account_balances`) is updated by the same transaction that posts ledger entries (via a trigger or a use-case-level upsert). This is the read model that the API returns.
 - Reconciled nightly against the source-of-truth ledger sum; mismatches page the on-call engineer.
 
@@ -150,15 +172,15 @@ A small `currencies.json` configures these; `Money` rejects construction for unk
 
 ### Endpoints (Phase 1)
 
-| Method | Path | Body | Auth | Idempotency |
-|---|---|---|---|---|
-| GET | `/v1/wallet/accounts` | — | yes | — |
-| GET | `/v1/wallet/accounts/:id/balance` | — | yes | — |
-| GET | `/v1/wallet/transactions` | filters | yes | — |
-| POST | `/v1/wallet/transfers` | `{ fromAccountId, toAccountId, amount, currency, note }` | yes | required |
-| POST | `/v1/wallet/topups` | `{ accountId, amount, currency, source }` | yes | required |
-| POST | `/v1/wallet/withdrawals` | `{ accountId, amount, currency, destination }` | yes | required |
-| POST | `/v1/wallet/transfers/:id/reverse` | `{ reason }` | yes + admin | required |
+| Method | Path                               | Body                                                     | Auth        | Idempotency |
+| ------ | ---------------------------------- | -------------------------------------------------------- | ----------- | ----------- |
+| GET    | `/v1/wallet/accounts`              | —                                                        | yes         | —           |
+| GET    | `/v1/wallet/accounts/:id/balance`  | —                                                        | yes         | —           |
+| GET    | `/v1/wallet/transactions`          | filters                                                  | yes         | —           |
+| POST   | `/v1/wallet/transfers`             | `{ fromAccountId, toAccountId, amount, currency, note }` | yes         | required    |
+| POST   | `/v1/wallet/topups`                | `{ accountId, amount, currency, source }`                | yes         | required    |
+| POST   | `/v1/wallet/withdrawals`           | `{ accountId, amount, currency, destination }`           | yes         | required    |
+| POST   | `/v1/wallet/transfers/:id/reverse` | `{ reason }`                                             | yes + admin | required    |
 
 All bodies validated by Zod schemas in `packages/shared-validation`.
 
@@ -173,16 +195,19 @@ All bodies validated by Zod schemas in `packages/shared-validation`.
 ## Consequences
 
 **Positive**
+
 - Money correctness is a structural property of the schema + the value object, not a runtime check.
 - Reversals are auditable.
 - Concurrency is bounded and observable.
 - Extraction to a `wallet` microservice is trivial: it owns its schema and exposes events.
 
 **Negative**
+
 - Boilerplate per movement type (every action requires entries, projection, events).
 - Property-based tests are slow; we run a small sample on PR CI and a large sample on the nightly job.
 
 **Neutral / accept**
+
 - Materialized projection means there's a window (microseconds inside a transaction) where the projection lags the ledger. Inside the transaction this is fine; outside, the only consumer that reads projection is the API, which always reads inside a fresh query.
 
 ## Alternatives considered

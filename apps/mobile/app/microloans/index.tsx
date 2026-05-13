@@ -1,20 +1,12 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  Modal,
-  StyleSheet,
-  StatusBar,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
 import { LinearGradient } from "expo-linear-gradient";
+import { MotiView } from "moti";
+import { useState } from "react";
+import { View, Text, Pressable, ScrollView, Modal, StyleSheet, StatusBar } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
-import { Button } from "@/components/Button";
 import { Colors } from "@/theme/colors";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -133,10 +125,7 @@ function LoanCard({
       <Text style={styles.progressLabel}>{repaidPct.toFixed(0)}% repaid</Text>
 
       {!loan.isPaid && (
-        <Pressable
-          onPress={() => onPayNow(loan.id)}
-          style={styles.payNowBtn}
-        >
+        <Pressable onPress={() => onPayNow(loan.id)} style={styles.payNowBtn}>
           <Ionicons name="checkmark-circle-outline" size={16} color={Colors.white} />
           <Text style={styles.payNowText}>Pay Now</Text>
         </Pressable>
@@ -222,10 +211,7 @@ function ApplyModal({
                 style={[styles.termChip, selectedTerm === term && styles.termChipActive]}
               >
                 <Text
-                  style={[
-                    styles.termChipText,
-                    selectedTerm === term && styles.termChipTextActive,
-                  ]}
+                  style={[styles.termChipText, selectedTerm === term && styles.termChipTextActive]}
                 >
                   {term}
                 </Text>
@@ -287,7 +273,7 @@ export default function MicroloansScreen() {
         const payment = parseFloat((l.remaining * 0.5).toFixed(2));
         const newRemaining = Math.max(0, l.remaining - payment);
         return { ...l, remaining: newRemaining, isPaid: newRemaining === 0 };
-      })
+      }),
     );
   }
 
@@ -350,10 +336,7 @@ export default function MicroloansScreen() {
           transition={{ type: "timing", duration: 380, delay: 100 }}
           style={styles.applyBtnWrap}
         >
-          <Button
-            title="Apply for a Loan"
-            onPress={() => setShowApply(true)}
-          />
+          <Button title="Apply for a Loan" onPress={() => setShowApply(true)} />
         </MotiView>
 
         {/* Active loans */}

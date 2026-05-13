@@ -1,21 +1,13 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  TextInput,
-  Modal,
-  StyleSheet,
-  Alert,
-} from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
 import { LinearGradient } from "expo-linear-gradient";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { useLocalSearchParams } from "expo-router";
+import { MotiView } from "moti";
+import { useState } from "react";
+import { View, Text, Pressable, TextInput, Modal, StyleSheet, Alert } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -50,7 +42,7 @@ export default function GoalDetail() {
   const balance = balances[activeCurrency] ?? 0;
 
   function handleConfirm() {
-    if (!modalMode || amount <= 0) return;
+    if (!goal || !modalMode || amount <= 0) return;
     if (modalMode === "deposit") {
       if (amount > balance) {
         Alert.alert("Insufficient balance");
@@ -98,12 +90,16 @@ export default function GoalDetail() {
 
           <View style={s.heroStats}>
             <View style={s.heroStat}>
-              <Text style={s.statVal}>{goal.currency} {goal.savedAmount.toLocaleString()}</Text>
+              <Text style={s.statVal}>
+                {goal.currency} {goal.savedAmount.toLocaleString()}
+              </Text>
               <Text style={s.statLbl}>Saved</Text>
             </View>
             <View style={s.statDivider} />
             <View style={s.heroStat}>
-              <Text style={s.statVal}>{goal.currency} {goal.targetAmount.toLocaleString()}</Text>
+              <Text style={s.statVal}>
+                {goal.currency} {goal.targetAmount.toLocaleString()}
+              </Text>
               <Text style={s.statLbl}>Target</Text>
             </View>
             <View style={s.statDivider} />
@@ -178,7 +174,10 @@ export default function GoalDetail() {
                 title="Cancel"
                 variant="secondary"
                 size="md"
-                onPress={() => { setRaw(""); setModalMode(null); }}
+                onPress={() => {
+                  setRaw("");
+                  setModalMode(null);
+                }}
                 style={{ flex: 1, marginRight: 8 }}
               />
               <Button
@@ -209,7 +208,12 @@ const s = StyleSheet.create({
   },
   heroCard: { padding: 22, borderRadius: 22 },
   heroEmoji: { fontSize: 36, marginBottom: 8 },
-  heroName: { fontFamily: "Inter_600SemiBold", fontSize: 20, color: Colors.white, marginBottom: 18 },
+  heroName: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 20,
+    color: Colors.white,
+    marginBottom: 18,
+  },
   progressTrack: {
     height: 8,
     borderRadius: 4,
@@ -221,7 +225,12 @@ const s = StyleSheet.create({
   heroStats: { flexDirection: "row", alignItems: "center" },
   heroStat: { flex: 1, alignItems: "center" },
   statVal: { fontFamily: "Inter_600SemiBold", fontSize: 15, color: Colors.white },
-  statLbl: { fontFamily: "Inter_400Regular", fontSize: 11, color: "rgba(255,255,255,0.75)", marginTop: 2 },
+  statLbl: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: "rgba(255,255,255,0.75)",
+    marginTop: 2,
+  },
   statDivider: { width: 1, height: 30, backgroundColor: "rgba(255,255,255,0.25)" },
   remainingBanner: {
     flexDirection: "row",
@@ -234,7 +243,12 @@ const s = StyleSheet.create({
     marginHorizontal: 18,
     marginBottom: 20,
   },
-  remainingText: { fontFamily: "Inter_500Medium", fontSize: 13, color: Colors.brand.primary, flex: 1 },
+  remainingText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: Colors.brand.primary,
+    flex: 1,
+  },
   actionsRow: { flexDirection: "row", gap: 12, marginHorizontal: 18 },
   depositBtn: {
     flex: 1,
@@ -270,7 +284,9 @@ const m = StyleSheet.create({
     padding: 24,
   },
   handle: {
-    width: 36, height: 4, borderRadius: 2,
+    width: 36,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: Colors.ink[200],
     alignSelf: "center",
     marginBottom: 20,

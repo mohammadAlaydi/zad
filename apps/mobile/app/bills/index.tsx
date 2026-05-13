@@ -1,22 +1,22 @@
-import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 const categories = [
-  { key: "telecome",    icon: "phone-portrait-outline", color: "#5B2C9C" },
-  { key: "insurance",  icon: "shield-checkmark-outline", color: "#1FCFA5" },
-  { key: "tvInternet", icon: "tv-outline",               color: "#E25563" },
-  { key: "education",  icon: "school-outline",           color: "#F2B441" },
-  { key: "electricity",icon: "flash-outline",            color: "#5B2C9C" },
-  { key: "water",      icon: "water-outline",            color: "#1FCFA5" },
-  { key: "gas",        icon: "flame-outline",            color: "#E25563" },
-  { key: "donation",   icon: "heart-outline",            color: "#F2B441" },
+  { key: "telecome", icon: "phone-portrait-outline", color: "#5B2C9C" },
+  { key: "insurance", icon: "shield-checkmark-outline", color: "#1FCFA5" },
+  { key: "tvInternet", icon: "tv-outline", color: "#E25563" },
+  { key: "education", icon: "school-outline", color: "#F2B441" },
+  { key: "electricity", icon: "flash-outline", color: "#5B2C9C" },
+  { key: "water", icon: "water-outline", color: "#1FCFA5" },
+  { key: "gas", icon: "flame-outline", color: "#E25563" },
+  { key: "donation", icon: "heart-outline", color: "#F2B441" },
 ];
 
 export default function Bills() {
@@ -48,22 +48,11 @@ export default function Bills() {
               }
               style={styles.categoryRow}
             >
-              <View
-                style={[
-                  styles.iconCircle,
-                  { backgroundColor: cat.color + "18" },
-                ]}
-              >
+              <View style={[styles.iconCircle, { backgroundColor: cat.color + "18" }]}>
                 <Ionicons name={cat.icon as any} size={20} color={cat.color} />
               </View>
-              <Text style={styles.categoryName}>
-                {t(`bills.${cat.key}` as any)}
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={Colors.ink[400]}
-              />
+              <Text style={styles.categoryName}>{t(`bills.${cat.key}` as any)}</Text>
+              <Ionicons name="chevron-forward" size={20} color={Colors.ink[400]} />
             </Pressable>
           </MotiView>
         ))}

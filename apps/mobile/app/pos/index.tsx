@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
-import {
-  View, Text, Pressable, ScrollView, StyleSheet, StatusBar, TextInput,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
+import { useState, useEffect } from "react";
+import { View, Text, Pressable, ScrollView, StyleSheet, StatusBar, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
@@ -19,20 +17,22 @@ type RecentTx = {
 };
 
 const recentTransactions: RecentTx[] = [
-  { id: "tx1", amount: 42.50,  time: "10:32 AM", status: "completed" },
-  { id: "tx2", amount: 18.00,  time: "09:14 AM", status: "completed" },
-  { id: "tx3", amount: 125.75, time: "08:47 AM", status: "declined"  },
+  { id: "tx1", amount: 42.5, time: "10:32 AM", status: "completed" },
+  { id: "tx2", amount: 18.0, time: "09:14 AM", status: "completed" },
+  { id: "tx3", amount: 125.75, time: "08:47 AM", status: "declined" },
 ];
 
 export default function SoftPOS() {
   const insets = useSafeAreaInsets();
-  const [posState, setPosState]   = useState<POSState>("ready");
-  const [amount, setAmount]       = useState("");
+  const [posState, setPosState] = useState<POSState>("ready");
+  const [amount, setAmount] = useState("");
   const [waitTimer, setWaitTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   // Clean up timer on unmount
   useEffect(() => {
-    return () => { if (waitTimer) clearTimeout(waitTimer); };
+    return () => {
+      if (waitTimer) clearTimeout(waitTimer);
+    };
   }, [waitTimer]);
 
   const handleSimulateTap = () => {
@@ -116,7 +116,11 @@ export default function SoftPOS() {
               />
               {/* Center NFC icon */}
               <View style={styles.nfcIcon}>
-                <Ionicons name="radio" size={44} color={posState === "waiting" ? Colors.accent.amber : Colors.brand.primary} />
+                <Ionicons
+                  name="radio"
+                  size={44}
+                  color={posState === "waiting" ? Colors.accent.amber : Colors.brand.primary}
+                />
               </View>
             </View>
           )}
@@ -127,19 +131,21 @@ export default function SoftPOS() {
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: "timing", duration: 300 }}
           >
-            <Text style={[styles.nfcTitle, posState === "success" && { color: Colors.accent.green }]}>
+            <Text
+              style={[styles.nfcTitle, posState === "success" && { color: Colors.accent.green }]}
+            >
               {posState === "ready"
                 ? "Ready to Accept Payment"
                 : posState === "waiting"
-                ? "Waiting for Card / Phone..."
-                : "Payment Successful!"}
+                  ? "Waiting for Card / Phone..."
+                  : "Payment Successful!"}
             </Text>
             <Text style={styles.nfcSub}>
               {posState === "ready"
                 ? "Tap customer's card or phone"
                 : posState === "waiting"
-                ? "Hold device near card or phone"
-                : `AED ${Number(amount).toFixed(2)} received`}
+                  ? "Hold device near card or phone"
+                  : `AED ${Number(amount).toFixed(2)} received`}
             </Text>
           </MotiView>
         </View>
@@ -149,7 +155,11 @@ export default function SoftPOS() {
           {posState === "ready" && (
             <Pressable
               onPress={handleSimulateTap}
-              style={({ pressed }) => [styles.primaryBtn, (!amount || Number(amount) <= 0) && styles.btnDisabled, pressed && { opacity: 0.8 }]}
+              style={({ pressed }) => [
+                styles.primaryBtn,
+                (!amount || Number(amount) <= 0) && styles.btnDisabled,
+                pressed && { opacity: 0.8 },
+              ]}
             >
               <Ionicons name="radio-outline" size={20} color={Colors.white} />
               <Text style={styles.primaryBtnText}>Simulate Tap</Text>
@@ -179,10 +189,17 @@ export default function SoftPOS() {
               transition={{ delay: i * 80, type: "timing", duration: 300 }}
             >
               <View style={styles.txRow}>
-                <View style={[
-                  styles.txIcon,
-                  { backgroundColor: tx.status === "completed" ? Colors.accent.greenSoft : Colors.accent.redSoft ?? "#FBE3E5" },
-                ]}>
+                <View
+                  style={[
+                    styles.txIcon,
+                    {
+                      backgroundColor:
+                        tx.status === "completed"
+                          ? Colors.accent.greenSoft
+                          : (Colors.accent.redSoft ?? "#FBE3E5"),
+                    },
+                  ]}
+                >
                   <Ionicons
                     name={tx.status === "completed" ? "checkmark" : "close"}
                     size={16}
@@ -193,14 +210,23 @@ export default function SoftPOS() {
                   <Text style={styles.txAmount}>AED {tx.amount.toFixed(2)}</Text>
                   <Text style={styles.txTime}>{tx.time}</Text>
                 </View>
-                <View style={[
-                  styles.txBadge,
-                  { backgroundColor: tx.status === "completed" ? Colors.accent.greenSoft : "#FBE3E5" },
-                ]}>
-                  <Text style={[
-                    styles.txBadgeText,
-                    { color: tx.status === "completed" ? Colors.accent.green : Colors.accent.red },
-                  ]}>
+                <View
+                  style={[
+                    styles.txBadge,
+                    {
+                      backgroundColor:
+                        tx.status === "completed" ? Colors.accent.greenSoft : "#FBE3E5",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.txBadgeText,
+                      {
+                        color: tx.status === "completed" ? Colors.accent.green : Colors.accent.red,
+                      },
+                    ]}
+                  >
                     {tx.status === "completed" ? "Paid" : "Declined"}
                   </Text>
                 </View>

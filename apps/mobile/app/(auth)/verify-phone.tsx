@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
-import { View, Text, Pressable } from "react-native";
-import { useTranslation } from "react-i18next";
 import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
-import { FlagSelect } from "@/components/FlagSelect";
 import { Button } from "@/components/Button";
+import { FlagSelect } from "@/components/FlagSelect";
+import { Header } from "@/components/Header";
 import { OTPInput } from "@/components/OTPInput";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 export default function VerifyPhone() {
@@ -28,8 +28,18 @@ export default function VerifyPhone() {
     <Screen keyboard>
       <Header showBack title="" right={<FlagSelect />} />
       <View style={{ paddingHorizontal: 24, flex: 1 }}>
-        <Text style={{ color: Colors.brand.primary, fontFamily: "Sora_700Bold", fontSize: 22 }}>{t("auth.confirmPhone")}</Text>
-        <Text style={{ marginTop: 6, marginBottom: 30, color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 13 }}>
+        <Text style={{ color: Colors.brand.primary, fontFamily: "Sora_700Bold", fontSize: 22 }}>
+          {t("auth.confirmPhone")}
+        </Text>
+        <Text
+          style={{
+            marginTop: 6,
+            marginBottom: 30,
+            color: Colors.ink[500],
+            fontFamily: "Inter_400Regular",
+            fontSize: 13,
+          }}
+        >
           {t("auth.confirmPhoneHint")} +964 5515 4525 4
         </Text>
         <OTPInput value={code} onChange={setCode} />
@@ -40,8 +50,13 @@ export default function VerifyPhone() {
             </Text>
           ) : (
             <Pressable onPress={() => setSecs(28)}>
-              <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 13 }}>
-                {t("auth.didntGet")} <Text style={{ color: Colors.accent.green, fontFamily: "Inter_600SemiBold" }}>{t("auth.resend")}</Text>
+              <Text
+                style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 13 }}
+              >
+                {t("auth.didntGet")}{" "}
+                <Text style={{ color: Colors.accent.green, fontFamily: "Inter_600SemiBold" }}>
+                  {t("auth.resend")}
+                </Text>
               </Text>
             </Pressable>
           )}

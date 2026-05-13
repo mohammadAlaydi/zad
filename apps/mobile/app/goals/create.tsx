@@ -1,18 +1,10 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -103,11 +95,7 @@ export default function CreateGoal() {
       </ScrollView>
 
       <View style={[s.footer, { bottom: insets.bottom + 16 }]}>
-        <Button
-          title="Create Goal"
-          disabled={!canCreate}
-          onPress={handleCreate}
-        />
+        <Button title="Create Goal" disabled={!canCreate} onPress={handleCreate} />
       </View>
     </Screen>
   );
@@ -188,7 +176,12 @@ const s = StyleSheet.create({
   },
   previewEmoji: { fontSize: 32 },
   previewName: { fontFamily: "Inter_600SemiBold", fontSize: 15, color: Colors.ink[900] },
-  previewTarget: { fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[500], marginTop: 2 },
+  previewTarget: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: Colors.ink[500],
+    marginTop: 2,
+  },
   footer: {
     position: "absolute",
     left: 18,

@@ -1,30 +1,21 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  Modal,
-  TextInput,
-  Share,
-  StyleSheet,
-} from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { MotiView } from "moti";
+import { useState } from "react";
+import { View, Text, Pressable, ScrollView, Modal, Share, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
+import type { LoyaltyLevel } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
-import type { LoyaltyLevel, Referral } from "@/store/appStore";
 
 // ─── Level config ──────────────────────────────────────────────────────────────
 const LEVELS: { level: LoyaltyLevel; minPts: number; color: string; bg: string; icon: string }[] = [
-  { level: "Bronze",   minPts: 0,    color: "#B87333", bg: "#F5EBE0", icon: "🥉" },
-  { level: "Silver",   minPts: 500,  color: "#8E9BAE", bg: "#EDF0F5", icon: "🥈" },
-  { level: "Gold",     minPts: 1500, color: "#D4A017", bg: "#FDF6DD", icon: "🥇" },
+  { level: "Bronze", minPts: 0, color: "#B87333", bg: "#F5EBE0", icon: "🥉" },
+  { level: "Silver", minPts: 500, color: "#8E9BAE", bg: "#EDF0F5", icon: "🥈" },
+  { level: "Gold", minPts: 1500, color: "#D4A017", bg: "#FDF6DD", icon: "🥇" },
   { level: "Platinum", minPts: 5000, color: "#5B6A7E", bg: "#E8EAEE", icon: "💎" },
 ];
 
@@ -41,10 +32,34 @@ function getLevelConfig(level: LoyaltyLevel) {
 
 // ─── Redeem options ────────────────────────────────────────────────────────────
 const REDEEM_OPTIONS = [
-  { label: "Cash Back", description: "1 pt = $0.01 wallet credit", pts: 100, value: "1.00", icon: "💸" },
-  { label: "Free Transfer", description: "Waive next transfer fee", pts: 250, value: "Fee waived", icon: "✈️" },
-  { label: "Bill Discount", description: "5% off your next bill", pts: 500, value: "5% off", icon: "⚡" },
-  { label: "Premium Card", description: "Upgrade virtual card", pts: 1000, value: "Card upgrade", icon: "💳" },
+  {
+    label: "Cash Back",
+    description: "1 pt = $0.01 wallet credit",
+    pts: 100,
+    value: "1.00",
+    icon: "💸",
+  },
+  {
+    label: "Free Transfer",
+    description: "Waive next transfer fee",
+    pts: 250,
+    value: "Fee waived",
+    icon: "✈️",
+  },
+  {
+    label: "Bill Discount",
+    description: "5% off your next bill",
+    pts: 500,
+    value: "5% off",
+    icon: "⚡",
+  },
+  {
+    label: "Premium Card",
+    description: "Upgrade virtual card",
+    pts: 1000,
+    value: "Card upgrade",
+    icon: "💳",
+  },
 ];
 
 // ─── Redeem Modal ──────────────────────────────────────────────────────────────
@@ -82,7 +97,9 @@ function RedeemModal({
               >
                 <Text style={rm.optEmoji}>{opt.icon}</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={[rm.optLabel, !canAfford && { color: Colors.ink[400] }]}>{opt.label}</Text>
+                  <Text style={[rm.optLabel, !canAfford && { color: Colors.ink[400] }]}>
+                    {opt.label}
+                  </Text>
                   <Text style={rm.optDesc}>{opt.description}</Text>
                 </View>
                 <View style={[rm.ptsBadge, !canAfford && { backgroundColor: Colors.ink[100] }]}>
@@ -109,13 +126,20 @@ const rm = StyleSheet.create({
     paddingBottom: 40,
   },
   handle: {
-    width: 36, height: 4, borderRadius: 2,
+    width: 36,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: Colors.ink[200],
     alignSelf: "center",
     marginBottom: 20,
   },
   title: { fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.ink[900], marginBottom: 4 },
-  balance: { fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[500], marginBottom: 20 },
+  balance: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: Colors.ink[500],
+    marginBottom: 20,
+  },
   optRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -166,7 +190,11 @@ function ReferModal({
           <View style={ref.handle} />
           <Text style={ref.title}>Refer a Friend</Text>
           <Text style={ref.sub}>
-            Earn <Text style={{ color: Colors.brand.primary, fontFamily: "Inter_600SemiBold" }}>+200 pts</Text> for every friend who signs up with your code.
+            Earn{" "}
+            <Text style={{ color: Colors.brand.primary, fontFamily: "Inter_600SemiBold" }}>
+              +200 pts
+            </Text>{" "}
+            for every friend who signs up with your code.
           </Text>
 
           <View style={ref.codeWrap}>
@@ -179,7 +207,10 @@ function ReferModal({
             title="Simulate Referral (Dev)"
             variant="secondary"
             size="md"
-            onPress={() => { onSimulateReferral(); onClose(); }}
+            onPress={() => {
+              onSimulateReferral();
+              onClose();
+            }}
           />
         </Pressable>
       </Pressable>
@@ -197,13 +228,21 @@ const ref = StyleSheet.create({
     paddingBottom: 40,
   },
   handle: {
-    width: 36, height: 4, borderRadius: 2,
+    width: 36,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: Colors.ink[200],
     alignSelf: "center",
     marginBottom: 20,
   },
   title: { fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.ink[900], marginBottom: 8 },
-  sub: { fontFamily: "Inter_400Regular", fontSize: 14, color: Colors.ink[500], lineHeight: 21, marginBottom: 24 },
+  sub: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: Colors.ink[500],
+    lineHeight: 21,
+    marginBottom: 24,
+  },
   codeWrap: {
     backgroundColor: Colors.brand.primary50,
     borderRadius: 16,
@@ -211,14 +250,25 @@ const ref = StyleSheet.create({
     alignItems: "center",
     marginBottom: 24,
   },
-  codeLabel: { fontFamily: "Inter_400Regular", fontSize: 12, color: Colors.brand.primary, marginBottom: 6 },
-  code: { fontFamily: "Inter_600SemiBold", fontSize: 26, color: Colors.brand.primaryDark, letterSpacing: 3 },
+  codeLabel: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: Colors.brand.primary,
+    marginBottom: 6,
+  },
+  code: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 26,
+    color: Colors.brand.primaryDark,
+    letterSpacing: 3,
+  },
 });
 
 // ─── Main Screen ───────────────────────────────────────────────────────────────
 export default function LoyaltyScreen() {
   const insets = useSafeAreaInsets();
-  const { loyaltyPoints, loyaltyLevel, referrals, redeemLoyaltyPoints, addReferral, user } = useApp();
+  const { loyaltyPoints, loyaltyLevel, referrals, redeemLoyaltyPoints, addReferral, user } =
+    useApp();
 
   const [showRedeem, setShowRedeem] = useState(false);
   const [showRefer, setShowRefer] = useState(false);
@@ -227,7 +277,10 @@ export default function LoyaltyScreen() {
   const levelCfg = getLevelConfig(loyaltyLevel);
   const nextLevel = getNextLevel(loyaltyLevel);
   const progressPct = nextLevel
-    ? Math.min(((loyaltyPoints - levelCfg.minPts) / (nextLevel.minPts - levelCfg.minPts)) * 100, 100)
+    ? Math.min(
+        ((loyaltyPoints - levelCfg.minPts) / (nextLevel.minPts - levelCfg.minPts)) * 100,
+        100,
+      )
     : 100;
 
   function handleRedeem(pts: number, label: string) {
@@ -295,9 +348,7 @@ export default function LoyaltyScreen() {
                 </Text>
               </View>
             )}
-            {!nextLevel && (
-              <Text style={sc.maxLevelText}>🏆 You've reached the highest tier!</Text>
-            )}
+            {!nextLevel && <Text style={sc.maxLevelText}>🏆 You've reached the highest tier!</Text>}
           </LinearGradient>
         </MotiView>
 
@@ -345,7 +396,10 @@ export default function LoyaltyScreen() {
             { icon: "storefront-outline", label: "Merchant purchase", pts: "+20 pts" },
             { icon: "person-add-outline", label: "Successful referral", pts: "+200 pts" },
           ].map((row, i) => (
-            <View key={row.label} style={[sc.earnRow, i > 0 && { borderTopWidth: 1, borderTopColor: Colors.ink[100] }]}>
+            <View
+              key={row.label}
+              style={[sc.earnRow, i > 0 && { borderTopWidth: 1, borderTopColor: Colors.ink[100] }]}
+            >
               <View style={sc.earnIconWrap}>
                 <Ionicons name={row.icon as any} size={16} color={Colors.brand.primary} />
               </View>
@@ -373,7 +427,12 @@ export default function LoyaltyScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={sc.referralName}>{r.name}</Text>
                   <Text style={sc.referralDate}>
-                    Joined {new Date(r.joinedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    Joined{" "}
+                    {new Date(r.joinedAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </Text>
                 </View>
                 <Text style={sc.referralPts}>+{r.pointsEarned} pts</Text>
@@ -412,8 +471,18 @@ const sc = StyleSheet.create({
     elevation: 6,
   },
   heroCard: { padding: 22, borderRadius: 22 },
-  heroTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 },
-  heroLabel: { fontFamily: "Inter_500Medium", fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 4 },
+  heroTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 18,
+  },
+  heroLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: "rgba(255,255,255,0.75)",
+    marginBottom: 4,
+  },
   heroPoints: { fontFamily: "Inter_600SemiBold", fontSize: 32, color: Colors.white },
   levelBadge: {
     flexDirection: "row",
@@ -508,6 +577,11 @@ const sc = StyleSheet.create({
   },
   referralInitial: { fontFamily: "Inter_600SemiBold", fontSize: 16, color: Colors.white },
   referralName: { fontFamily: "Inter_600SemiBold", fontSize: 14, color: Colors.ink[900] },
-  referralDate: { fontFamily: "Inter_400Regular", fontSize: 12, color: Colors.ink[500], marginTop: 2 },
+  referralDate: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: Colors.ink[500],
+    marginTop: 2,
+  },
   referralPts: { fontFamily: "Inter_600SemiBold", fontSize: 14, color: Colors.accent.green },
 });

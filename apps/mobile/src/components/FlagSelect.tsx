@@ -1,8 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, View, Text, Modal, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useApp } from "@/store/appStore";
 import { setLocale } from "@/i18n";
+import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 const LANGUAGES = [
@@ -25,22 +25,14 @@ export function FlagSelect() {
   return (
     <View>
       {/* Trigger button */}
-      <Pressable
-        onPress={() => setOpen(true)}
-        style={styles.trigger}
-      >
+      <Pressable onPress={() => setOpen(true)} style={styles.trigger}>
         <Text style={styles.flag}>{current.flag}</Text>
         <Text style={styles.label}>{current.label}</Text>
         <Ionicons name="chevron-down" size={14} color={Colors.ink[500]} />
       </Pressable>
 
       {/* Dropdown modal */}
-      <Modal
-        visible={open}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setOpen(false)}
-      >
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.overlay} onPress={() => setOpen(false)}>
           <View style={styles.dropdown}>
             <Text style={styles.dropdownTitle}>Select Language</Text>
@@ -50,18 +42,10 @@ export function FlagSelect() {
                 <Pressable
                   key={lang.code}
                   onPress={() => selectLang(lang.code)}
-                  style={[
-                    styles.option,
-                    isActive ? styles.optionActive : null,
-                  ]}
+                  style={[styles.option, isActive ? styles.optionActive : null]}
                 >
                   <Text style={styles.optionFlag}>{lang.flag}</Text>
-                  <Text
-                    style={[
-                      styles.optionLabel,
-                      isActive ? styles.optionLabelActive : null,
-                    ]}
-                  >
+                  <Text style={[styles.optionLabel, isActive ? styles.optionLabelActive : null]}>
                     {lang.label}
                   </Text>
                   {isActive && (

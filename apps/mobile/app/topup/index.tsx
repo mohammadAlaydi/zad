@@ -1,15 +1,15 @@
-import { useState, useCallback } from "react";
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
+import { useHaptic } from "@/hooks/useHaptic";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
-import { useHaptic } from "@/hooks/useHaptic";
 
 const QUICK_AMOUNTS = [100, 200, 300, 400, 500, 600, 700, 800];
 
@@ -126,10 +126,7 @@ export default function TopUp() {
                   haptic.selection();
                   setAmount(v);
                 }}
-                style={[
-                  styles.quickChip,
-                  active ? styles.quickChipActive : null,
-                ]}
+                style={[styles.quickChip, active ? styles.quickChipActive : null]}
               >
                 <Text style={[styles.quickChipText, active ? styles.quickChipTextActive : null]}>
                   ${v}

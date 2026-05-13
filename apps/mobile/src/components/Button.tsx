@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
-import { Pressable, Text, ActivityIndicator, ViewStyle, View, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { type ReactNode } from "react";
+import { Pressable, Text, ActivityIndicator, type ViewStyle, View, StyleSheet } from "react-native";
 import { useHaptic } from "@/hooks/useHaptic";
 import { Colors } from "@/theme/colors";
 
@@ -42,18 +42,15 @@ export function Button({
       ? Colors.ink[300]
       : Colors.brand.primary
     : isDark
-    ? Colors.ink[900]
-    : isSecondary
-    ? "transparent"
-    : isLight
-    ? Colors.white
-    : "transparent";
+      ? Colors.ink[900]
+      : isSecondary
+        ? "transparent"
+        : isLight
+          ? Colors.white
+          : "transparent";
 
-  const textColor = isPrimary || isDark
-    ? Colors.white
-    : isLight
-    ? Colors.brand.primary
-    : Colors.brand.primary;
+  const textColor =
+    isPrimary || isDark ? Colors.white : isLight ? Colors.brand.primary : Colors.brand.primary;
 
   const sizeKey = size === "sm" ? styles.sizeSm : size === "md" ? styles.sizeMd : styles.sizeLg;
   const fontSizeVal = size === "sm" ? 14 : size === "md" ? 15 : 16;
@@ -88,12 +85,7 @@ export function Button({
         {loading ? (
           <ActivityIndicator color={textColor} />
         ) : (
-          <Text
-            style={[
-              styles.label,
-              { color: textColor, fontSize: fontSizeVal },
-            ]}
-          >
+          <Text style={[styles.label, { color: textColor, fontSize: fontSizeVal }]}>
             {title ?? children}
           </Text>
         )}

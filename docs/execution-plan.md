@@ -11,17 +11,20 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 ## Stream A — Foundations (must finish before Stream B starts)
 
 ### PR-0 · `[repo] move to pnpm monorepo`
+
 - Status quo → `apps/mobile/*`, `apps/api/` empty, `packages/shared-*` empty, `pnpm-workspace.yaml`.
 - Update [metro.config.js](../../metro.config.js), [tsconfig.json](../../tsconfig.json), [eas.json](../../eas.json) so Metro/Expo continue to work after the move.
 - Acceptance: `pnpm --filter @zadpay/mobile start` boots; `pnpm --filter @zadpay/mobile run android` builds; no source change to any feature.
 - Addresses: ADR-0002.
 
 ### PR-1 · `[shared] create shared-types, shared-validation, shared-errors`
+
 - Empty packages with `package.json`, `tsconfig.json`, `index.ts`. Exports `Money` (skeleton), `Result`, `AppError` hierarchy. Zero consumers yet.
 - Acceptance: `pnpm -r build` green.
 - Addresses: ADR-0002, ADR-0007, ADR-0009.
 
 ### PR-2 · `[api] scaffold Fastify + infra + cross-cutting middleware`
+
 - `apps/api/src/{server.ts,app.ts}` Fastify bootstrap.
 - `apps/api/src/infra/{config,logger,database,cache,queue,metrics}/` skeletons.
 - `apps/api/src/shared/{errors,events,middleware,audit}/` skeletons + in-process EventBus stub + transactional outbox table.
@@ -32,6 +35,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 - Addresses: S1-9, S2-15, ADR-0004, ADR-0005, ADR-0009.
 
 ### PR-3 · `[ci] required-checks workflow`
+
 - `.github/workflows/ci.yml` with: typecheck, lint, prettier, audit, test-unit (no integration yet — no tests yet).
 - Prettier + ESLint configs at the root (`@typescript-eslint`, import-order, `no-restricted-imports`).
 - Husky + lint-staged + commitlint.
@@ -43,6 +47,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 ## Stream B — Identity & Auth (Wallet & KYC depend on this)
 
 ### PR-4 · `[api] identity module: login + refresh + logout + /me`
+
 - `apps/api/src/modules/identity/{domain,application,infrastructure,interface}/` per [ADR-0005](adr/0005-module-structure.md).
 - Prisma models: `identity.users`, `identity.refresh_tokens`.
 - Argon2id password hashing; Ed25519 JWT; refresh-token rotation with family revocation on replay.
@@ -52,6 +57,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 - Addresses: S0-2, S0-5, ADR-0006.
 
 ### PR-5 · `[mobile] auth feature migration + SecureStore + nav guard rewrite`
+
 - Migrate `app/(auth)/*` consumers to `src/features/auth/*`.
 - New typed API client at `src/lib/api/client.ts` (Result-typed, Zod-validated).
 - Refresh interceptor (single-flight).
@@ -66,6 +72,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 ## Stream C — KYC
 
 ### PR-6 · `[api] kyc module: applications + documents + InMemoryProvider`
+
 - Module skeleton per [ADR-0005](adr/0005-module-structure.md).
 - Prisma models: `kyc.applications`, `kyc.documents`.
 - State machine in `KycApplication` aggregate.
@@ -77,6 +84,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 - Addresses: ADR-0008.
 
 ### PR-7 · `[mobile] kyc feature migration`
+
 - Migrate `app/(auth)/id-capture.tsx`, `id-scan.tsx`, `selfie.tsx`, `personal-info.tsx`, `address.tsx` consumers into `src/features/kyc/*`.
 - Wire presign + direct-to-S3 upload + notify.
 - Status polling (replace with push subscription post-Phase-1).
@@ -89,6 +97,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 ## Stream D — Wallet
 
 ### PR-8 · `[shared] Money value object + currency precision + Zod schemas`
+
 - `packages/shared-types/src/Money.ts` — full implementation per [ADR-0007](adr/0007-money-movement.md).
 - `packages/shared-validation/src/wallet/*` — request/response schemas for the wallet endpoints.
 - Vitest unit tests on `Money` (property-based via fast-check).
@@ -96,6 +105,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 - Addresses: ADR-0007.
 
 ### PR-9 · `[api] wallet module: accounts, ledger, balance projection`
+
 - Prisma models: `wallet.accounts`, `wallet.transactions`, `wallet.ledger_entries`, `wallet.account_balances` (projection).
 - Ledger imbalance trigger.
 - Idempotency middleware (Redis + DB unique constraint).
@@ -104,6 +114,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 - Addresses: S0-3, S0-4, ADR-0007.
 
 ### PR-10 · `[api] wallet transfers + property-based ledger tests`
+
 - `POST /v1/wallet/transfers` — full domain → use case → repo → route stack.
 - `CreateTransferCommand` enforces invariants (no negative without overdraft, currency match).
 - Posts to event bus: `TransferCreated`, `TransferPosted`, `TransferFailed` (via outbox).
@@ -112,6 +123,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 - Addresses: S0-3, S0-4, ADR-0007.
 
 ### PR-11 · `[api] wallet top-ups + withdrawals (stub PaymentProcessor)`
+
 - `POST /v1/wallet/topups`, `POST /v1/wallet/withdrawals`.
 - `PaymentProcessor` port; in-memory implementation returns success with a fake processor ref.
 - Two-phase posting via `reserve` account.
@@ -119,6 +131,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 - Addresses: ADR-0007.
 
 ### PR-12 · `[mobile] wallet feature migration: home, send, receive, expenses`
+
 - Migrate `app/(tabs)/home.tsx`, `app/send/*`, `app/receive/*`, `app/(tabs)/expenses.tsx` into `src/features/wallet/*`.
 - Remove `balances`, `transactions`, `addTransaction`, money-mutating actions from [appStore.ts](../../src/store/appStore.ts). All these become React Query queries / mutations against `/v1/wallet/*`.
 - Per-flow Idempotency-Key generation (UUID v4 on screen mount; persists during the flow).
@@ -132,6 +145,7 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 ## Stream E — Polish & release pipeline
 
 ### PR-13 · `[mobile] error boundaries, Sentry, structured logging, NativeWind cleanup`
+
 - Per-feature error boundary + root boundary.
 - `@sentry/react-native` init in `src/app/providers.tsx`.
 - Source-map upload in EAS post-install hook.
@@ -141,12 +155,14 @@ This is the PR-by-PR roadmap. Each PR is **small enough to review in under an ho
 - Addresses: S1-9, S1-11, S2-18, S2-19.
 
 ### PR-14 · `[mobile] Maestro E2E flows + bundle-size budget in CI`
+
 - `e2e/maestro/{login,kyc,topup-stub,send,receive}.yaml`.
 - `mobile-bundle-size` CI job from [ADR-0010](adr/0010-cicd.md) — fails build if Hermes bytecode > 6 MB.
 - Acceptance: Maestro Cloud (or local emulator in CI) runs all five flows green on every PR that touches mobile.
 - Addresses: S2-13, ADR-0010.
 
 ### PR-15 · `[api] release pipeline + EAS production profile`
+
 - `.github/workflows/api-release.yml` (Docker build, push to GHCR, staging deploy, smoke, manual prod gate).
 - `.github/workflows/mobile-release.yml` (EAS production builds, source map upload).
 - [eas.json](../../eas.json) `production` profile populated; environment variables wired.

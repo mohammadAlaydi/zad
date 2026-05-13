@@ -1,9 +1,9 @@
-import { View, Text, ScrollView, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
+import { View, Text, ScrollView, Pressable } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 const items = [
@@ -54,7 +54,9 @@ export default function Notifications() {
           </Pressable>
         }
       />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 24 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 24 }}
+      >
         {items.map((n, i) => (
           <MotiView
             key={n.id}
@@ -88,12 +90,28 @@ export default function Notifications() {
                 <Ionicons name={n.icon as any} size={20} color={n.color} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}>{n.title}</Text>
-                <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 12, marginTop: 2, lineHeight: 18 }}>
+                <Text
+                  style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}
+                >
+                  {n.title}
+                </Text>
+                <Text
+                  style={{
+                    color: Colors.ink[500],
+                    fontFamily: "Inter_400Regular",
+                    fontSize: 12,
+                    marginTop: 2,
+                    lineHeight: 18,
+                  }}
+                >
                   {n.body}
                 </Text>
               </View>
-              <Text style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 11 }}>{n.when}</Text>
+              <Text
+                style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 11 }}
+              >
+                {n.when}
+              </Text>
             </View>
           </MotiView>
         ))}

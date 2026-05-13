@@ -76,15 +76,18 @@ The brief specified `neverthrow`. We adopt the **shape** (`Result<T, E> = Ok<T> 
 ## Consequences
 
 **Positive**
+
 - Stack is mainstream, TS-native, observable, and CI-friendly.
 - Throughput headroom is generous for the slice; no premature scale spend.
 - Schema → validation → docs → types all derived from Zod.
 
 **Negative**
+
 - Two binary artifacts share one image (API + worker); operators need to know to run both. Documented in [ADR-0010](0010-cicd.md).
 - Prisma's connection pooling has rough edges with serverless. We're not on serverless, so fine.
 
 **Neutral / accept**
+
 - tsyringe uses decorators (`@injectable`, `@inject`). They're tasteful here because DI containers benefit from declaration sites. We don't use decorators anywhere else (no Nest, no class-validator).
 
 ## Alternatives considered
@@ -96,6 +99,7 @@ The brief specified `neverthrow`. We adopt the **shape** (`Result<T, E> = Ok<T> 
 ## Rollout
 
 PR-1 (after monorepo move):
+
 - `apps/api/package.json` with the deps above.
 - `apps/api/src/server.ts` — Fastify bootstrap (no business logic).
 - `apps/api/src/infra/{config,logger,database,cache,queue,metrics}/` skeletons.

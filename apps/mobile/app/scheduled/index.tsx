@@ -1,21 +1,13 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  Alert,
-  StyleSheet,
-} from "react-native";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
+import { View, Text, Pressable, ScrollView, Alert, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
-import { Colors } from "@/theme/colors";
 import type { ScheduledPayment } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
 
 const FREQ_LABEL: Record<ScheduledPayment["frequency"], string> = {
   daily: "Daily",
@@ -57,7 +49,9 @@ function PaymentCard({
       <View
         style={[
           styles.cardIconWrap,
-          { backgroundColor: item.type === "bill" ? Colors.accent.redSoft : Colors.brand.primary50 },
+          {
+            backgroundColor: item.type === "bill" ? Colors.accent.redSoft : Colors.brand.primary50,
+          },
         ]}
       >
         <Ionicons
@@ -104,11 +98,7 @@ function PaymentCard({
             color={item.isActive ? Colors.accent.amber : Colors.accent.green}
           />
         </Pressable>
-        <Pressable
-          onPress={onDelete}
-          hitSlop={8}
-          style={[styles.actionBtn, { marginTop: 4 }]}
-        >
+        <Pressable onPress={onDelete} hitSlop={8} style={[styles.actionBtn, { marginTop: 4 }]}>
           <Ionicons name="trash-outline" size={20} color={Colors.accent.red} />
         </Pressable>
       </View>
@@ -125,18 +115,14 @@ export default function ScheduledPayments() {
   const isEmpty = scheduledPayments.length === 0;
 
   function handleDelete(id: string, recipient: string) {
-    Alert.alert(
-      "Delete Payment",
-      `Remove the scheduled payment to ${recipient}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => deleteScheduledPayment(id),
-        },
-      ],
-    );
+    Alert.alert("Delete Payment", `Remove the scheduled payment to ${recipient}?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => deleteScheduledPayment(id),
+      },
+    ]);
   }
 
   return (
@@ -144,10 +130,7 @@ export default function ScheduledPayments() {
       <Header title="Scheduled Payments" />
 
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 100 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
         {isEmpty ? (
@@ -162,10 +145,7 @@ export default function ScheduledPayments() {
             <Text style={styles.emptySubtitle}>
               Automate your transfers and bill payments on a recurring schedule.
             </Text>
-            <Pressable
-              onPress={() => router.push("/scheduled/create")}
-              style={styles.emptyButton}
-            >
+            <Pressable onPress={() => router.push("/scheduled/create")} style={styles.emptyButton}>
               <Ionicons name="add-circle-outline" size={18} color={Colors.white} />
               <Text style={styles.emptyButtonText}>Create Payment</Text>
             </Pressable>

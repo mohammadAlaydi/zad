@@ -1,20 +1,62 @@
+import { router } from "expo-router";
+import { MotiView } from "moti";
 import { useMemo } from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
-import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
 import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 const STOCKS = [
-  { ticker: "AAPL", companyName: "Apple Inc.", currentPrice: 182.5, sector: "Technology", emoji: "🍎", change: +1.8 },
-  { ticker: "MSFT", companyName: "Microsoft Corp.", currentPrice: 325.0, sector: "Technology", emoji: "🪟", change: +0.9 },
-  { ticker: "TSLA", companyName: "Tesla Inc.", currentPrice: 198.0, sector: "Automotive", emoji: "🚗", change: -2.1 },
-  { ticker: "AMZN", companyName: "Amazon.com Inc.", currentPrice: 178.0, sector: "E-Commerce", emoji: "📦", change: +0.5 },
-  { ticker: "GOOGL", companyName: "Alphabet Inc.", currentPrice: 172.0, sector: "Technology", emoji: "🔍", change: +1.2 },
-  { ticker: "META", companyName: "Meta Platforms", currentPrice: 512.0, sector: "Social Media", emoji: "👤", change: +2.3 },
+  {
+    ticker: "AAPL",
+    companyName: "Apple Inc.",
+    currentPrice: 182.5,
+    sector: "Technology",
+    emoji: "🍎",
+    change: +1.8,
+  },
+  {
+    ticker: "MSFT",
+    companyName: "Microsoft Corp.",
+    currentPrice: 325.0,
+    sector: "Technology",
+    emoji: "🪟",
+    change: +0.9,
+  },
+  {
+    ticker: "TSLA",
+    companyName: "Tesla Inc.",
+    currentPrice: 198.0,
+    sector: "Automotive",
+    emoji: "🚗",
+    change: -2.1,
+  },
+  {
+    ticker: "AMZN",
+    companyName: "Amazon.com Inc.",
+    currentPrice: 178.0,
+    sector: "E-Commerce",
+    emoji: "📦",
+    change: +0.5,
+  },
+  {
+    ticker: "GOOGL",
+    companyName: "Alphabet Inc.",
+    currentPrice: 172.0,
+    sector: "Technology",
+    emoji: "🔍",
+    change: +1.2,
+  },
+  {
+    ticker: "META",
+    companyName: "Meta Platforms",
+    currentPrice: 512.0,
+    sector: "Social Media",
+    emoji: "👤",
+    change: +2.3,
+  },
 ];
 
 export default function PortfolioScreen() {
@@ -56,7 +98,10 @@ export default function PortfolioScreen() {
               <View
                 style={[
                   styles.glBadge,
-                  { backgroundColor: totalGainLoss >= 0 ? "rgba(31,207,165,0.2)" : "rgba(226,85,99,0.2)" },
+                  {
+                    backgroundColor:
+                      totalGainLoss >= 0 ? "rgba(31,207,165,0.2)" : "rgba(226,85,99,0.2)",
+                  },
                 ]}
               >
                 <Text
@@ -65,7 +110,8 @@ export default function PortfolioScreen() {
                     { color: totalGainLoss >= 0 ? Colors.accent.green : Colors.accent.red },
                   ]}
                 >
-                  {totalGainLoss >= 0 ? "+" : ""}${totalGainLoss.toFixed(2)} ({totalGainLossPct.toFixed(1)}%)
+                  {totalGainLoss >= 0 ? "+" : ""}${totalGainLoss.toFixed(2)} (
+                  {totalGainLossPct.toFixed(1)}%)
                 </Text>
               </View>
               <Text style={styles.holdingCount}>
@@ -122,16 +168,26 @@ export default function PortfolioScreen() {
                         <View
                           style={[
                             styles.glSmall,
-                            { backgroundColor: gainLossPct >= 0 ? Colors.accent.greenSoft : Colors.accent.redSoft },
+                            {
+                              backgroundColor:
+                                gainLossPct >= 0 ? Colors.accent.greenSoft : Colors.accent.redSoft,
+                            },
                           ]}
                         >
-                          <Text style={[styles.glSmallText, { color: gainLossPct >= 0 ? Colors.accent.green : Colors.accent.red }]}>
-                            {gainLossPct >= 0 ? "+" : ""}{gainLossPct.toFixed(1)}%
+                          <Text
+                            style={[
+                              styles.glSmallText,
+                              { color: gainLossPct >= 0 ? Colors.accent.green : Colors.accent.red },
+                            ]}
+                          >
+                            {gainLossPct >= 0 ? "+" : ""}
+                            {gainLossPct.toFixed(1)}%
                           </Text>
                         </View>
                       </View>
                       <Text style={styles.avgPrice}>
-                        Avg ${h.avgBuyPrice.toFixed(2)} · P&L {gainLossAmt >= 0 ? "+" : ""}${gainLossAmt.toFixed(2)}
+                        Avg ${h.avgBuyPrice.toFixed(2)} · P&L {gainLossAmt >= 0 ? "+" : ""}$
+                        {gainLossAmt.toFixed(2)}
                       </Text>
                     </View>
                   </Pressable>

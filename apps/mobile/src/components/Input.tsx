@@ -1,6 +1,14 @@
-import { useState, ReactNode, forwardRef } from "react";
-import { View, TextInput, Text, Pressable, TextInputProps, ViewStyle, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useState, type ReactNode, forwardRef } from "react";
+import {
+  View,
+  TextInput,
+  Text,
+  Pressable,
+  type TextInputProps,
+  type ViewStyle,
+  StyleSheet,
+} from "react-native";
 import { Colors } from "@/theme/colors";
 
 type Props = TextInputProps & {
@@ -33,7 +41,11 @@ export const Input = forwardRef<TextInput, Props>(function Input(
         style={[
           styles.inputContainer,
           {
-            borderColor: error ? Colors.accent.red : focused ? Colors.brand.primary : Colors.ink[200],
+            borderColor: error
+              ? Colors.accent.red
+              : focused
+                ? Colors.brand.primary
+                : Colors.ink[200],
             backgroundColor: error ? "#FFF5F5" : Colors.white,
           },
         ]}
@@ -62,12 +74,8 @@ export const Input = forwardRef<TextInput, Props>(function Input(
           rightIcon
         )}
       </View>
-      {hint && !error ? (
-        <Text style={styles.hintText}>{hint}</Text>
-      ) : null}
-      {error ? (
-        <Text style={styles.errorText}>{error}</Text>
-      ) : null}
+      {hint && !error ? <Text style={styles.hintText}>{hint}</Text> : null}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 });

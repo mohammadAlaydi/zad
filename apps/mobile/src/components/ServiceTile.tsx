@@ -1,10 +1,16 @@
-import { Pressable, View, Text, StyleSheet } from "react-native";
-import { ReactNode } from "react";
 import { MotiView } from "moti";
+import { type ReactNode } from "react";
+import { Pressable, View, Text, StyleSheet } from "react-native";
 import { useHaptic } from "@/hooks/useHaptic";
 import { Colors } from "@/theme/colors";
 
-type Props = { label: string; icon: ReactNode; onPress?: () => void; highlight?: boolean; index?: number };
+type Props = {
+  label: string;
+  icon: ReactNode;
+  onPress?: () => void;
+  highlight?: boolean;
+  index?: number;
+};
 
 export function ServiceTile({ label, icon, onPress, highlight, index = 0 }: Props) {
   const haptic = useHaptic();
@@ -16,15 +22,13 @@ export function ServiceTile({ label, icon, onPress, highlight, index = 0 }: Prop
       style={styles.wrapper}
     >
       <Pressable
-        onPress={() => { haptic.light(); onPress?.(); }}
+        onPress={() => {
+          haptic.light();
+          onPress?.();
+        }}
         style={styles.pressable}
       >
-        <View
-          style={[
-            styles.iconBox,
-            highlight ? styles.iconBoxHighlight : styles.iconBoxDefault,
-          ]}
-        >
+        <View style={[styles.iconBox, highlight ? styles.iconBoxHighlight : styles.iconBoxDefault]}>
           {icon}
         </View>
         <Text style={styles.label} numberOfLines={1}>

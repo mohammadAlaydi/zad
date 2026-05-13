@@ -1,6 +1,6 @@
-import { Pressable, View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
+import { Pressable, View, Text } from "react-native";
 import { useHaptic } from "@/hooks/useHaptic";
 import { Colors } from "@/theme/colors";
 
@@ -80,9 +80,8 @@ export function ListRow({ icon, title, subtitle, right, onPress, divider = true 
           ) : null}
         </View>
 
-        {right ?? (onPress ? (
-          <Ionicons name="chevron-forward" size={18} color={Colors.ink[300]} />
-        ) : null)}
+        {right ??
+          (onPress ? <Ionicons name="chevron-forward" size={18} color={Colors.ink[300]} /> : null)}
       </View>
     </Pressable>
   );

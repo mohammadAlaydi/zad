@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Platform } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router, useLocalSearchParams } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { MotiView } from "moti";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { router, useLocalSearchParams } from "expo-router";
+import { MotiView } from "moti";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
-import { Colors } from "@/theme/colors";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useHaptic } from "@/hooks/useHaptic";
+import { Colors } from "@/theme/colors";
 
 export default function IdCapture() {
   const { t } = useTranslation();
@@ -130,11 +130,7 @@ export default function IdCapture() {
                 justifyContent: "center",
               }}
             >
-              <Ionicons
-                name="card-outline"
-                size={48}
-                color="rgba(255,255,255,0.3)"
-              />
+              <Ionicons name="card-outline" size={48} color="rgba(255,255,255,0.3)" />
               <Text
                 style={{
                   marginTop: 8,

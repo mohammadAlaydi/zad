@@ -1,21 +1,14 @@
-import { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-} from "react-native";
-import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, ScrollView, Pressable, RefreshControl, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
-import { TransactionRow } from "@/components/TransactionRow";
 import { Input } from "@/components/Input";
+import { Screen } from "@/components/Screen";
+import { TransactionRow } from "@/components/TransactionRow";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -44,13 +37,13 @@ function groupTransactions(txs: ReturnType<typeof useApp.getState>["transactions
 }
 
 const CATEGORY_META: Record<string, { color: string; icon: string }> = {
-  "food":     { color: Colors.accent.amber,   icon: "fast-food-outline" },
-  "bill":     { color: Colors.accent.red,     icon: "receipt-outline" },
-  "sent":     { color: Colors.brand.primary,  icon: "paper-plane-outline" },
-  "visa":     { color: "#1A1F71",             icon: "card-outline" },
-  "received": { color: Colors.accent.green,   icon: "arrow-down-circle-outline" },
-  "cash out": { color: Colors.accent.amber,   icon: "cash-outline" },
-  "cash in":  { color: Colors.accent.green,   icon: "cash-outline" },
+  food: { color: Colors.accent.amber, icon: "fast-food-outline" },
+  bill: { color: Colors.accent.red, icon: "receipt-outline" },
+  sent: { color: Colors.brand.primary, icon: "paper-plane-outline" },
+  visa: { color: "#1A1F71", icon: "card-outline" },
+  received: { color: Colors.accent.green, icon: "arrow-down-circle-outline" },
+  "cash out": { color: Colors.accent.amber, icon: "cash-outline" },
+  "cash in": { color: Colors.accent.green, icon: "cash-outline" },
 };
 
 function getCategoryMeta(cat: string) {
@@ -103,10 +96,7 @@ function InsightsTab() {
   const monthName = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={s.insightScroll}
-    >
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.insightScroll}>
       {/* Summary gradient card */}
       <MotiView
         from={{ opacity: 0, translateY: 12 }}
@@ -135,7 +125,11 @@ function InsightsTab() {
             <View style={s.summaryDivider} />
             <View style={s.summaryCol}>
               <View style={s.summaryIconRow}>
-                <Ionicons name="arrow-down-circle-outline" size={13} color="rgba(255,255,255,0.65)" />
+                <Ionicons
+                  name="arrow-down-circle-outline"
+                  size={13}
+                  color="rgba(255,255,255,0.65)"
+                />
                 <Text style={s.summaryColLabel}> Received</Text>
               </View>
               <Text style={s.summaryColVal}>${totalReceived.toFixed(2)}</Text>

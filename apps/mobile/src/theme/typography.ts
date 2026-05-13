@@ -1,4 +1,4 @@
-import { TextStyle } from "react-native";
+import { type TextStyle } from "react-native";
 
 export const Typography: Record<string, TextStyle> = {
   display: { fontFamily: "Sora_700Bold", fontSize: 32, lineHeight: 38, letterSpacing: -0.4 },

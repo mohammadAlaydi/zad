@@ -1,27 +1,23 @@
-import { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, ActivityIndicator } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
+import { useHaptic } from "@/hooks/useHaptic";
 import { SettingUpIllustration } from "@/illustrations/SettingUpIllustration";
 import { Colors } from "@/theme/colors";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useHaptic } from "@/hooks/useHaptic";
 
 export default function SettingUp() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const haptic = useHaptic();
   const [step, setStep] = useState(0);
-  const steps = [
-    t("auth.verifyingPhone"),
-    t("auth.checkingDocs"),
-    t("auth.creatingPasscode"),
-  ];
+  const steps = [t("auth.verifyingPhone"), t("auth.checkingDocs"), t("auth.creatingPasscode")];
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -43,18 +39,14 @@ export default function SettingUp() {
         haptic.success();
       }, 3200),
     );
-    timers.push(
-      setTimeout(() => router.replace("/(auth)/passcode"), 4000),
-    );
+    timers.push(setTimeout(() => router.replace("/(auth)/passcode"), 4000));
     return () => timers.forEach(clearTimeout);
   }, []);
 
   return (
     <Screen>
       <Header showBack={false} />
-      <View
-        style={{ flex: 1, alignItems: "center", paddingHorizontal: 28 }}
-      >
+      <View style={{ flex: 1, alignItems: "center", paddingHorizontal: 28 }}>
         <MotiView
           from={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -108,8 +100,8 @@ export default function SettingUp() {
                   backgroundColor: done
                     ? Colors.brand.primary50
                     : active
-                    ? "#FAF8FE"
-                    : Colors.ink[50],
+                      ? "#FAF8FE"
+                      : Colors.ink[50],
                 }}
                 transition={{
                   delay: 250 + i * 120,
@@ -130,8 +122,8 @@ export default function SettingUp() {
                     backgroundColor: done
                       ? Colors.accent.green
                       : active
-                      ? Colors.brand.primary100
-                      : Colors.ink[200],
+                        ? Colors.brand.primary100
+                        : Colors.ink[200],
                     scale: done ? 1 : active ? 1 : 0.9,
                   }}
                   transition={{ type: "timing", duration: 260 }}
@@ -152,19 +144,12 @@ export default function SettingUp() {
                       <Ionicons name="checkmark" size={18} color={Colors.white} />
                     </MotiView>
                   ) : active ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={Colors.brand.primary}
-                    />
+                    <ActivityIndicator size="small" color={Colors.brand.primary} />
                   ) : null}
                 </MotiView>
                 <Text
                   style={{
-                    color: done
-                      ? Colors.ink[900]
-                      : active
-                      ? Colors.ink[900]
-                      : Colors.ink[500],
+                    color: done ? Colors.ink[900] : active ? Colors.ink[900] : Colors.ink[500],
                     fontFamily: "Inter_500Medium",
                     fontSize: 14,
                     flex: 1,

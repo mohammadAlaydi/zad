@@ -1,7 +1,7 @@
-import { useRef, useState, useEffect } from "react";
+import { MotiView } from "moti";
+import { useRef, useEffect } from "react";
 import { View, TextInput, Pressable, Text } from "react-native";
 import { Colors } from "@/theme/colors";
-import { MotiView } from "moti";
 
 type Props = {
   length?: number;
@@ -22,7 +22,10 @@ export function OTPInput({ length = 6, value, onChange, autoFocus = true }: Prop
 
   return (
     <View style={{ position: "relative", height: 64 }}>
-      <Pressable onPress={() => inputRef.current?.focus()} style={{ flexDirection: "row", justifyContent: "center", gap: 12 }}>
+      <Pressable
+        onPress={() => inputRef.current?.focus()}
+        style={{ flexDirection: "row", justifyContent: "center", gap: 12 }}
+      >
         {Array.from({ length }).map((_, i) => {
           const filled = !!value[i];
           const focused = i === value.length;
@@ -42,7 +45,13 @@ export function OTPInput({ length = 6, value, onChange, autoFocus = true }: Prop
                 justifyContent: "center",
               }}
             >
-              <Text style={{ color: Colors.brand.primary, fontFamily: "Inter_600SemiBold", fontSize: 22 }}>
+              <Text
+                style={{
+                  color: Colors.brand.primary,
+                  fontFamily: "Inter_600SemiBold",
+                  fontSize: 22,
+                }}
+              >
                 {value[i] ?? ""}
               </Text>
             </MotiView>

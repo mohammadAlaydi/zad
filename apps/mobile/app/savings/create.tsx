@@ -1,3 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { MotiView } from "moti";
 import { useState } from "react";
 import {
   View,
@@ -10,17 +13,14 @@ import {
   Platform,
   Switch,
 } from "react-native";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
-import { Colors } from "@/theme/colors";
 import type { SavingsFrequency } from "@/store/appStore";
+import { Colors } from "@/theme/colors";
 
 const EMOJI_PRESETS = ["💰", "🕌", "✈️", "🎓", "🏠", "🚗", "💊", "📱"];
 
@@ -61,9 +61,7 @@ export default function CreateSavingsPlan() {
 
   function handleCreate() {
     if (!canSubmit) return;
-    const lockUntil = lockEnabled
-      ? addMonths(new Date(), lockMonths).toISOString()
-      : undefined;
+    const lockUntil = lockEnabled ? addMonths(new Date(), lockMonths).toISOString() : undefined;
 
     addSavingsPlan({
       id: "sav-" + Date.now(),
@@ -178,9 +176,7 @@ export default function CreateSavingsPlan() {
               <Ionicons name="lock-closed-outline" size={18} color={Colors.brand.primary} />
               <View style={styles.lockTextBlock}>
                 <Text style={styles.lockTitle}>Lock-in Period</Text>
-                <Text style={styles.lockDesc}>
-                  Prevent withdrawals until a set date
-                </Text>
+                <Text style={styles.lockDesc}>Prevent withdrawals until a set date</Text>
               </View>
             </View>
             <Switch
@@ -263,9 +259,7 @@ export default function CreateSavingsPlan() {
                   {activeCurrency} {target.toLocaleString()}
                 </Text>
                 {lockEnabled && (
-                  <Text style={styles.previewLock}>
-                    Locked until {formatLockDate(lockMonths)}
-                  </Text>
+                  <Text style={styles.previewLock}>Locked until {formatLockDate(lockMonths)}</Text>
                 )}
               </View>
             </MotiView>

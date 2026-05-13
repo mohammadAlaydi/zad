@@ -1,13 +1,13 @@
-import { View, Text, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import { MotiView } from "moti";
+import { useTranslation } from "react-i18next";
+import { View, Text, StyleSheet } from "react-native";
 import { Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Button } from "@/components/Button";
 import { Avatar } from "@/components/Avatar";
+import { Button } from "@/components/Button";
+import { Screen } from "@/components/Screen";
 import { SuccessIllustration } from "@/illustrations/SuccessIllustration";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";

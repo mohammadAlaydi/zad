@@ -1,18 +1,26 @@
-import { useState } from "react";
-import { View, Text, Pressable, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AmountStepper } from "@/components/AmountStepper";
+import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Input } from "@/components/Input";
+import { Screen } from "@/components/Screen";
+import { useHaptic } from "@/hooks/useHaptic";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
-import { useHaptic } from "@/hooks/useHaptic";
 
 type Tab = "mobile" | "username" | "visa";
 
@@ -28,7 +36,9 @@ export default function SendMoney() {
   const [showMessage, setShowMessage] = useState(false);
   const [tab, setTab] = useState<Tab>("mobile");
 
-  const canContinue = amount > 0 && (tab === "mobile" ? mobile.length > 6 : tab === "username" ? contactName.length > 0 : true);
+  const canContinue =
+    amount > 0 &&
+    (tab === "mobile" ? mobile.length > 6 : tab === "username" ? contactName.length > 0 : true);
 
   const tabs: { key: Tab; label: string; icon: React.ComponentProps<typeof Ionicons>["name"] }[] = [
     { key: "mobile", label: t("send.mobileNumber"), icon: "phone-portrait-outline" },
@@ -39,7 +49,10 @@ export default function SendMoney() {
   return (
     <Screen bg={Colors.white} keyboard>
       <Header title={t("send.title")} />
-      <KeyboardAvoidingView style={styles.flex1} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView
+        style={styles.flex1}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         <ScrollView
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
           keyboardShouldPersistTaps="handled"
@@ -65,7 +78,10 @@ export default function SendMoney() {
               return (
                 <Pressable
                   key={key}
-                  onPress={() => { haptic.selection(); setTab(key); }}
+                  onPress={() => {
+                    haptic.selection();
+                    setTab(key);
+                  }}
                   style={styles.tabItem}
                 >
                   <View style={styles.tabInner}>
@@ -104,7 +120,8 @@ export default function SendMoney() {
               </View>
               <Text style={styles.visaPanelTitle}>Send to any Visa card</Text>
               <Text style={styles.visaPanelDesc}>
-                Send directly to any Visa card worldwide. Fast, secure, and reliable. $1.50 fee applies per transfer.
+                Send directly to any Visa card worldwide. Fast, secure, and reliable. $1.50 fee
+                applies per transfer.
               </Text>
               <Button
                 title="Get Started"
@@ -124,10 +141,15 @@ export default function SendMoney() {
                   return (
                     <Pressable
                       key={v}
-                      onPress={() => { haptic.selection(); setAmount(v); }}
+                      onPress={() => {
+                        haptic.selection();
+                        setAmount(v);
+                      }}
                       style={[styles.quickChip, active ? styles.quickChipActive : null]}
                     >
-                      <Text style={[styles.quickChipText, active ? styles.quickChipTextActive : null]}>
+                      <Text
+                        style={[styles.quickChipText, active ? styles.quickChipTextActive : null]}
+                      >
                         ${v}
                       </Text>
                     </Pressable>
@@ -143,7 +165,13 @@ export default function SendMoney() {
                     value={tab === "mobile" ? mobile : contactName}
                     onChangeText={tab === "mobile" ? setMobile : setContactName}
                     keyboardType={tab === "mobile" ? "phone-pad" : "default"}
-                    leftIcon={<Ionicons name={tab === "mobile" ? "phone-portrait-outline" : "at-outline"} size={18} color={Colors.ink[400]} />}
+                    leftIcon={
+                      <Ionicons
+                        name={tab === "mobile" ? "phone-portrait-outline" : "at-outline"}
+                        size={18}
+                        color={Colors.ink[400]}
+                      />
+                    }
                   />
                 </View>
                 <Pressable style={styles.contactBtn}>
@@ -161,7 +189,11 @@ export default function SendMoney() {
               )}
 
               {!showMessage ? (
-                <Pressable onPress={() => setShowMessage(true)} style={styles.addMessageBtn} hitSlop={6}>
+                <Pressable
+                  onPress={() => setShowMessage(true)}
+                  style={styles.addMessageBtn}
+                  hitSlop={6}
+                >
                   <Ionicons name="add-circle" size={18} color={Colors.accent.green} />
                   <Text style={styles.addMessageText}>{t("send.addMessage")}</Text>
                 </Pressable>
@@ -170,7 +202,9 @@ export default function SendMoney() {
                   placeholder={t("send.message")}
                   value={message}
                   onChangeText={setMessage}
-                  leftIcon={<Ionicons name="chatbubble-outline" size={18} color={Colors.ink[400]} />}
+                  leftIcon={
+                    <Ionicons name="chatbubble-outline" size={18} color={Colors.ink[400]} />
+                  }
                 />
               )}
             </>
@@ -186,7 +220,13 @@ export default function SendMoney() {
             onPress={() =>
               router.push({
                 pathname: "/send/confirm",
-                params: { amount: amount.toString(), mobile: mobile || "07701234567", contactName: contactName || "Demo User", message, tab },
+                params: {
+                  amount: amount.toString(),
+                  mobile: mobile || "07701234567",
+                  contactName: contactName || "Demo User",
+                  message,
+                  tab,
+                },
               })
             }
           />

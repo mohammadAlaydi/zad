@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { View, Text, Pressable, Modal, FlatList, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, Modal, FlatList, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
-import { COUNTRIES, Country } from "@/data/countries";
+import { Screen } from "@/components/Screen";
+import { COUNTRIES, type Country } from "@/data/countries";
 import { Colors } from "@/theme/colors";
 
 export default function Address() {
@@ -44,7 +44,11 @@ export default function Address() {
         <Input label={t("auth.zip")} value={zip} keyboardType="number-pad" onChangeText={setZip} />
       </View>
       <View style={[styles.bottom, { paddingBottom: insets.bottom + 24 }]}>
-        <Button title={t("common.continue")} disabled={!valid} onPress={() => router.push("/(auth)/id-scan")} />
+        <Button
+          title={t("common.continue")}
+          disabled={!valid}
+          onPress={() => router.push("/(auth)/id-scan")}
+        />
       </View>
 
       {/* Country picker modal */}

@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { View, Text, ScrollView, Pressable, Modal } from "react-native";
-import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { ListRow } from "@/components/ListRow";
-import { Switch } from "@/components/Switch";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, ScrollView, Pressable, Modal } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
+import { ListRow } from "@/components/ListRow";
+import { Screen } from "@/components/Screen";
+import { Switch } from "@/components/Switch";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -54,27 +54,49 @@ export default function Settings() {
         <View
           pointerEvents="none"
           style={{
-            position: "absolute", top: -50, right: -50,
-            width: 200, height: 200, borderRadius: 100,
+            position: "absolute",
+            top: -50,
+            right: -50,
+            width: 200,
+            height: 200,
+            borderRadius: 100,
             backgroundColor: "rgba(255,255,255,0.05)",
           }}
         />
         <View
           pointerEvents="none"
           style={{
-            position: "absolute", bottom: -40, left: -30,
-            width: 150, height: 150, borderRadius: 75,
+            position: "absolute",
+            bottom: -40,
+            left: -30,
+            width: 150,
+            height: 150,
+            borderRadius: 75,
             backgroundColor: "rgba(255,255,255,0.04)",
           }}
         />
 
         {/* Title row + edit button */}
-        <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            marginBottom: 20,
+          }}
+        >
           <View>
             <Text style={{ color: Colors.white, fontFamily: "Sora_700Bold", fontSize: 22 }}>
               {t("settings.title")}
             </Text>
-            <Text style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Inter_400Regular", fontSize: 12, marginTop: 2 }}>
+            <Text
+              style={{
+                color: "rgba(255,255,255,0.6)",
+                fontFamily: "Inter_400Regular",
+                fontSize: 12,
+                marginTop: 2,
+              }}
+            >
               {t("settings.subtitle")}
             </Text>
           </View>
@@ -82,9 +104,12 @@ export default function Settings() {
             onPress={() => router.push("/profile/edit")}
             hitSlop={8}
             style={({ pressed }) => ({
-              width: 36, height: 36, borderRadius: 18,
+              width: 36,
+              height: 36,
+              borderRadius: 18,
               backgroundColor: "rgba(255,255,255,0.18)",
-              alignItems: "center", justifyContent: "center",
+              alignItems: "center",
+              justifyContent: "center",
               opacity: pressed ? 0.7 : 1,
             })}
           >
@@ -101,23 +126,50 @@ export default function Settings() {
         >
           <View
             style={{
-              width: 84, height: 84, borderRadius: 42,
+              width: 84,
+              height: 84,
+              borderRadius: 42,
               backgroundColor: "rgba(255,255,255,0.18)",
-              alignItems: "center", justifyContent: "center",
-              borderWidth: 2.5, borderColor: "rgba(255,255,255,0.4)",
+              alignItems: "center",
+              justifyContent: "center",
+              borderWidth: 2.5,
+              borderColor: "rgba(255,255,255,0.4)",
             }}
           >
-            <Text style={{ color: Colors.white, fontFamily: "Sora_700Bold", fontSize: 26, letterSpacing: 1 }}>
+            <Text
+              style={{
+                color: Colors.white,
+                fontFamily: "Sora_700Bold",
+                fontSize: 26,
+                letterSpacing: 1,
+              }}
+            >
               {initials}
             </Text>
           </View>
-          <Text style={{ color: Colors.white, fontFamily: "Sora_700Bold", fontSize: 19, marginTop: 12 }}>
+          <Text
+            style={{ color: Colors.white, fontFamily: "Sora_700Bold", fontSize: 19, marginTop: 12 }}
+          >
             {user.fullName}
           </Text>
-          <Text style={{ color: "rgba(255,255,255,0.70)", fontFamily: "Inter_400Regular", fontSize: 13, marginTop: 3 }}>
+          <Text
+            style={{
+              color: "rgba(255,255,255,0.70)",
+              fontFamily: "Inter_400Regular",
+              fontSize: 13,
+              marginTop: 3,
+            }}
+          >
             {user.email}
           </Text>
-          <Text style={{ color: "rgba(255,255,255,0.70)", fontFamily: "Inter_400Regular", fontSize: 13, marginTop: 1 }}>
+          <Text
+            style={{
+              color: "rgba(255,255,255,0.70)",
+              fontFamily: "Inter_400Regular",
+              fontSize: 13,
+              marginTop: 1,
+            }}
+          >
             {user.phone}
           </Text>
         </MotiView>
@@ -171,7 +223,9 @@ export default function Settings() {
             onPress={() => router.push("/profile/account-details")}
           />
           <ListRow
-            icon={<Ionicons name="shield-checkmark-outline" size={16} color={Colors.brand.primary} />}
+            icon={
+              <Ionicons name="shield-checkmark-outline" size={16} color={Colors.brand.primary} />
+            }
             title={t("settings.security")}
             onPress={() => router.push("/settings/security")}
           />
@@ -186,7 +240,9 @@ export default function Settings() {
             onPress={() => router.push("/settings/documents")}
           />
           <ListRow
-            icon={<Ionicons name="information-circle-outline" size={16} color={Colors.brand.primary} />}
+            icon={
+              <Ionicons name="information-circle-outline" size={16} color={Colors.brand.primary} />
+            }
             title={t("settings.about")}
             onPress={() => router.push("/settings/about")}
           />
@@ -197,8 +253,16 @@ export default function Settings() {
           />
 
           {/* ── Dev 2 Features ── */}
-          <View style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: Colors.brand.primary50 }}>
-            <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 12, color: Colors.brand.primary }}>
+          <View
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              backgroundColor: Colors.brand.primary50,
+            }}
+          >
+            <Text
+              style={{ fontFamily: "Inter_600SemiBold", fontSize: 12, color: Colors.brand.primary }}
+            >
               DEV 2 FEATURES
             </Text>
           </View>
@@ -279,45 +343,153 @@ export default function Settings() {
       </ScrollView>
 
       {/* ─── Close account modal ─── */}
-      <Modal visible={confirmClose} animationType="fade" transparent onRequestClose={() => setConfirmClose(false)}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", alignItems: "center", justifyContent: "center", paddingHorizontal: 30 }}>
-          <View style={{ backgroundColor: "#FFFFFF", borderRadius: 20, padding: 24, width: "100%", alignItems: "center" }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.accent.redSoft, alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+      <Modal
+        visible={confirmClose}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setConfirmClose(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.55)",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 30,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 20,
+              padding: 24,
+              width: "100%",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                backgroundColor: Colors.accent.redSoft,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 14,
+              }}
+            >
               <Ionicons name="warning" size={28} color={Colors.accent.red} />
             </View>
-            <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.ink[900], marginBottom: 6, textAlign: "center" }}>
+            <Text
+              style={{
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 18,
+                color: Colors.ink[900],
+                marginBottom: 6,
+                textAlign: "center",
+              }}
+            >
               Close your account?
             </Text>
-            <Text style={{ fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[500], textAlign: "center", marginBottom: 18, lineHeight: 18 }}>
+            <Text
+              style={{
+                fontFamily: "Inter_400Regular",
+                fontSize: 13,
+                color: Colors.ink[500],
+                textAlign: "center",
+                marginBottom: 18,
+                lineHeight: 18,
+              }}
+            >
               This action is permanent. All your data and balances will be lost.
             </Text>
             <Button title="Keep account" onPress={() => setConfirmClose(false)} />
             <Pressable onPress={() => setConfirmClose(false)} style={{ marginTop: 12 }}>
-              <Text style={{ color: Colors.accent.red, fontFamily: "Inter_500Medium", fontSize: 14 }}>Close my account</Text>
+              <Text
+                style={{ color: Colors.accent.red, fontFamily: "Inter_500Medium", fontSize: 14 }}
+              >
+                Close my account
+              </Text>
             </Pressable>
           </View>
         </View>
       </Modal>
 
       {/* ─── Log out modal ─── */}
-      <Modal visible={confirmLogout} animationType="fade" transparent onRequestClose={() => setConfirmLogout(false)}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", alignItems: "center", justifyContent: "center", paddingHorizontal: 30 }}>
-          <View style={{ backgroundColor: "#FFFFFF", borderRadius: 20, padding: 24, width: "100%", alignItems: "center" }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.brand.primary50, alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+      <Modal
+        visible={confirmLogout}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setConfirmLogout(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.55)",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 30,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 20,
+              padding: 24,
+              width: "100%",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                backgroundColor: Colors.brand.primary50,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 14,
+              }}
+            >
               <Ionicons name="log-out-outline" size={28} color={Colors.brand.primary} />
             </View>
-            <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.ink[900], marginBottom: 6, textAlign: "center" }}>
+            <Text
+              style={{
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 18,
+                color: Colors.ink[900],
+                marginBottom: 6,
+                textAlign: "center",
+              }}
+            >
               Log out of ZADPAY?
             </Text>
-            <Text style={{ fontFamily: "Inter_400Regular", fontSize: 13, color: Colors.ink[500], textAlign: "center", marginBottom: 18, lineHeight: 18 }}>
+            <Text
+              style={{
+                fontFamily: "Inter_400Regular",
+                fontSize: 13,
+                color: Colors.ink[500],
+                textAlign: "center",
+                marginBottom: 18,
+                lineHeight: 18,
+              }}
+            >
               You will need to sign in again to access your account.
             </Text>
             <Button title="Stay signed in" onPress={() => setConfirmLogout(false)} />
             <Pressable
-              onPress={() => { setConfirmLogout(false); signOut(); router.replace("/(auth)/welcome"); }}
+              onPress={() => {
+                setConfirmLogout(false);
+                signOut();
+                router.replace("/(auth)/welcome");
+              }}
               style={{ marginTop: 12 }}
             >
-              <Text style={{ color: Colors.accent.red, fontFamily: "Inter_500Medium", fontSize: 14 }}>Log out</Text>
+              <Text
+                style={{ color: Colors.accent.red, fontFamily: "Inter_500Medium", fontSize: 14 }}
+              >
+                Log out
+              </Text>
             </Pressable>
           </View>
         </View>

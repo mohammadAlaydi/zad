@@ -1,13 +1,13 @@
-import { useState, useCallback } from "react";
-import { View, Text, Pressable, Modal, StyleSheet } from "react-native";
-import { useTranslation } from "react-i18next";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { View, Text, Pressable, Modal, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
+import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
 const GENDERS = ["Male", "Female"];
@@ -82,10 +82,7 @@ export default function PersonalInfo() {
 
         {/* Gender selector — styled to match the input fields */}
         <Text style={styles.fieldLabel}>{t("auth.gender")}</Text>
-        <Pressable
-          onPress={() => setOpen(true)}
-          style={styles.selectField}
-        >
+        <Pressable onPress={() => setOpen(true)} style={styles.selectField}>
           <Text style={[styles.selectText, !gender ? styles.selectPlaceholder : null]}>
             {gender ?? t("auth.chooseGender")}
           </Text>
@@ -93,7 +90,11 @@ export default function PersonalInfo() {
         </Pressable>
       </View>
       <View style={[styles.bottom, { paddingBottom: insets.bottom + 24 }]}>
-        <Button title={t("common.continue")} disabled={!valid} onPress={() => router.push("/(auth)/address")} />
+        <Button
+          title={t("common.continue")}
+          disabled={!valid}
+          onPress={() => router.push("/(auth)/address")}
+        />
       </View>
 
       {/* Gender dropdown modal */}
@@ -112,7 +113,12 @@ export default function PersonalInfo() {
                 }}
                 style={[styles.dropdownOption, isActive ? styles.dropdownOptionActive : null]}
               >
-                <Text style={[styles.dropdownOptionText, isActive ? styles.dropdownOptionTextActive : null]}>
+                <Text
+                  style={[
+                    styles.dropdownOptionText,
+                    isActive ? styles.dropdownOptionTextActive : null,
+                  ]}
+                >
                   {g}
                 </Text>
                 {isActive ? (

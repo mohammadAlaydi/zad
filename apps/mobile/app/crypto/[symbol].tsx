@@ -1,3 +1,5 @@
+import { useLocalSearchParams } from "expo-router";
+import { MotiView } from "moti";
 import { useState, useMemo } from "react";
 import {
   View,
@@ -10,12 +12,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MotiView } from "moti";
-import { Screen } from "@/components/Screen";
-import { Header } from "@/components/Header";
 import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Screen } from "@/components/Screen";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -58,7 +58,10 @@ export default function CoinDetailScreen() {
       return;
     }
     if (amt > balance) {
-      Alert.alert("Insufficient balance", `Your ${activeCurrency} balance is $${balance.toFixed(2)}.`);
+      Alert.alert(
+        "Insufficient balance",
+        `Your ${activeCurrency} balance is $${balance.toFixed(2)}.`,
+      );
       return;
     }
     const coins = amt / currentPrice;
@@ -66,7 +69,7 @@ export default function CoinDetailScreen() {
     setUsdAmount("");
     Alert.alert(
       "Purchase Successful",
-      `You bought ${coins.toFixed(6)} ${symbol} for $${amt.toFixed(2)}.`
+      `You bought ${coins.toFixed(6)} ${symbol} for $${amt.toFixed(2)}.`,
     );
   }
 
@@ -79,7 +82,7 @@ export default function CoinDetailScreen() {
     if (!holding || amt > holding.amount) {
       Alert.alert(
         "Insufficient balance",
-        `You only hold ${holding?.amount.toFixed(6) ?? 0} ${symbol}.`
+        `You only hold ${holding?.amount.toFixed(6) ?? 0} ${symbol}.`,
       );
       return;
     }
@@ -135,8 +138,8 @@ export default function CoinDetailScreen() {
                         coin.change > 0
                           ? Colors.accent.greenSoft
                           : coin.change < 0
-                          ? Colors.accent.redSoft
-                          : Colors.ink[100],
+                            ? Colors.accent.redSoft
+                            : Colors.ink[100],
                     },
                   ]}
                 >
@@ -148,17 +151,19 @@ export default function CoinDetailScreen() {
                           coin.change > 0
                             ? Colors.accent.green
                             : coin.change < 0
-                            ? Colors.accent.red
-                            : Colors.ink[500],
+                              ? Colors.accent.red
+                              : Colors.ink[500],
                       },
                     ]}
                   >
-                    {coin.change > 0 ? "+" : ""}{coin.change.toFixed(1)}%
+                    {coin.change > 0 ? "+" : ""}
+                    {coin.change.toFixed(1)}%
                   </Text>
                 </View>
               </View>
               <Text style={styles.priceHero}>
-                ${currentPrice >= 1000
+                $
+                {currentPrice >= 1000
                   ? currentPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })
                   : currentPrice.toFixed(2)}
               </Text>
@@ -179,13 +184,17 @@ export default function CoinDetailScreen() {
               style={[styles.tradeTab, tradeTab === "buy" && styles.tradeTabActive]}
               onPress={() => setTradeTab("buy")}
             >
-              <Text style={[styles.tradeTabText, tradeTab === "buy" && styles.tradeTabTextActive]}>Buy</Text>
+              <Text style={[styles.tradeTabText, tradeTab === "buy" && styles.tradeTabTextActive]}>
+                Buy
+              </Text>
             </Pressable>
             <Pressable
               style={[styles.tradeTab, tradeTab === "sell" && styles.tradeTabActive]}
               onPress={() => setTradeTab("sell")}
             >
-              <Text style={[styles.tradeTabText, tradeTab === "sell" && styles.tradeTabTextActive]}>Sell</Text>
+              <Text style={[styles.tradeTabText, tradeTab === "sell" && styles.tradeTabTextActive]}>
+                Sell
+              </Text>
             </Pressable>
           </View>
 
@@ -245,14 +254,13 @@ export default function CoinDetailScreen() {
                       {holding.amount.toFixed(6)} {symbol}
                     </Text>
                     <Text style={styles.holdingInfoSub}>
-                      ≈ ${(holding.amount * currentPrice).toFixed(2)} · Avg ${holding.avgBuyPrice.toFixed(2)}
+                      ≈ ${(holding.amount * currentPrice).toFixed(2)} · Avg $
+                      {holding.avgBuyPrice.toFixed(2)}
                     </Text>
                   </View>
                 ) : (
                   <View style={styles.noHolding}>
-                    <Text style={styles.noHoldingText}>
-                      You don't hold any {symbol}.
-                    </Text>
+                    <Text style={styles.noHoldingText}>You don't hold any {symbol}.</Text>
                   </View>
                 )}
 
