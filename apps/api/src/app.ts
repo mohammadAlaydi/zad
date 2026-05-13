@@ -18,6 +18,7 @@ import {
   register as metricsRegister,
 } from "./infra/metrics/index.js";
 import { registerIdentityModule } from "./modules/identity/index.js";
+import { registerKycModule } from "./modules/kyc/index.js";
 import { registerErrorHandler } from "./shared/errors/handler.js";
 import type { EventBus } from "./shared/events/EventBus.js";
 import { registerHealthRoutes } from "./shared/health/routes.js";
@@ -109,7 +110,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   await registerHealthRoutes(app);
 
-  // Module routes — ordered by dependency.
+  // Module routes — ordered by dependency. Identity registers FIRST so its
+  // subscribers are attached before KYC publishes any events at boot.
   await registerIdentityModule(app, deps.prisma, deps.events, {
     jwtSigningKeyPem: env.JWT_SIGNING_KEY,
     jwtVerifyKeyPem: env.JWT_VERIFY_KEY,
@@ -117,7 +119,13 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     accessTokenTtlSeconds: env.ACCESS_TOKEN_TTL_SECONDS,
     refreshTokenTtlSeconds: env.REFRESH_TOKEN_TTL_SECONDS,
   });
-  // PR-6 registers `kyc`; PR-9 registers `wallet`.
+  await registerKycModule(app, deps.prisma, deps.events, {
+    publicBaseUrl: `http://${env.HOST === "0.0.0.0" ? "localhost" : env.HOST}:${String(env.PORT)}`,
+    // 3 s in dev so the demo flows quickly; production swaps for a real
+    // KycProvider implementation with no auto-approval.
+    inMemoryAutoApproveMs: 3000,
+  });
+  // PR-9 registers `wallet`.
 
   return app;
 }

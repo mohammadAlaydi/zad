@@ -116,3 +116,48 @@ model RefreshToken {
   @@map("refresh_tokens")
   @@schema("identity")
 }
+
+// ──────────────────────────────────────────────────────────────────────
+// kyc.* — KYC applications and documents (ADR-0008). No SQL FK to
+// identity.users — `userId` is a soft reference; user existence is
+// enforced by the auth layer, not the schema.
+// ──────────────────────────────────────────────────────────────────────
+
+model KycApplication {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @map("user_id") @db.Uuid
+  provider        String    @db.VarChar(40) // 'inmem' | 'sumsub' | 'onfido' | ...
+  providerRef     String?   @map("provider_ref") @db.VarChar(255)
+  status          String    @db.VarChar(20) // pending | submitted | review | approved | rejected
+  submittedAt     DateTime? @map("submitted_at")
+  decidedAt       DateTime? @map("decided_at")
+  rejectionReason String?   @map("rejection_reason")
+  // Append-only transition log: [{ from, to, at, by, reason? }, ...]
+  history         Json      @default("[]")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  documents KycDocument[]
+
+  @@map("applications")
+  @@schema("kyc")
+}
+
+model KycDocument {
+  id            String    @id @default(uuid()) @db.Uuid
+  applicationId String    @map("application_id") @db.Uuid
+  type          String    @db.VarChar(40) // passport | national_id | driving_licence | selfie | proof_of_address
+  s3Key         String    @map("s3_key") @db.VarChar(512)
+  mimeType      String    @map("mime_type") @db.VarChar(120)
+  sizeBytes     Int?      @map("size_bytes")
+  uploadedAt    DateTime? @map("uploaded_at")
+  providerRef   String?   @map("provider_ref") @db.VarChar(255)
+  status        String    @db.VarChar(20) // pending | uploaded | submitted | accepted | rejected
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  application KycApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@map("documents")
+  @@schema("kyc")
+}

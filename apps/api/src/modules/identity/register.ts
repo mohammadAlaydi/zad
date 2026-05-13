@@ -5,10 +5,12 @@
 import type { PrismaClient } from "@prisma/client";
 import type { FastifyInstance } from "fastify";
 import type { EventBus } from "../../shared/events/EventBus.js";
+import type { KycApplicationApproved, KycApplicationRejected } from "../kyc/index.js";
 import { LoginCommand } from "./application/commands/Login.js";
 import { LogoutCommand } from "./application/commands/Logout.js";
 import { RefreshCommand } from "./application/commands/Refresh.js";
 import { RegisterCommand } from "./application/commands/Register.js";
+import { UpdateKycStatusCommand } from "./application/commands/UpdateKycStatus.js";
 import { GetMeQuery } from "./application/queries/GetMe.js";
 import { Argon2PasswordHasher } from "./infrastructure/adapters/Argon2PasswordHasher.js";
 import { HmacRefreshTokenHasher } from "./infrastructure/adapters/HmacRefreshTokenHasher.js";
@@ -64,6 +66,19 @@ export async function registerIdentityModule(
   const logout = new LogoutCommand({ refreshTokens, refreshHasher, clock, events });
   const register = new RegisterCommand({ ...shared, users, passwordHasher, events });
   const getMe = new GetMeQuery({ users });
+  const updateKycStatus = new UpdateKycStatusCommand({ users, clock });
+
+  // Cross-module event subscription. KYC publishes status changes; identity
+  // reflects them onto User.kycStatus so the next /v1/auth/refresh issues
+  // an access token with the right `kyc` claim. Per ADR-0005 this is the
+  // sole allowed coupling between modules — both sides see only the event
+  // shape, not each other's internals.
+  events.subscribe<KycApplicationApproved>("kyc.ApplicationApproved", async (evt) => {
+    await updateKycStatus.execute({ userId: evt.payload.userId, status: "approved" });
+  });
+  events.subscribe<KycApplicationRejected>("kyc.ApplicationRejected", async (evt) => {
+    await updateKycStatus.execute({ userId: evt.payload.userId, status: "rejected" });
+  });
 
   await registerAuthRoutes(app, { login, refresh, logout, register });
   await registerMeRoutes(app, { getMe });
