@@ -5,9 +5,45 @@
   "type": "module",
   "main": "dist/server.js",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/request-context": "^5.1.0",
+    "@fastify/sensible": "^5.6.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@prisma/client": "^5.18.0",
+    "@sentry/node": "^8.26.0",
+    "@zadpay/errors": "workspace:*",
+    "@zadpay/types": "workspace:*",
+    "@zadpay/validation": "workspace:*",
+    "bullmq": "^5.12.0",
+    "fastify": "^4.28.1",
+    "ioredis": "^5.4.1",
+    "pino": "^9.4.0",
+    "prom-client": "^15.1.3",
+    "reflect-metadata": "^0.2.2",
+    "tsyringe": "^4.8.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/node": "^20.16.0",
+    "pino-pretty": "^11.2.2",
+    "prisma": "^5.18.0",
+    "tsx": "^4.19.0",
     "typescript": "~5.4.0"
   }
 }

@@ -1,0 +1,73 @@
+// Prisma schema — multi-schema for module isolation per ADR-0005.
+// Cross-namespace foreign keys are forbidden; modules reference by ID only.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["identity", "kyc", "wallet", "shared"]
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// shared.* — cross-cutting platform tables. Per ADR-0005 these are the
+// only tables touched by infrastructure, not by any module's domain.
+// ──────────────────────────────────────────────────────────────────────
+
+/// Transactional outbox. Writers append rows in the same DB tx as the state
+/// change; a background dispatcher reads unpublished rows and forwards them
+/// to the EventBus. Drop-in replacement for Kafka/RabbitMQ producer.
+model EventOutbox {
+  id          String    @id @default(uuid()) @db.Uuid
+  aggregateId String    @map("aggregate_id") @db.Uuid
+  eventName   String    @map("event_name") @db.VarChar(120)
+  payload     Json
+  createdAt   DateTime  @default(now()) @map("created_at")
+  publishedAt DateTime? @map("published_at")
+
+  @@index([publishedAt])
+  @@index([eventName])
+  @@map("event_outbox")
+  @@schema("shared")
+}
+
+/// Append-only audit log. Postgres-level grants on this table are
+/// INSERT-only for the app user — see ADR-0006.
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  ts        DateTime @default(now())
+  actorId   String?  @map("actor_id") @db.Uuid
+  actorRole String?  @map("actor_role") @db.VarChar(60)
+  action    String   @db.VarChar(120)
+  targetId  String?  @map("target_id") @db.Uuid
+  ip        String?  @db.Inet
+  userAgent String?  @map("user_agent")
+  requestId String?  @map("request_id") @db.Uuid
+  metadata  Json?
+
+  @@index([ts])
+  @@index([actorId, ts])
+  @@index([action, ts])
+  @@map("audit_log")
+  @@schema("shared")
+}
+
+/// Idempotency keys — Redis is the fast path, this is the source of truth.
+/// Per ADR-0007 the wallet ledger has its own unique constraint on
+/// idempotency_key; this table covers all other endpoints uniformly.
+model IdempotencyKey {
+  key        String   @id @db.Uuid
+  hash       String   @db.VarChar(64) // sha256 hex of method + path + body
+  status     String   @db.VarChar(20) // 'in_progress' | 'done' | 'failed'
+  statusCode Int?     @map("status_code")
+  response   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  expiresAt  DateTime @map("expires_at")
+
+  @@index([expiresAt])
+  @@map("idempotency_keys")
+  @@schema("shared")
+}
