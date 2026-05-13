@@ -25,6 +25,14 @@ function toSession(pair: TokenPairResponse): AuthSession {
   };
 }
 
+// Exported so KYC (and any other feature) can force a token refresh after
+// a state change that affects JWT claims (e.g. kyc_status flipping to
+// approved on the server — the existing access token still says the old
+// value until we rotate).
+export async function refreshSession(): Promise<boolean> {
+  return refreshFromStorage();
+}
+
 async function refreshFromStorage(): Promise<boolean> {
   const token = await secureStorage.getRefreshToken();
   if (token === null) return false;

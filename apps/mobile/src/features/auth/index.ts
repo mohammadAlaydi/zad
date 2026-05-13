@@ -2,7 +2,7 @@
 // only from here — ESLint enforces it (no-restricted-imports for
 // `features/auth/{components,hooks,services,store}/*`).
 
-export { bootstrapAuth } from "./bootstrap";
+export { bootstrapAuth, refreshSession } from "./bootstrap";
 export { useAuthSession } from "./hooks/useAuthSession";
 export { useLogin, type UseLoginResult } from "./hooks/useLogin";
 export { useRegister, type UseRegisterResult } from "./hooks/useRegister";

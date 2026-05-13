@@ -13,6 +13,7 @@ import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
 import { useLogin } from "@/features/auth";
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { Colors } from "@/theme/colors";
 
 export default function EmailLogin() {
@@ -26,7 +27,11 @@ export default function EmailLogin() {
 
   async function onSubmit() {
     const result = await mutate({ email, password });
-    if (result.ok) router.replace("/(tabs)/home");
+    if (!result.ok) return;
+    // Route based on the user's KYC status. The session is already set by
+    // useLogin before this code runs.
+    const status = useAuthStore.getState().session?.user.kycStatus ?? "not_started";
+    router.replace(status === "approved" ? "/(tabs)/home" : "/(auth)/kyc-status");
   }
 
   return (

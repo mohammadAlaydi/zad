@@ -24,7 +24,9 @@ export default function EmailRegister() {
 
   async function onSubmit() {
     const result = await mutate({ email, password });
-    if (result.ok) router.replace("/(tabs)/home");
+    // New accounts start with kycStatus "not_started" — route through the
+    // KYC screen to upload + submit before the user can enter the app.
+    if (result.ok) router.replace("/(auth)/kyc-status");
   }
 
   return (
