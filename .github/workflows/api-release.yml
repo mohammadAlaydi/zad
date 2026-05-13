@@ -1,0 +1,211 @@
+name: API Release
+
+# Builds + pushes the api Docker image, deploys to staging, runs a smoke
+# check, then gates production behind manual approval. Auto-rolls back if
+# the post-deploy smoke fails. See docs/deployment.md for the secret list.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/api-release.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: api-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ${{ github.repository_owner }}/zadpay-api
+
+jobs:
+  build:
+    name: Build + push image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tag
+        id: meta
+        run: |
+          short_sha="${GITHUB_SHA:0:12}"
+          echo "tag=sha-${short_sha}" >> "$GITHUB_OUTPUT"
+          echo "full=${REGISTRY}/${IMAGE}:sha-${short_sha}" >> "$GITHUB_OUTPUT"
+
+      - name: Build + push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest
+          # Inline cache to keep subsequent builds fast.
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE }}:buildcache,mode=max
+          provenance: false
+
+  deploy-staging:
+    name: Deploy → staging
+    needs: build
+    runs-on: ubuntu-latest
+    # Requires reviewers configured on the staging environment in repo
+    # settings — leave empty for auto-deploy, or add approvers for a gate.
+    environment:
+      name: staging
+      url: https://api-staging.zadpay.example
+    steps:
+      - uses: actions/checkout@v4
+      # Real clusters: replace the placeholder with `kubectl set image`,
+      # `argocd app sync`, `flyctl deploy`, etc. The image tag from `build`
+      # is the authoritative input.
+      - name: Trigger staging deployment
+        env:
+          IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
+          DEPLOY_HOOK_URL: ${{ secrets.STAGING_DEPLOY_HOOK }}
+          DEPLOY_HOOK_TOKEN: ${{ secrets.STAGING_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "${DEPLOY_HOOK_URL}" ]; then
+            echo "::warning::STAGING_DEPLOY_HOOK is unset — deployment is a no-op."
+            echo "Configure the secret in repo settings to enable real deploys."
+            exit 0
+          fi
+          curl --fail-with-body -X POST \
+            -H "Authorization: Bearer ${DEPLOY_HOOK_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"image\":\"${IMAGE_TAG}\"}" \
+            "${DEPLOY_HOOK_URL}"
+
+  smoke-staging:
+    name: Smoke /health/ready (staging)
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Poll /health/ready
+        env:
+          BASE_URL: ${{ secrets.STAGING_BASE_URL || 'https://api-staging.zadpay.example' }}
+        run: |
+          for i in $(seq 1 12); do
+            if curl --fail --silent --max-time 5 "${BASE_URL}/health/ready" > /dev/null; then
+              echo "smoke: ok on attempt ${i}"
+              exit 0
+            fi
+            echo "smoke: attempt ${i} failed; sleeping 5 s"
+            sleep 5
+          done
+          echo "::error::staging /health/ready not 200 after 60 s"
+          exit 1
+
+  promote-production:
+    name: Promote → production (manual)
+    needs: smoke-staging
+    runs-on: ubuntu-latest
+    # GitHub environment "production" should be configured with required
+    # reviewers in repo settings — that's how the manual gate works.
+    environment:
+      name: production
+      url: https://api.zadpay.example
+    permissions:
+      packages: write
+    outputs:
+      prod-tag: ${{ steps.tag.outputs.prod }}
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag image as prod-${sha}
+        id: tag
+        env:
+          SOURCE_TAG: ${{ needs.build.outputs.image-tag }}
+        run: |
+          short_sha="${GITHUB_SHA:0:12}"
+          prod_tag="prod-${short_sha}"
+          docker pull "${REGISTRY}/${IMAGE}:${SOURCE_TAG}"
+          docker tag "${REGISTRY}/${IMAGE}:${SOURCE_TAG}" "${REGISTRY}/${IMAGE}:${prod_tag}"
+          docker tag "${REGISTRY}/${IMAGE}:${SOURCE_TAG}" "${REGISTRY}/${IMAGE}:prod"
+          docker push "${REGISTRY}/${IMAGE}:${prod_tag}"
+          docker push "${REGISTRY}/${IMAGE}:prod"
+          echo "prod=${prod_tag}" >> "$GITHUB_OUTPUT"
+      - name: Trigger production deployment
+        env:
+          PROD_TAG: ${{ steps.tag.outputs.prod }}
+          DEPLOY_HOOK_URL: ${{ secrets.PRODUCTION_DEPLOY_HOOK }}
+          DEPLOY_HOOK_TOKEN: ${{ secrets.PRODUCTION_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "${DEPLOY_HOOK_URL}" ]; then
+            echo "::warning::PRODUCTION_DEPLOY_HOOK is unset — promotion did not deploy."
+            exit 0
+          fi
+          curl --fail-with-body -X POST \
+            -H "Authorization: Bearer ${DEPLOY_HOOK_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"image\":\"${PROD_TAG}\"}" \
+            "${DEPLOY_HOOK_URL}"
+
+  smoke-production:
+    name: Smoke /health/ready (production)
+    needs: promote-production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Poll /health/ready
+        env:
+          BASE_URL: ${{ secrets.PRODUCTION_BASE_URL || 'https://api.zadpay.example' }}
+        run: |
+          for i in $(seq 1 12); do
+            if curl --fail --silent --max-time 5 "${BASE_URL}/health/ready" > /dev/null; then
+              echo "smoke: ok on attempt ${i}"
+              exit 0
+            fi
+            echo "smoke: attempt ${i} failed; sleeping 5 s"
+            sleep 5
+          done
+          echo "::error::production /health/ready not 200 after 60 s — rollback will fire"
+          exit 1
+
+  rollback-production:
+    name: Rollback production (auto)
+    needs: smoke-production
+    if: failure()
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Re-deploy :prod-previous
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.PRODUCTION_DEPLOY_HOOK }}
+          DEPLOY_HOOK_TOKEN: ${{ secrets.PRODUCTION_DEPLOY_TOKEN }}
+        run: |
+          # Convention: the deploy webhook accepts a `prod-previous` magic
+          # tag that means "redeploy whatever was running before this push".
+          # The cluster controller is responsible for tracking it.
+          if [ -z "${DEPLOY_HOOK_URL}" ]; then
+            echo "::error::PRODUCTION_DEPLOY_HOOK unset — manual rollback required"
+            exit 1
+          fi
+          curl --fail-with-body -X POST \
+            -H "Authorization: Bearer ${DEPLOY_HOOK_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"image":"prod-previous"}' \
+            "${DEPLOY_HOOK_URL}"
