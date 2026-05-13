@@ -2,13 +2,26 @@
 
 import { err, ok, type Result } from "@zadpay/errors";
 import { Money, type Currency } from "@zadpay/types";
-import { type Account } from "../../src/modules/wallet/domain/entities/Account.js";
+import { Account } from "../../src/modules/wallet/domain/entities/Account.js";
 import { LedgerEntry } from "../../src/modules/wallet/domain/entities/LedgerEntry.js";
 import { Transaction } from "../../src/modules/wallet/domain/entities/Transaction.js";
-import { InsufficientBalance } from "../../src/modules/wallet/domain/errors/index.js";
+import {
+  InsufficientBalance,
+  type ProcessorRejected,
+} from "../../src/modules/wallet/domain/errors/index.js";
 import type { AccountRepository } from "../../src/modules/wallet/domain/ports/AccountRepository.js";
 import type { Clock } from "../../src/modules/wallet/domain/ports/Clock.js";
+import type {
+  ExternalClearingWriter,
+  PostExternalMovementInput,
+} from "../../src/modules/wallet/domain/ports/ExternalClearingWriter.js";
 import type { IdGenerator } from "../../src/modules/wallet/domain/ports/IdGenerator.js";
+import type {
+  PaymentProcessor,
+  ProcessorReceipt,
+  SubmitTopupInput,
+  SubmitWithdrawalInput,
+} from "../../src/modules/wallet/domain/ports/PaymentProcessor.js";
 import type {
   ListTransactionsInput,
   ListTransactionsResult,
@@ -19,6 +32,10 @@ import type {
   TransferWriter,
 } from "../../src/modules/wallet/domain/ports/TransferWriter.js";
 import type { AccountType } from "../../src/modules/wallet/domain/value-objects/AccountType.js";
+
+// Used by InMemoryExternalClearingWriter to construct the lazy system
+// external_clearing account.
+const AccountTestHelper = Account;
 
 export class InMemoryAccountRepository implements AccountRepository {
   private readonly byId = new Map<string, Account>();
@@ -132,6 +149,126 @@ export class FixedClock implements Clock {
   }
   advance(ms: number): void {
     this.current = new Date(this.current.getTime() + ms);
+  }
+}
+
+const SYSTEM_OWNER = "00000000-0000-0000-0000-000000000000";
+
+// Sibling fake for PR-11. Lazy-creates a single external_clearing account
+// per currency. Same single-threaded "Node event loop is the mutex" guarantee
+// as the TransferWriter fake.
+export class InMemoryExternalClearingWriter implements ExternalClearingWriter {
+  readonly transactions: Transaction[] = [];
+
+  constructor(
+    private readonly accounts: InMemoryAccountRepository,
+    private readonly ids: IdGenerator,
+  ) {}
+
+  private async ensureExternalAccount(currency: Currency, now: Date): Promise<string> {
+    const existing = await this.accounts.findByOwnerAndCurrency(
+      SYSTEM_OWNER,
+      currency,
+      "external_clearing",
+    );
+    if (existing !== null) return existing.id;
+    const account = AccountTestHelper.create({
+      id: this.ids.uuid(),
+      ownerId: SYSTEM_OWNER,
+      currency,
+      type: "external_clearing",
+      now,
+    });
+    await this.accounts.save(account);
+    return account.id;
+  }
+
+  async postExternalMovement(
+    input: PostExternalMovementInput,
+  ): Promise<Result<Transaction, InsufficientBalance>> {
+    const externalAccountId = await this.ensureExternalAccount(input.amount.currency, input.now);
+    const debitedId = input.type === "topup" ? externalAccountId : input.userAccountId;
+    const creditedId = input.type === "topup" ? input.userAccountId : externalAccountId;
+
+    if (input.type === "withdrawal") {
+      const balance = (await this.accounts.getBalance(debitedId)).money;
+      if (balance.amount < input.amount.amount) return err(new InsufficientBalance());
+    }
+
+    const debitedBalance = (await this.accounts.getBalance(debitedId)).money;
+    this.accounts.setBalance(
+      debitedId,
+      debitedBalance.amount - input.amount.amount,
+      input.amount.currency,
+      input.now,
+    );
+    const creditedBalance = (await this.accounts.getBalance(creditedId)).money;
+    this.accounts.setBalance(
+      creditedId,
+      creditedBalance.amount + input.amount.amount,
+      input.amount.currency,
+      input.now,
+    );
+
+    const debit = LedgerEntry.debit({
+      id: `${input.transactionId}-d`,
+      transactionId: input.transactionId,
+      accountId: debitedId,
+      money: input.amount,
+      now: input.now,
+    });
+    const credit = LedgerEntry.credit({
+      id: `${input.transactionId}-c`,
+      transactionId: input.transactionId,
+      accountId: creditedId,
+      money: input.amount,
+      now: input.now,
+    });
+    const transaction = new Transaction(
+      input.transactionId,
+      input.idempotencyKey,
+      input.type,
+      "posted",
+      input.now,
+      input.now,
+      input.metadata,
+      [debit, credit],
+    );
+    this.transactions.push(transaction);
+    return ok(transaction);
+  }
+}
+
+export class FakePaymentProcessor implements PaymentProcessor {
+  readonly topups: Array<{ userId: string; amount: bigint; source: string }> = [];
+  readonly withdrawals: Array<{ userId: string; amount: bigint; destination: string }> = [];
+  // Toggle to make the next call fail with ProcessorRejected.
+  rejectNext = false;
+
+  async submitTopup(input: SubmitTopupInput): Promise<Result<ProcessorReceipt, ProcessorRejected>> {
+    if (this.rejectNext) {
+      this.rejectNext = false;
+      const { ProcessorRejected } = await import("../../src/modules/wallet/domain/errors/index.js");
+      return err(new ProcessorRejected("card_declined"));
+    }
+    this.topups.push({ userId: input.userId, amount: input.amount.amount, source: input.source });
+    return ok({ providerRef: `fake-topup-${String(this.topups.length)}` });
+  }
+
+  async submitWithdrawal(
+    input: SubmitWithdrawalInput,
+  ): Promise<Result<ProcessorReceipt, ProcessorRejected>> {
+    if (this.rejectNext) {
+      this.rejectNext = false;
+      const { ProcessorRejected } = await import("../../src/modules/wallet/domain/errors/index.js");
+      return err(new ProcessorRejected("destination_rejected"));
+    }
+    this.withdrawals.push({
+      userId: input.userId,
+      amount: input.amount.amount,
+      destination: input.destination,
+    });
+    return ok({ providerRef: `fake-withdrawal-${String(this.withdrawals.length)}` });
   }
 }
 

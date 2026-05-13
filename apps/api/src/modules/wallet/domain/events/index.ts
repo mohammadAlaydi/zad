@@ -41,3 +41,35 @@ export type TransferFailed = DomainEvent<
     reason: string;
   }
 >;
+
+export type TopupPosted = DomainEvent<
+  "wallet.TopupPosted",
+  {
+    transactionId: string;
+    userAccountId: string;
+    amount: string;
+    currency: string;
+    providerRef: string;
+  }
+>;
+
+export type TopupFailed = DomainEvent<
+  "wallet.TopupFailed",
+  { userAccountId: string; amount: string; currency: string; reason: string }
+>;
+
+export type WithdrawalPosted = DomainEvent<
+  "wallet.WithdrawalPosted",
+  {
+    transactionId: string;
+    userAccountId: string;
+    amount: string;
+    currency: string;
+    providerRef: string;
+  }
+>;
+
+export type WithdrawalFailed = DomainEvent<
+  "wallet.WithdrawalFailed",
+  { userAccountId: string; amount: string; currency: string; reason: string }
+>;

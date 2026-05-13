@@ -56,3 +56,11 @@ export class InvalidAmount extends UnprocessableError {
     super("Amount must be a positive integer");
   }
 }
+
+// Processor refused (e.g. card declined, bank rejected destination).
+export class ProcessorRejected extends UnprocessableError {
+  override readonly code = "WALLET.PROCESSOR_REJECTED";
+  constructor(reason: string) {
+    super(`Payment processor rejected the request: ${reason}`, { reason });
+  }
+}

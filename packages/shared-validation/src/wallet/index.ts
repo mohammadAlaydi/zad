@@ -80,3 +80,28 @@ export const TransferResponseSchema = z.object({
   transaction: WalletTransactionResponseSchema,
 });
 export type TransferResponse = z.infer<typeof TransferResponseSchema>;
+
+// ── POST /v1/wallet/topups ─────────────────────────────────────────────
+// `source` is an opaque token from the processor SDK (e.g. Stripe token,
+// network-tokenized PAN). The api never sees raw card data — PCI ADR.
+// In dev with InMemoryPaymentProcessor, any non-empty string works.
+export const TopupRequestSchema = z.object({
+  accountId: z.string().uuid(),
+  amount: MoneyJsonSchema,
+  source: z.string().min(1).max(200),
+});
+export type TopupRequest = z.infer<typeof TopupRequestSchema>;
+
+// ── POST /v1/wallet/withdrawals ────────────────────────────────────────
+export const WithdrawalRequestSchema = z.object({
+  accountId: z.string().uuid(),
+  amount: MoneyJsonSchema,
+  destination: z.string().min(1).max(200),
+});
+export type WithdrawalRequest = z.infer<typeof WithdrawalRequestSchema>;
+
+// Both endpoints return the same shape as Transfer.
+export const ExternalMovementResponseSchema = z.object({
+  transaction: WalletTransactionResponseSchema,
+});
+export type ExternalMovementResponse = z.infer<typeof ExternalMovementResponseSchema>;
