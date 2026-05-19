@@ -17,6 +17,7 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
+import { useCreateUserItem } from "@/features/userdata";
 import { useApp } from "@/store/appStore";
 import type { ScheduledFrequency } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
@@ -48,7 +49,8 @@ function formatNextDate(iso: string): string {
 
 export default function CreateScheduledPayment() {
   const insets = useSafeAreaInsets();
-  const { addScheduledPayment, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
+  const createScheduled = useCreateUserItem("scheduled");
 
   const [paymentType, setPaymentType] = useState<PaymentType>("transfer");
   const [recipient, setRecipient] = useState("");
@@ -59,23 +61,27 @@ export default function CreateScheduledPayment() {
 
   const amount = parseFloat(amountRaw) || 0;
   const nextDate = computeNextDate(frequency);
-  const canSubmit = recipient.trim().length > 0 && amount > 0;
+  const canSubmit = recipient.trim().length > 0 && amount > 0 && !createScheduled.isPending;
 
-  function handleCreate() {
+  async function handleCreate() {
     if (!canSubmit) return;
-    addScheduledPayment({
-      id: "sched-" + Date.now(),
-      recipient: recipient.trim(),
-      recipientPhone: recipientPhone.trim() || undefined,
-      amount,
-      currency: activeCurrency,
-      frequency,
-      nextDate,
-      type: paymentType,
-      isActive: true,
-      note: note.trim() || undefined,
-    });
-    router.back();
+    try {
+      await createScheduled.mutateAsync({
+        recipient: recipient.trim(),
+        recipientPhone: recipientPhone.trim() || undefined,
+        amount,
+        currency: activeCurrency,
+        frequency,
+        nextDate,
+        type: paymentType,
+        isActive: true,
+        note: note.trim() || undefined,
+      });
+      router.back();
+    } catch {
+      // Swallow; the error surfaces via the mutation state if the screen
+      // wants to show it. Keeping create flow forgiving for the demo.
+    }
   }
 
   return (
@@ -209,9 +215,9 @@ export default function CreateScheduledPayment() {
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
         <Button
-          title="Schedule Payment"
+          title={createScheduled.isPending ? "Scheduling…" : "Schedule Payment"}
           disabled={!canSubmit}
-          onPress={handleCreate}
+          onPress={() => void handleCreate()}
           icon={<Ionicons name="time-outline" size={18} color={Colors.white} />}
         />
       </View>

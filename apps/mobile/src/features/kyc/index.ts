@@ -5,3 +5,4 @@ export { useKycApplication } from "./hooks/useKycApplication";
 export { useUploadDocument } from "./hooks/useUploadDocument";
 export { useSubmitKyc } from "./hooks/useSubmitKyc";
 export { kycService } from "./services/kycService";
+export { autoSubmitKyc } from "./autoKyc";

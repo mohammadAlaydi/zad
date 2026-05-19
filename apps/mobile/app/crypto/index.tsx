@@ -5,8 +5,11 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
-import { useApp } from "@/store/appStore";
+import { useUserItems } from "@/features/userdata";
+import type { CryptoHolding } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+type CryptoPayload = Omit<CryptoHolding, "id">;
 
 const COINS = [
   { symbol: "BTC", name: "Bitcoin", currentPrice: 64000, emoji: "₿", change: +2.1 },
@@ -20,7 +23,11 @@ type Tab = "market" | "wallet";
 
 export default function CryptoScreen() {
   const insets = useSafeAreaInsets();
-  const { cryptoHoldings } = useApp();
+  const cryptoQuery = useUserItems<CryptoPayload>("crypto");
+  const cryptoHoldings: CryptoHolding[] = (cryptoQuery.data?.items ?? []).map((it) => ({
+    ...it.payload,
+    id: it.id,
+  }));
   const [activeTab, setActiveTab] = useState<Tab>("market");
 
   const totalCryptoValue = useMemo(() => {

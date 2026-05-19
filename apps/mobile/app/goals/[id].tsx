@@ -8,19 +8,36 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useUserItems } from "@/features/userdata";
+import { refundThenUpdateItem, spendThenUpdateItem } from "@/features/userdata/walletItems";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
+import { queryClient } from "@/lib/api/queryClient";
 import { useApp } from "@/store/appStore";
+import type { WalletGoal } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 type ModalMode = "deposit" | "withdraw" | null;
+type GoalPayload = Omit<WalletGoal, "id">;
 
 export default function GoalDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { goals, depositGoal, withdrawGoal, balances, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
 
-  const goal = goals.find((g) => g.id === id);
+  const goalsQuery = useUserItems<GoalPayload>("goals");
+  const goalItem = goalsQuery.data?.items.find((it) => it.id === id);
+  const goal: WalletGoal | undefined =
+    goalItem === undefined ? undefined : { ...goalItem.payload, id: goalItem.id };
+
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+  const balanceQuery = useAccountBalance(account?.id);
+  const balance =
+    balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
+
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [raw, setRaw] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   if (!goal) {
     return (
@@ -39,25 +56,48 @@ export default function GoalDetail() {
   const pct = Math.round(progress * 100);
   const remaining = Math.max(0, goal.targetAmount - goal.savedAmount);
   const amount = parseFloat(raw) || 0;
-  const balance = balances[activeCurrency] ?? 0;
 
-  function handleConfirm() {
-    if (!goal || !modalMode || amount <= 0) return;
-    if (modalMode === "deposit") {
-      if (amount > balance) {
-        Alert.alert("Insufficient balance");
-        return;
-      }
-      depositGoal(goal.id, amount);
-    } else {
-      if (amount > goal.savedAmount) {
-        Alert.alert("Exceeds saved amount");
-        return;
-      }
-      withdrawGoal(goal.id, amount);
+  async function handleConfirm() {
+    if (!goal || !modalMode || amount <= 0 || account === undefined) return;
+    if (modalMode === "deposit" && amount > balance) {
+      Alert.alert("Insufficient balance");
+      return;
     }
-    setRaw("");
-    setModalMode(null);
+    if (modalMode === "withdraw" && amount > goal.savedAmount) {
+      Alert.alert("Exceeds saved amount");
+      return;
+    }
+    setSubmitting(true);
+    const { id: _drop, ...rest } = goal;
+    const newSaved =
+      modalMode === "deposit" ? goal.savedAmount + amount : Math.max(0, goal.savedAmount - amount);
+    const walletArgs = {
+      accountId: account.id,
+      currency: account.currency,
+      amountUsd: amount,
+      feature: "goal",
+      ref: goal.id,
+    };
+    try {
+      if (modalMode === "deposit") {
+        await spendThenUpdateItem("goals", goal.id, { ...rest, savedAmount: newSaved }, walletArgs);
+      } else {
+        await refundThenUpdateItem(
+          "goals",
+          goal.id,
+          { ...rest, savedAmount: newSaved },
+          walletArgs,
+        );
+      }
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] });
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "transactions"] });
+      setRaw("");
+      setModalMode(null);
+    } catch (e) {
+      Alert.alert("Failed", e instanceof Error ? e.message : "Wallet move failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -181,10 +221,10 @@ export default function GoalDetail() {
                 style={{ flex: 1, marginRight: 8 }}
               />
               <Button
-                title={modalMode === "deposit" ? "Add" : "Withdraw"}
+                title={submitting ? "…" : modalMode === "deposit" ? "Add" : "Withdraw"}
                 size="md"
-                disabled={amount <= 0}
-                onPress={handleConfirm}
+                disabled={amount <= 0 || submitting}
+                onPress={() => void handleConfirm()}
                 style={{ flex: 1 }}
               />
             </View>

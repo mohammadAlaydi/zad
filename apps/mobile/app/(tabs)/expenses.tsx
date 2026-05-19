@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import type { WalletTransactionResponse } from "@zadpay/validation";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
 import { useMemo, useState } from "react";
@@ -9,13 +10,38 @@ import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
 import { TransactionRow } from "@/components/TransactionRow";
-import { useApp } from "@/store/appStore";
+import { useMyAccounts, useMyTransactions } from "@/features/wallet";
+import { queryClient } from "@/lib/api/queryClient";
+import type { Transaction as LegacyTransaction } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 type Tab = "insights" | "transactions";
 type Filter = "all" | "transfers" | "bills";
 
-function groupTransactions(txs: ReturnType<typeof useApp.getState>["transactions"]) {
+// Map an api transaction to the legacy display shape used by TransactionRow
+// + InsightsTab. Sign comes from the user's own entry (debit = -, credit = +).
+function toLegacy(api: WalletTransactionResponse, myAccountIds: Set<string>): LegacyTransaction {
+  const mine = api.entries.find((e) => myAccountIds.has(e.accountId));
+  const minorUnits = mine === undefined ? 0n : BigInt(mine.amount);
+  const signed = mine?.direction === "credit" ? minorUnits : -minorUnits;
+  const major = Number(signed) / 100;
+  const name =
+    api.type === "transfer"
+      ? mine?.direction === "credit"
+        ? "Money Received"
+        : "Money Sent"
+      : api.type.replace(/^\w/, (c) => c.toUpperCase());
+  return {
+    id: api.id,
+    name,
+    category: api.type,
+    amount: major,
+    currency: (mine?.currency ?? "USD") as LegacyTransaction["currency"],
+    date: api.createdAt,
+  };
+}
+
+function groupTransactions(txs: LegacyTransaction[]) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const yest = new Date(today.getTime() - 86400000);
@@ -67,9 +93,7 @@ function CategoryBar({ pct, color, index }: { pct: number; color: string; index:
   );
 }
 
-function InsightsTab() {
-  const { transactions } = useApp();
-
+function InsightsTab({ transactions }: { transactions: LegacyTransaction[] }) {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const thisMonth = transactions.filter((tx) => new Date(tx.date) >= monthStart);
@@ -198,7 +222,18 @@ function InsightsTab() {
 export default function Expenses() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { transactions } = useApp();
+  const accounts = useMyAccounts();
+  // 200 covers a typical month + insights tab; pagination can land later.
+  const txQuery = useMyTransactions({ page: 0, pageSize: 200 });
+  const myAccountIds = useMemo(
+    () => new Set(accounts.data?.accounts.map((a) => a.id) ?? []),
+    [accounts.data],
+  );
+  const transactions = useMemo(
+    () => (txQuery.data?.transactions ?? []).map((tx) => toLegacy(tx, myAccountIds)),
+    [txQuery.data, myAccountIds],
+  );
+
   const [tab, setTab] = useState<Tab>("insights");
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
@@ -217,7 +252,10 @@ export default function Expenses() {
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 700);
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["wallet", "accounts"] }),
+      queryClient.invalidateQueries({ queryKey: ["wallet", "transactions"] }),
+    ]).finally(() => setRefreshing(false));
   };
 
   return (
@@ -251,7 +289,7 @@ export default function Expenses() {
       </View>
 
       {tab === "insights" ? (
-        <InsightsTab />
+        <InsightsTab transactions={transactions} />
       ) : (
         <>
           <View style={{ paddingHorizontal: 18 }}>

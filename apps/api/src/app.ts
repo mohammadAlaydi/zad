@@ -19,6 +19,7 @@ import {
 } from "./infra/metrics/index.js";
 import { registerIdentityModule } from "./modules/identity/index.js";
 import { registerKycModule } from "./modules/kyc/index.js";
+import { registerUserdataModule } from "./modules/userdata/index.js";
 import { registerWalletModule } from "./modules/wallet/index.js";
 import { registerErrorHandler } from "./shared/errors/handler.js";
 import type { EventBus } from "./shared/events/EventBus.js";
@@ -131,6 +132,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await registerWalletModule(app, deps.prisma, deps.events, {
     defaultCurrency: "USD",
   });
+  await registerUserdataModule(app, deps.prisma);
 
   return app;
 }

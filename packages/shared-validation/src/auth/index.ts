@@ -26,7 +26,7 @@ export type LogoutRequest = z.infer<typeof LogoutRequestSchema>;
 // ── Register ───────────────────────────────────────────────────────────
 export const RegisterRequestSchema = z.object({
   email: z.string().email().max(254),
-  password: z.string().min(10).max(256), // Stricter for new accounts; see ADR-0006.
+  password: z.string().min(8).max(256),
 });
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
 

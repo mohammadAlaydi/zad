@@ -5,8 +5,11 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
-import { useApp } from "@/store/appStore";
+import { useUserItems } from "@/features/userdata";
+import type { StockHolding } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+type StockPayload = Omit<StockHolding, "id">;
 
 const STOCKS = [
   {
@@ -61,7 +64,11 @@ const STOCKS = [
 
 export default function PortfolioScreen() {
   const insets = useSafeAreaInsets();
-  const { stockHoldings } = useApp();
+  const stocksQuery = useUserItems<StockPayload>("stocks");
+  const stockHoldings: StockHolding[] = (stocksQuery.data?.items ?? []).map((it) => ({
+    ...it.payload,
+    id: it.id,
+  }));
 
   const portfolioValue = useMemo(() => {
     return stockHoldings.reduce((acc, h) => {

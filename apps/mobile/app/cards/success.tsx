@@ -7,18 +7,29 @@ import { Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Screen } from "@/components/Screen";
+import { useUserItems } from "@/features/userdata";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+interface CardPayload {
+  last4?: string;
+  name?: string;
+  exp?: string;
+}
 
 export default function CardSuccess() {
   const insets = useSafeAreaInsets();
   const { type } = useLocalSearchParams<{ type: string }>();
-  const { cards, user } = useApp();
+  const { user } = useApp();
+  const cardsQuery = useUserItems<CardPayload>("cards");
+  const cards = cardsQuery.data?.items ?? [];
   const isPhysical = type === "physical";
 
-  // Get the most recently added card
-  const latestCard = cards[cards.length - 1];
-  const maskedNumber = latestCard ? `•••• •••• •••• ${latestCard.last4}` : "•••• •••• •••• ••••";
+  // Show the most recently created card (server returns newest first).
+  const latestCard = cards[0]?.payload;
+  const maskedNumber = latestCard?.last4
+    ? `•••• •••• •••• ${latestCard.last4}`
+    : "•••• •••• •••• ••••";
   const cardName = latestCard?.name ?? user.fullName ?? "CARD HOLDER";
 
   return (

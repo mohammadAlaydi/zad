@@ -19,7 +19,9 @@ export default function Signup() {
   const [phone, setPhone] = useState("");
   const [pwd, setPwd] = useState("");
 
-  const valid = phone.length >= 6 && pwd.length >= 4;
+  // Backend requires min 8 chars; mirror that here so the API call later
+  // can't fail validation after the user has gone through OTP.
+  const valid = phone.length >= 6 && pwd.length >= 8;
 
   return (
     <Screen scroll keyboard>
@@ -37,7 +39,7 @@ export default function Signup() {
         <View style={styles.spacer} />
         <Input
           label={t("auth.password")}
-          placeholder="••••••••"
+          placeholder="At least 8 characters"
           isPassword
           value={pwd}
           onChangeText={setPwd}
@@ -46,10 +48,15 @@ export default function Signup() {
       <View style={[styles.bottom, { paddingBottom: insets.bottom + 24 }]}>
         <Button
           title={t("auth.signUp")}
+          disabled={!valid}
           onPress={() =>
             router.push({
               pathname: "/(auth)/verify-phone",
-              params: { mode: "signup", phone: `${country.dial}${phone}` },
+              params: {
+                mode: "signup",
+                phone: `${country.dial}${phone}`,
+                password: pwd,
+              },
             })
           }
         />

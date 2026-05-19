@@ -6,8 +6,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
 import { CURRENCY_FLAGS } from "@/constants/currencyFlags";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { useHaptic } from "@/hooks/useHaptic";
-import { useApp, type Currency } from "@/store/appStore";
+import { type Currency } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 type Row = {
@@ -18,28 +19,38 @@ type Row = {
   active?: boolean;
 };
 
+function currencyName(c: string): string {
+  if (c === "USD") return "US Dollar";
+  if (c === "AED") return "United Arab Emirates Dirham";
+  if (c === "EUR") return "Euro";
+  if (c === "GBP") return "British Pound";
+  return c;
+}
+
 export default function AccountDetails() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const haptic = useHaptic();
-  const { balances } = useApp();
+  const accounts = useMyAccounts();
+  // Single-account hook — we only render the user's USD wallet's balance in
+  // the "active" rows below. Multi-currency users get one row each.
+  const usdAccount = accounts.data?.accounts.find((a) => a.currency === "USD");
+  const usdBalanceQuery = useAccountBalance(usdAccount?.id);
+  const usdBalance =
+    usdBalanceQuery.data === undefined
+      ? 0
+      : Number(BigInt(usdBalanceQuery.data.balance.amount)) / 100;
 
-  const active: Row[] = [
-    {
-      code: "USD",
-      name: "US Dollar",
-      sub: `Available ${balances.USD.toLocaleString()} $`,
-      currencyKey: "USD",
-      active: true,
-    },
-    {
-      code: "AED",
-      name: "United Arab Emirates Dirham",
-      sub: `Available ${balances.AED.toLocaleString()} AED`,
-      currencyKey: "AED",
-      active: true,
-    },
-  ];
+  const active: Row[] = (accounts.data?.accounts ?? []).map((a) => ({
+    code: a.currency,
+    name: currencyName(a.currency),
+    sub:
+      a.currency === "USD"
+        ? `Available ${usdBalance.toLocaleString()} $`
+        : `Available — ${a.currency}`,
+    currencyKey: a.currency as Currency,
+    active: true,
+  }));
 
   const others: Row[] = [
     { code: "AUD", name: "Austrian Dollar", sub: "AUD" },

@@ -16,8 +16,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import {
+  useCreateUserItem,
+  useDeleteUserItem,
+  useUpdateUserItem,
+  useUserItems,
+} from "@/features/userdata";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
+import { dollarsToMinor, refundToWallet, spendFromWallet } from "@/features/wallet/spend";
+import { newIdempotencyKey } from "@/lib/api/idempotency";
+import { queryClient } from "@/lib/api/queryClient";
 import { useApp } from "@/store/appStore";
+import type { CryptoHolding } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+type CryptoPayload = Omit<CryptoHolding, "id">;
 
 const COINS = [
   { symbol: "BTC", name: "Bitcoin", currentPrice: 64000, emoji: "₿", change: +2.1 },
@@ -32,7 +45,22 @@ type TradeTab = "buy" | "sell";
 export default function CoinDetailScreen() {
   const insets = useSafeAreaInsets();
   const { symbol } = useLocalSearchParams<{ symbol: string }>();
-  const { cryptoHoldings, buyCrypto, sellCrypto, balances, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
+
+  const cryptoQuery = useUserItems<CryptoPayload>("crypto");
+  const cryptoHoldings: CryptoHolding[] = (cryptoQuery.data?.items ?? []).map((it) => ({
+    ...it.payload,
+    id: it.id,
+  }));
+  const createCrypto = useCreateUserItem("crypto");
+  const updateCrypto = useUpdateUserItem("crypto");
+  const deleteCrypto = useDeleteUserItem("crypto");
+
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+  const balanceQuery = useAccountBalance(account?.id);
+  const balance =
+    balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
 
   const coin = COINS.find((c) => c.symbol === symbol);
   const holding = cryptoHoldings.find((h) => h.symbol === symbol);
@@ -40,6 +68,7 @@ export default function CoinDetailScreen() {
   const [tradeTab, setTradeTab] = useState<TradeTab>("buy");
   const [usdAmount, setUsdAmount] = useState("");
   const [coinAmount, setCoinAmount] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const currentPrice = coin?.currentPrice ?? 0;
 
@@ -49,31 +78,64 @@ export default function CoinDetailScreen() {
     return amt / currentPrice;
   }, [usdAmount, currentPrice]);
 
-  const balance = balances[activeCurrency] ?? 0;
-
-  function handleBuy() {
+  async function handleBuy() {
     const amt = parseFloat(usdAmount);
     if (!amt || amt <= 0) {
       Alert.alert("Invalid amount", "Please enter a USD amount to invest.");
       return;
     }
+    if (account === undefined) {
+      Alert.alert("No wallet", `No ${activeCurrency} wallet found.`);
+      return;
+    }
     if (amt > balance) {
-      Alert.alert(
-        "Insufficient balance",
-        `Your ${activeCurrency} balance is $${balance.toFixed(2)}.`,
-      );
+      Alert.alert("Insufficient balance", `Your balance is $${balance.toFixed(2)}.`);
       return;
     }
     const coins = amt / currentPrice;
-    buyCrypto(symbol!, coins, currentPrice, "USD");
-    setUsdAmount("");
-    Alert.alert(
-      "Purchase Successful",
-      `You bought ${coins.toFixed(6)} ${symbol} for $${amt.toFixed(2)}.`,
-    );
+    setSubmitting(true);
+    try {
+      await spendFromWallet({
+        accountId: account.id,
+        amountMinor: dollarsToMinor(amt),
+        currency: account.currency,
+        feature: "crypto",
+        ref: symbol ?? "unknown",
+        idempotencyKey: newIdempotencyKey(),
+      });
+      if (holding === undefined) {
+        await createCrypto.mutateAsync({
+          symbol: symbol!,
+          name: coin?.name ?? symbol!,
+          amount: coins,
+          avgBuyPrice: currentPrice,
+          currentPrice,
+          currency: "USD",
+        });
+      } else {
+        const { id: _drop, ...rest } = holding;
+        const newAmount = rest.amount + coins;
+        const newAvg = (rest.avgBuyPrice * rest.amount + currentPrice * coins) / newAmount;
+        await updateCrypto.mutateAsync({
+          id: holding.id,
+          payload: { ...rest, amount: newAmount, avgBuyPrice: newAvg, currentPrice },
+        });
+      }
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] });
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "transactions"] });
+      setUsdAmount("");
+      Alert.alert(
+        "Purchase Successful",
+        `You bought ${coins.toFixed(6)} ${symbol} for $${amt.toFixed(2)}.`,
+      );
+    } catch (e) {
+      Alert.alert("Failed", e instanceof Error ? e.message : "Trade failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  function handleSell() {
+  async function handleSell() {
     const amt = parseFloat(coinAmount);
     if (!amt || amt <= 0) {
       Alert.alert("Invalid amount", "Please enter the amount of coins to sell.");
@@ -86,10 +148,43 @@ export default function CoinDetailScreen() {
       );
       return;
     }
-    sellCrypto(symbol!, amt, currentPrice);
-    setCoinAmount("");
+    if (account === undefined) {
+      Alert.alert("No wallet", `No ${activeCurrency} wallet found.`);
+      return;
+    }
     const proceeds = amt * currentPrice;
-    Alert.alert("Sale Successful", `Sold ${amt.toFixed(6)} ${symbol} for $${proceeds.toFixed(2)}.`);
+    setSubmitting(true);
+    try {
+      await refundToWallet({
+        accountId: account.id,
+        amountMinor: dollarsToMinor(proceeds),
+        currency: account.currency,
+        feature: "crypto",
+        ref: symbol ?? "unknown",
+        idempotencyKey: newIdempotencyKey(),
+      });
+      const remaining = holding.amount - amt;
+      if (remaining <= 0.00000001) {
+        await deleteCrypto.mutateAsync(holding.id);
+      } else {
+        const { id: _drop, ...rest } = holding;
+        await updateCrypto.mutateAsync({
+          id: holding.id,
+          payload: { ...rest, amount: remaining, currentPrice },
+        });
+      }
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] });
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "transactions"] });
+      setCoinAmount("");
+      Alert.alert(
+        "Sale Successful",
+        `Sold ${amt.toFixed(6)} ${symbol} for $${proceeds.toFixed(2)}.`,
+      );
+    } catch (e) {
+      Alert.alert("Failed", e instanceof Error ? e.message : "Trade failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (!coin) {
@@ -235,7 +330,11 @@ export default function CoinDetailScreen() {
                     </Pressable>
                   ))}
                 </View>
-                <Button title={`Buy ${symbol}`} onPress={handleBuy} />
+                <Button
+                  title={submitting ? "Buying…" : `Buy ${symbol}`}
+                  onPress={() => void handleBuy()}
+                  disabled={submitting}
+                />
               </View>
             </MotiView>
           ) : (
@@ -311,9 +410,9 @@ export default function CoinDetailScreen() {
                   </View>
                 )}
                 <Button
-                  title={`Sell ${symbol}`}
-                  onPress={handleSell}
-                  disabled={!holding}
+                  title={submitting ? "Selling…" : `Sell ${symbol}`}
+                  onPress={() => void handleSell()}
+                  disabled={!holding || submitting}
                   variant={holding ? "primary" : "secondary"}
                 />
               </View>

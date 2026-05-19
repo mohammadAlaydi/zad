@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useCreateUserItem } from "@/features/userdata";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -12,25 +13,29 @@ const EMOJI_PRESETS = ["🏠", "✈️", "🎓", "🚗", "💍", "📱", "🏋�
 
 export default function CreateGoal() {
   const insets = useSafeAreaInsets();
-  const { addGoal, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
+  const createGoal = useCreateUserItem("goals");
 
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("🎯");
   const [target, setTarget] = useState("");
 
-  const canCreate = name.trim().length > 0 && parseFloat(target) > 0;
+  const canCreate = name.trim().length > 0 && parseFloat(target) > 0 && !createGoal.isPending;
 
-  function handleCreate() {
-    addGoal({
-      id: "goal-" + Date.now(),
-      name: name.trim(),
-      emoji,
-      targetAmount: parseFloat(target),
-      savedAmount: 0,
-      currency: activeCurrency,
-      createdAt: new Date().toISOString(),
-    });
-    router.back();
+  async function handleCreate() {
+    try {
+      await createGoal.mutateAsync({
+        name: name.trim(),
+        emoji,
+        targetAmount: parseFloat(target),
+        savedAmount: 0,
+        currency: activeCurrency,
+        createdAt: new Date().toISOString(),
+      });
+      router.back();
+    } catch {
+      /* silent — disabled on retry by isPending */
+    }
   }
 
   return (
@@ -95,7 +100,11 @@ export default function CreateGoal() {
       </ScrollView>
 
       <View style={[s.footer, { bottom: insets.bottom + 16 }]}>
-        <Button title="Create Goal" disabled={!canCreate} onPress={handleCreate} />
+        <Button
+          title={createGoal.isPending ? "Creating…" : "Create Goal"}
+          disabled={!canCreate}
+          onPress={() => void handleCreate()}
+        />
       </View>
     </Screen>
   );

@@ -8,14 +8,26 @@ import { FlagSelect } from "@/components/FlagSelect";
 import { Header } from "@/components/Header";
 import { OTPInput } from "@/components/OTPInput";
 import { Screen } from "@/components/Screen";
+import { useLogin, useRegister } from "@/features/auth";
+import { autoSubmitKyc } from "@/features/kyc";
+import { phoneToEmail } from "@/lib/auth/phoneToEmail";
 import { Colors } from "@/theme/colors";
 
 export default function VerifyPhone() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { mode } = useLocalSearchParams<{ mode: string; phone: string }>();
+  const { mode, phone, password } = useLocalSearchParams<{
+    mode: string;
+    phone: string;
+    password: string;
+  }>();
   const [code, setCode] = useState("");
   const [secs, setSecs] = useState(28);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const login = useLogin();
+  const register = useRegister();
 
   useEffect(() => {
     const i = setInterval(() => setSecs((s) => (s > 0 ? s - 1 : 0)), 1000);
@@ -23,6 +35,57 @@ export default function VerifyPhone() {
   }, []);
 
   const valid = code.length === 6;
+
+  async function onSubmit() {
+    // Any 6-digit code is accepted — the phone OTP is a UI stub in dev;
+    // the real auth happens against the backend with the synthesized
+    // email + the password the user typed on the previous screen.
+    if (!valid || submitting) return;
+    if (typeof phone !== "string" || typeof password !== "string") {
+      setError("Missing phone or password. Please go back and re-enter.");
+      return;
+    }
+
+    const email = phoneToEmail(phone);
+    if (email.length === 0) {
+      setError("Invalid phone number.");
+      return;
+    }
+
+    setError(null);
+    setSubmitting(true);
+    try {
+      if (mode === "signup") {
+        const result = await register.mutate({ email, password });
+        if (!result.ok) {
+          setError(result.error.message);
+          return;
+        }
+        // Fire-and-forget: submits placeholder KYC docs so the dev provider
+        // auto-approves shortly after the user lands on home.
+        void autoSubmitKyc();
+        router.replace("/(tabs)/home");
+      } else {
+        const result = await login.mutate({ email, password });
+        if (!result.ok) {
+          setError(result.error.message);
+          return;
+        }
+        router.replace("/(tabs)/home");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const busy = submitting || login.isPending || register.isPending;
+  const buttonTitle = busy
+    ? mode === "login"
+      ? "Signing in…"
+      : "Creating account…"
+    : mode === "login"
+      ? t("auth.logIn")
+      : t("auth.signUp");
 
   return (
     <Screen keyboard>
@@ -40,9 +103,22 @@ export default function VerifyPhone() {
             fontSize: 13,
           }}
         >
-          {t("auth.confirmPhoneHint")} +964 5515 4525 4
+          {t("auth.confirmPhoneHint")} {phone ?? ""}
         </Text>
         <OTPInput value={code} onChange={setCode} />
+        {error !== null && (
+          <Text
+            style={{
+              marginTop: 16,
+              color: Colors.accent.red,
+              fontFamily: "Inter_400Regular",
+              fontSize: 12,
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </Text>
+        )}
         <View style={{ alignItems: "center", marginTop: 24 }}>
           {secs > 0 ? (
             <Text style={{ color: Colors.ink[500], fontFamily: "Inter_400Regular", fontSize: 13 }}>
@@ -63,13 +139,7 @@ export default function VerifyPhone() {
         </View>
       </View>
       <View style={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }}>
-        <Button
-          title={mode === "login" ? t("auth.logIn") : t("auth.signUp")}
-          onPress={() => {
-            if (mode === "login") router.replace("/(auth)/passcode");
-            else router.push("/(auth)/add-email");
-          }}
-        />
+        <Button title={buttonTitle} disabled={!valid || busy} onPress={onSubmit} />
       </View>
     </Screen>
   );

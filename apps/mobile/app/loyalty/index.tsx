@@ -1,15 +1,27 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, Pressable, ScrollView, Modal, Share, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useCreateUserItem, useUpdateUserItem, useUserItems } from "@/features/userdata";
 import { useApp } from "@/store/appStore";
 import type { LoyaltyLevel } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+interface LoyaltyState {
+  points: number;
+  level: LoyaltyLevel;
+}
+
+interface ReferralPayload {
+  name: string;
+  joinedAt: string;
+  pointsEarned: number;
+}
 
 // ─── Level config ──────────────────────────────────────────────────────────────
 const LEVELS: { level: LoyaltyLevel; minPts: number; color: string; bg: string; icon: string }[] = [
@@ -267,12 +279,36 @@ const ref = StyleSheet.create({
 // ─── Main Screen ───────────────────────────────────────────────────────────────
 export default function LoyaltyScreen() {
   const insets = useSafeAreaInsets();
-  const { loyaltyPoints, loyaltyLevel, referrals, redeemLoyaltyPoints, addReferral, user } =
-    useApp();
+  const { user } = useApp();
+
+  // The loyalty "stats" live as a single userdata item (feature="loyalty",
+  // first row). Created lazily on first redeem if it doesn't exist.
+  const loyaltyQuery = useUserItems<LoyaltyState>("loyalty");
+  const loyaltyItem = loyaltyQuery.data?.items[0];
+  const loyaltyPoints = loyaltyItem?.payload.points ?? 1240;
+  const loyaltyLevel = loyaltyItem?.payload.level ?? ("Silver" as LoyaltyLevel);
+  const createLoyalty = useCreateUserItem("loyalty");
+  const updateLoyalty = useUpdateUserItem("loyalty");
+
+  // Referrals are 1 row per referral.
+  const referralsQuery = useUserItems<ReferralPayload>("referrals");
+  const referrals = (referralsQuery.data?.items ?? []).map((it) => ({
+    id: it.id,
+    ...it.payload,
+  }));
+  const createReferral = useCreateUserItem("referrals");
 
   const [showRedeem, setShowRedeem] = useState(false);
   const [showRefer, setShowRefer] = useState(false);
   const [recentRedeemed, setRecentRedeemed] = useState<string | null>(null);
+
+  // Seed the loyalty row on first ever load so subsequent updates have an
+  // id to target. Idempotent guard prevents duplicate seeds across renders.
+  useEffect(() => {
+    if (loyaltyQuery.isFetched && loyaltyItem === undefined && !createLoyalty.isPending) {
+      createLoyalty.mutate({ points: 1240, level: "Silver" });
+    }
+  }, [loyaltyQuery.isFetched, loyaltyItem, createLoyalty]);
 
   const levelCfg = getLevelConfig(loyaltyLevel);
   const nextLevel = getNextLevel(loyaltyLevel);
@@ -284,7 +320,11 @@ export default function LoyaltyScreen() {
     : 100;
 
   function handleRedeem(pts: number, label: string) {
-    redeemLoyaltyPoints(pts);
+    if (loyaltyItem === undefined) return;
+    updateLoyalty.mutate({
+      id: loyaltyItem.id,
+      payload: { points: Math.max(0, loyaltyPoints - pts), level: loyaltyLevel },
+    });
     setRecentRedeemed(label);
     setTimeout(() => setRecentRedeemed(null), 3500);
   }
@@ -292,12 +332,18 @@ export default function LoyaltyScreen() {
   function handleSimulateReferral() {
     const names = ["Sara Ali", "Omar Hadi", "Lina Karim", "Yusuf Noor", "Aya Hassan"];
     const name = names[Math.floor(Math.random() * names.length)];
-    addReferral({
-      id: "ref-" + Date.now(),
+    createReferral.mutate({
       name,
       joinedAt: new Date().toISOString(),
       pointsEarned: 200,
     });
+    // Award the referrer points too.
+    if (loyaltyItem !== undefined) {
+      updateLoyalty.mutate({
+        id: loyaltyItem.id,
+        payload: { points: loyaltyPoints + 200, level: loyaltyLevel },
+      });
+    }
   }
 
   return (

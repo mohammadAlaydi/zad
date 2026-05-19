@@ -6,9 +6,20 @@ import { View, Text, Pressable, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useUserItems } from "@/features/userdata";
 import { useHaptic } from "@/hooks/useHaptic";
-import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+interface CardPayload {
+  brand?: string;
+  last4?: string;
+  exp?: string;
+  name?: string;
+  isVirtual?: boolean;
+  isPhysical?: boolean;
+  isActive?: boolean;
+  atmEnabled?: boolean;
+}
 
 function MasterCardLogo() {
   return (
@@ -47,14 +58,18 @@ export default function SavedCards() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const haptic = useHaptic();
-  const { cards } = useApp();
+  const cardsQuery = useUserItems<CardPayload>("cards");
+  const cards = cardsQuery.data?.items ?? [];
 
-  const display = cards.length
-    ? cards
-    : [
-        { id: "1", last4: "4242" },
-        { id: "2", last4: "7821" },
-      ];
+  // No real items yet → show two placeholders so the design isn't blank.
+  // Once the user requests a card via /cards/issue they replace this list.
+  const display: { id: string; last4: string }[] =
+    cards.length > 0
+      ? cards.map((c) => ({ id: c.id, last4: c.payload.last4 ?? "0000" }))
+      : [
+          { id: "1", last4: "4242" },
+          { id: "2", last4: "7821" },
+        ];
 
   return (
     <Screen bg={Colors.white}>

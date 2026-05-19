@@ -6,12 +6,19 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
-import { useApp } from "@/store/appStore";
+import { useUserItems } from "@/features/userdata";
+import type { WalletGoal } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+type GoalPayload = Omit<WalletGoal, "id">;
 
 export default function GoalsScreen() {
   const insets = useSafeAreaInsets();
-  const { goals } = useApp();
+  const goalsQuery = useUserItems<GoalPayload>("goals");
+  const goals: WalletGoal[] = (goalsQuery.data?.items ?? []).map((it) => ({
+    ...it.payload,
+    id: it.id,
+  }));
 
   return (
     <Screen bg={Colors.surface.background}>

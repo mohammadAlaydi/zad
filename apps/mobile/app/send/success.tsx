@@ -9,7 +9,6 @@ import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/Button";
 import { Screen } from "@/components/Screen";
 import { SuccessIllustration } from "@/illustrations/SuccessIllustration";
-import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 export default function SendSuccess() {
@@ -25,17 +24,8 @@ export default function SendSuccess() {
   const recipient = contactName || mobile || "Roaa Ali mohamed";
   const phone = mobile || "0101663645";
   const username = "@" + recipient.replace(/\s+/g, "").toLowerCase().slice(0, 10);
-  const { addTransaction } = useApp();
 
   const handleShare = () => {
-    addTransaction({
-      id: "tx-" + Date.now(),
-      name: recipient,
-      category: "Money Sent",
-      amount: -amt,
-      currency: "USD",
-      date: new Date().toISOString(),
-    });
     router.replace("/(tabs)/home");
   };
 

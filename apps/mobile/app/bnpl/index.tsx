@@ -7,9 +7,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useCreateUserItem, useUpdateUserItem, useUserItems } from "@/features/userdata";
+import { spendThenUpdateItem } from "@/features/userdata/walletItems";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
+import { queryClient } from "@/lib/api/queryClient";
 import { useApp } from "@/store/appStore";
 import type { BNPLInstallment, Currency } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+type BNPLPayload = Omit<BNPLInstallment, "id">;
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 function statusColor(s: BNPLInstallment["status"]) {
@@ -214,7 +220,7 @@ function NewBNPLModal({
 }: {
   visible: boolean;
   onClose: () => void;
-  onAdd: (item: BNPLInstallment) => void;
+  onAdd: (item: BNPLPayload) => void;
   currency: Currency;
 }) {
   const [merchant, setMerchant] = useState("");
@@ -231,7 +237,6 @@ function NewBNPLModal({
     const nextDue = new Date(now);
     nextDue.setMonth(nextDue.getMonth() + 1);
     onAdd({
-      id: "bnpl-" + Date.now(),
       merchantName: merchant.trim(),
       totalAmount: totalNum,
       installments: instNum,
@@ -382,7 +387,20 @@ const nm = StyleSheet.create({
 // ─── Main Screen ───────────────────────────────────────────────────────────────
 export default function BNPLScreen() {
   const insets = useSafeAreaInsets();
-  const { bnplInstallments, addBNPL, repayBNPL, activeCurrency, balances } = useApp();
+  const { activeCurrency } = useApp();
+  const bnplQuery = useUserItems<BNPLPayload>("bnpl");
+  const bnplInstallments: BNPLInstallment[] = (bnplQuery.data?.items ?? []).map((it) => ({
+    ...it.payload,
+    id: it.id,
+  }));
+  const createBNPL = useCreateUserItem("bnpl");
+  const updateBNPL = useUpdateUserItem("bnpl");
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+  const balanceQuery = useAccountBalance(account?.id);
+  const balance =
+    balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
+
   const [showModal, setShowModal] = useState(false);
 
   const totalOutstanding = bnplInstallments
@@ -392,6 +410,32 @@ export default function BNPLScreen() {
   const activeCount = bnplInstallments.filter(
     (b) => b.status === "active" || b.status === "overdue",
   ).length;
+
+  async function handleRepay(item: BNPLInstallment) {
+    if (account === undefined) return;
+    const newPaidCount = Math.min(item.paidCount + 1, item.installments);
+    const newStatus: BNPLInstallment["status"] =
+      newPaidCount >= item.installments ? "completed" : item.status;
+    const { id: _drop, ...rest } = item;
+    try {
+      await spendThenUpdateItem(
+        "bnpl",
+        item.id,
+        { ...rest, paidCount: newPaidCount, status: newStatus },
+        {
+          accountId: account.id,
+          currency: account.currency,
+          amountUsd: item.amountPerInstallment,
+          feature: "bnpl",
+          ref: item.id,
+        },
+      );
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] });
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "transactions"] });
+    } catch {
+      /* surfaced via state */
+    }
+  }
 
   return (
     <Screen bg={Colors.surface.background}>
@@ -433,7 +477,7 @@ export default function BNPLScreen() {
                 <View style={s.summaryPill}>
                   <Ionicons name="wallet-outline" size={12} color="rgba(255,255,255,0.8)" />
                   <Text style={s.summaryPillText}>
-                    Balance: {activeCurrency} {balances[activeCurrency].toLocaleString()}
+                    Balance: {activeCurrency} {balance.toLocaleString()}
                   </Text>
                 </View>
               </View>
@@ -466,7 +510,7 @@ export default function BNPLScreen() {
                 key={item.id}
                 item={item}
                 index={i}
-                onRepay={() => repayBNPL(item.id)}
+                onRepay={() => void handleRepay(item)}
               />
             ))}
           </>
@@ -481,7 +525,7 @@ export default function BNPLScreen() {
       <NewBNPLModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        onAdd={addBNPL}
+        onAdd={(payload) => createBNPL.mutate(payload)}
         currency={activeCurrency}
       />
     </Screen>

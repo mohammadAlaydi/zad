@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
@@ -17,7 +18,12 @@ export default function TopUp() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const haptic = useHaptic();
-  const { balances, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+  const balanceQuery = useAccountBalance(account?.id);
+  const balance =
+    balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
   const [amount, setAmount] = useState(200);
   const [inputText, setInputText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
@@ -62,9 +68,7 @@ export default function TopUp() {
             <Text style={styles.flagEmoji}>🇺🇸</Text>
             <View style={styles.balanceInfo}>
               <Text style={styles.balanceName}>{activeCurrency} Balance</Text>
-              <Text style={styles.balanceAvailable}>
-                Available {balances[activeCurrency].toLocaleString()}$
-              </Text>
+              <Text style={styles.balanceAvailable}>Available {balance.toLocaleString()}$</Text>
             </View>
             <Pressable onPress={() => router.push("/(tabs)/accounts")} hitSlop={8}>
               <Text style={styles.changeLink}>{t("common.change")}</Text>

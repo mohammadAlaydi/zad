@@ -1,13 +1,18 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { MotiView } from "moti";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useCreateUserItem } from "@/features/userdata";
+import { useMyAccounts } from "@/features/wallet";
+import { dollarsToMinor, spendFromWallet } from "@/features/wallet/spend";
+import { newIdempotencyKey } from "@/lib/api/idempotency";
+import { queryClient } from "@/lib/api/queryClient";
 import { useApp } from "@/store/appStore";
-import type { VisaDirectTx } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 const VISA_FEE = 1.5;
@@ -15,7 +20,10 @@ const VISA_FEE = 1.5;
 export default function VisaConfirm() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { sendVisaDirect, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
+  const accounts = useMyAccounts();
+  const createVisaTx = useCreateUserItem("visa_direct");
+  const [submitting, setSubmitting] = useState(false);
   const { recipientName, cardLast4, amount } = useLocalSearchParams<{
     recipientName: string;
     cardLast4: string;
@@ -26,27 +34,47 @@ export default function VisaConfirm() {
   const total = amt + VISA_FEE;
   const maskedCard = `•••• •••• •••• ${cardLast4}`;
 
-  const handleSend = () => {
-    const tx: VisaDirectTx = {
-      id: "vd-" + Date.now(),
-      recipientName: recipientName ?? "",
-      cardLast4: cardLast4 ?? "",
-      amount: amt,
-      fee: VISA_FEE,
-      currency: activeCurrency,
-      date: new Date().toISOString(),
-      status: "completed",
-    };
-    sendVisaDirect(tx);
-    router.push({
-      pathname: "/send/success",
-      params: {
-        amount: amount,
-        contactName: recipientName,
-        mobile: "",
-        message: "Visa Direct Transfer",
-      },
-    });
+  const handleSend = async () => {
+    const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+    if (account === undefined) return;
+    setSubmitting(true);
+    try {
+      // One ledger move covers the transferred amount + the Visa fee. The
+      // backend ledger doesn't model "fees" separately so we just send the
+      // total as the withdrawal amount.
+      await spendFromWallet({
+        accountId: account.id,
+        amountMinor: dollarsToMinor(total),
+        currency: account.currency,
+        feature: "visa_direct",
+        ref: cardLast4 ?? "unknown",
+        idempotencyKey: newIdempotencyKey(),
+      });
+      // Persist a record of the visa-direct attempt so the user has a
+      // history in the visa direct screen. Independent of the ledger entry.
+      await createVisaTx.mutateAsync({
+        recipientName: recipientName ?? "",
+        cardLast4: cardLast4 ?? "",
+        amount: amt,
+        fee: VISA_FEE,
+        currency: activeCurrency,
+        date: new Date().toISOString(),
+        status: "completed",
+      });
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] });
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "transactions"] });
+      router.push({
+        pathname: "/send/success",
+        params: {
+          amount: amount,
+          contactName: recipientName,
+          mobile: "",
+          message: "Visa Direct Transfer",
+        },
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -105,7 +133,11 @@ export default function VisaConfirm() {
       </View>
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
-        <Button title="Send via Visa" onPress={handleSend} />
+        <Button
+          title={submitting ? "Sending…" : "Send via Visa"}
+          onPress={() => void handleSend()}
+          disabled={submitting}
+        />
       </View>
     </Screen>
   );

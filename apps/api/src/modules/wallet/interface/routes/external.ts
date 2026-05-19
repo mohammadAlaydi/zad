@@ -15,7 +15,7 @@ import { idempotency } from "../../../../shared/middleware/idempotency.js";
 import type { CreateTopupCommand } from "../../application/commands/CreateTopup.js";
 import type { CreateWithdrawalCommand } from "../../application/commands/CreateWithdrawal.js";
 import type { Transaction } from "../../domain/entities/Transaction.js";
-import { ErrorResponseJson } from "../schemas/wallet.js";
+import { ErrorResponseJson, ExternalMovementResponseJson } from "../schemas/wallet.js";
 
 export interface ExternalRouteDeps {
   createTopup: CreateTopupCommand;
@@ -55,7 +55,7 @@ export async function registerExternalRoutes(
         security: [{ bearerAuth: [] }],
         body: TopupRequestJson,
         response: {
-          200: ErrorResponseJson, // shape documented via TransferResponseSchema; placeholder for OpenAPI
+          200: ExternalMovementResponseJson,
           400: ErrorResponseJson,
           401: ErrorResponseJson,
           404: ErrorResponseJson,
@@ -107,7 +107,7 @@ export async function registerExternalRoutes(
         security: [{ bearerAuth: [] }],
         body: WithdrawalRequestJson,
         response: {
-          200: ErrorResponseJson,
+          200: ExternalMovementResponseJson,
           400: ErrorResponseJson,
           401: ErrorResponseJson,
           404: ErrorResponseJson,

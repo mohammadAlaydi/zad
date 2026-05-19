@@ -18,6 +18,7 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -26,7 +27,12 @@ const { width } = Dimensions.get("window");
 export default function ReceiveMoney() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { balances, activeCurrency, user } = useApp();
+  const { activeCurrency, user } = useApp();
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+  const balanceQuery = useAccountBalance(account?.id);
+  const balance =
+    balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
   const [amount, setAmount] = useState(0);
   const [from, setFrom] = useState("");
   const [note, setNote] = useState("");
@@ -67,7 +73,7 @@ export default function ReceiveMoney() {
               <Text
                 style={{ color: Colors.accent.green, fontFamily: "Inter_500Medium", fontSize: 12 }}
               >
-                Available {balances[activeCurrency].toLocaleString()} $
+                Available {balance.toLocaleString()} $
               </Text>
             </View>
             <Pressable onPress={() => router.push("/(tabs)/accounts")} hitSlop={8}>

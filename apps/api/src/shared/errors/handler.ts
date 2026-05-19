@@ -28,6 +28,17 @@ export function registerErrorHandler(app: FastifyInstance): void {
       return;
     }
 
+    // FastifyError carries a usable statusCode for client-side issues
+    // (e.g. FST_ERR_CTP_EMPTY_JSON_BODY → 400). Don't bury those in 500s.
+    if (typeof error.statusCode === "number" && error.statusCode >= 400 && error.statusCode < 500) {
+      void reply.status(error.statusCode).send({
+        code: error.code ?? "COMMON.BAD_REQUEST",
+        message: error.message,
+        requestId: request.id,
+      });
+      return;
+    }
+
     request.log.error({ err: error }, "Unhandled error");
     // No-op if SENTRY_DSN wasn't configured (init in instrument.ts skips).
     Sentry.captureException(error, {

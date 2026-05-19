@@ -18,6 +18,7 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
+import { useCreateUserItem } from "@/features/userdata";
 import { useApp } from "@/store/appStore";
 import type { SavingsFrequency } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
@@ -43,7 +44,8 @@ function formatLockDate(months: number): string {
 
 export default function CreateSavingsPlan() {
   const insets = useSafeAreaInsets();
-  const { addSavingsPlan, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
+  const createSavings = useCreateUserItem("savings");
 
   const [emoji, setEmoji] = useState("💰");
   const [name, setName] = useState("");
@@ -59,25 +61,27 @@ export default function CreateSavingsPlan() {
   const interest = parseFloat(interestRaw) || undefined;
   const canSubmit = name.trim().length > 0 && target > 0 && contribution > 0;
 
-  function handleCreate() {
+  async function handleCreate() {
     if (!canSubmit) return;
     const lockUntil = lockEnabled ? addMonths(new Date(), lockMonths).toISOString() : undefined;
-
-    addSavingsPlan({
-      id: "sav-" + Date.now(),
-      name: name.trim(),
-      emoji,
-      targetAmount: target,
-      savedAmount: 0,
-      contributionAmount: contribution,
-      frequency,
-      lockUntil,
-      interestRate: interest,
-      currency: activeCurrency,
-      createdAt: new Date().toISOString(),
-      isActive: true,
-    });
-    router.back();
+    try {
+      await createSavings.mutateAsync({
+        name: name.trim(),
+        emoji,
+        targetAmount: target,
+        savedAmount: 0,
+        contributionAmount: contribution,
+        frequency,
+        lockUntil,
+        interestRate: interest,
+        currency: activeCurrency,
+        createdAt: new Date().toISOString(),
+        isActive: true,
+      });
+      router.back();
+    } catch {
+      /* mutation state surfaces error */
+    }
   }
 
   return (
@@ -269,9 +273,9 @@ export default function CreateSavingsPlan() {
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
         <Button
-          title="Create Plan"
-          disabled={!canSubmit}
-          onPress={handleCreate}
+          title={createSavings.isPending ? "Creating…" : "Create Plan"}
+          disabled={!canSubmit || createSavings.isPending}
+          onPress={() => void handleCreate()}
           icon={<Ionicons name="checkmark-circle-outline" size={18} color={Colors.white} />}
         />
       </View>

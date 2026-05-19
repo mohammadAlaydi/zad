@@ -9,7 +9,7 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
-import { useApp } from "@/store/appStore";
+import { useCreateUserItem } from "@/features/userdata";
 import { Colors } from "@/theme/colors";
 
 type CardType = "virtual" | "physical";
@@ -17,25 +17,31 @@ type CardType = "virtual" | "physical";
 export default function IssueCard() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { addCard } = useApp();
+  const createCard = useCreateUserItem("cards");
   const [selected, setSelected] = useState<CardType>("virtual");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleRequest = () => {
+  const handleRequest = async () => {
+    setError(null);
     const last4 = String(Math.floor(1000 + Math.random() * 9000));
-    addCard({
-      id: "card-" + Date.now(),
-      brand: "visa",
-      last4,
-      exp: "12/29",
-      name: "Mahmoud Hafez",
-      isVirtual: selected === "virtual",
-      isPhysical: selected === "physical",
-      isActive: true,
-      atmEnabled: selected === "physical",
-    });
-    router.push({ pathname: "/cards/success", params: { type: selected } });
+    try {
+      await createCard.mutateAsync({
+        brand: "visa",
+        last4,
+        exp: "12/29",
+        name: "Mahmoud Hafez",
+        isVirtual: selected === "virtual",
+        isPhysical: selected === "physical",
+        isActive: true,
+        atmEnabled: selected === "physical",
+        deliveryAddress: selected === "physical" ? `${address}, ${city}` : undefined,
+      });
+      router.push({ pathname: "/cards/success", params: { type: selected } });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not issue card");
+    }
   };
 
   return (
@@ -254,10 +260,25 @@ export default function IssueCard() {
       </ScrollView>
 
       <View style={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 16 }}>
+        {error !== null && (
+          <Text
+            style={{
+              color: Colors.accent.red,
+              fontFamily: "Inter_400Regular",
+              fontSize: 12,
+              textAlign: "center",
+              marginBottom: 10,
+            }}
+          >
+            {error}
+          </Text>
+        )}
         <Button
-          title="Request Card"
-          onPress={handleRequest}
-          disabled={selected === "physical" && (!address.trim() || !city.trim())}
+          title={createCard.isPending ? "Requesting…" : "Request Card"}
+          onPress={() => void handleRequest()}
+          disabled={
+            createCard.isPending || (selected === "physical" && (!address.trim() || !city.trim()))
+          }
         />
       </View>
     </Screen>

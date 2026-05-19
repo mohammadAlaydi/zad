@@ -6,9 +6,15 @@ import { View, Text, Pressable, ScrollView, Modal, StyleSheet, Alert } from "rea
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useCreateUserItem, useUpdateUserItem, useUserItems } from "@/features/userdata";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
+import { dollarsToMinor, spendFromWallet } from "@/features/wallet/spend";
+import { newIdempotencyKey } from "@/lib/api/idempotency";
 import { useApp } from "@/store/appStore";
 import type { Voucher, Currency } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+type VoucherPayload = Omit<Voucher, "id">;
 
 // ─── Voucher catalog ───────────────────────────────────────────────────────────
 type CatalogItem = {
@@ -416,48 +422,85 @@ const bm = StyleSheet.create({
 // ─── Main Screen ───────────────────────────────────────────────────────────────
 export default function VouchersScreen() {
   const insets = useSafeAreaInsets();
-  const { vouchers, addVoucher, redeemVoucher, activeCurrency, balances, addTransaction } =
-    useApp();
+  const { activeCurrency } = useApp();
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+  const balanceQuery = useAccountBalance(account?.id);
+  const balance =
+    balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
+
+  const vouchersQuery = useUserItems<VoucherPayload>("vouchers");
+  const vouchers: Voucher[] = (vouchersQuery.data?.items ?? []).map((it) => ({
+    ...it.payload,
+    id: it.id,
+  }));
+  const createVoucher = useCreateUserItem("vouchers");
+  const updateVoucher = useUpdateUserItem("vouchers");
+
   const [showBuy, setShowBuy] = useState(false);
   const [activeTab, setActiveTab] = useState<"active" | "used">("active");
+  const [error, setError] = useState<string | null>(null);
 
   const active = vouchers.filter((v) => !v.isUsed);
   const used = vouchers.filter((v) => v.isUsed);
   const displayed = activeTab === "active" ? active : used;
 
-  function handleBuy(item: CatalogItem) {
+  async function handleBuy(item: CatalogItem) {
+    setError(null);
+    if (account === undefined) {
+      setError(`No ${activeCurrency} wallet found.`);
+      return;
+    }
+    if (balance < item.price) {
+      setError(`Insufficient balance.`);
+      return;
+    }
     const expiry = new Date();
     expiry.setFullYear(expiry.getFullYear() + 1);
     const code = Math.random().toString(36).substring(2, 10).toUpperCase();
 
-    addVoucher({
-      id: "vch-" + Date.now(),
-      type: item.type,
-      merchant: item.merchant,
-      value: item.value,
-      currency: activeCurrency,
-      code,
-      expiresAt: expiry.toISOString(),
-      isUsed: false,
-    });
-
-    addTransaction({
-      id: "vch-tx-" + Date.now(),
-      name: `${item.merchant} Voucher`,
-      category: "Voucher",
-      amount: -item.price,
-      currency: activeCurrency,
-      date: new Date().toISOString(),
-      txType: "voucher",
-    });
-
-    setShowBuy(false);
+    try {
+      // Move money out of the wallet first; only persist the voucher if
+      // the ledger move succeeds. Otherwise we'd ship a free voucher.
+      await spendFromWallet({
+        accountId: account.id,
+        amountMinor: dollarsToMinor(item.price),
+        currency: account.currency,
+        feature: "voucher",
+        ref: item.merchant,
+        idempotencyKey: newIdempotencyKey(),
+      });
+      await createVoucher.mutateAsync({
+        type: item.type,
+        merchant: item.merchant,
+        value: item.value,
+        currency: activeCurrency,
+        code,
+        expiresAt: expiry.toISOString(),
+        isUsed: false,
+      });
+      setShowBuy(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not buy voucher");
+    }
   }
 
   function handleRedeem(id: string) {
     Alert.alert("Redeem Voucher", "Mark this voucher as used?", [
       { text: "Cancel", style: "cancel" },
-      { text: "Redeem", style: "destructive", onPress: () => redeemVoucher(id) },
+      {
+        text: "Redeem",
+        style: "destructive",
+        onPress: () => {
+          const v = vouchers.find((x) => x.id === id);
+          if (v === undefined) return;
+          const { id: _drop, ...rest } = v;
+          updateVoucher.mutate({
+            id,
+            payload: { ...rest, isUsed: true, redeemedAt: new Date().toISOString() },
+          });
+        },
+      },
     ]);
   }
 
@@ -558,12 +601,27 @@ export default function VouchersScreen() {
         <Ionicons name="add" size={28} color={Colors.white} />
       </Pressable>
 
+      {error !== null && (
+        <View style={{ paddingHorizontal: 18, marginTop: -90, marginBottom: 90 }}>
+          <Text
+            style={{
+              color: Colors.accent.red,
+              fontFamily: "Inter_400Regular",
+              fontSize: 12,
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </Text>
+        </View>
+      )}
+
       <BuyModal
         visible={showBuy}
         onClose={() => setShowBuy(false)}
-        onBuy={handleBuy}
+        onBuy={(item) => void handleBuy(item)}
         currency={activeCurrency}
-        balance={balances[activeCurrency]}
+        balance={balance}
       />
     </Screen>
   );

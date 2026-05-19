@@ -1,10 +1,13 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { MotiView } from "moti";
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View, Text } from "react-native";
 import Svg, { Path, Circle, G } from "react-native-svg";
 import { Screen } from "@/components/Screen";
+import { useMyAccounts, useWithdraw } from "@/features/wallet";
+import { newIdempotencyKey } from "@/lib/api/idempotency";
+import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 function RocketIllustration() {
@@ -42,16 +45,57 @@ export default function SendProcessing() {
     contactName: string;
     message: string;
   }>();
+  const { activeCurrency } = useApp();
+  const accounts = useMyAccounts();
+  const withdraw = useWithdraw();
+  const [error, setError] = useState<string | null>(null);
+  const idempotencyKey = useMemo(() => newIdempotencyKey(), []);
+  const ran = useRef(false);
 
   useEffect(() => {
-    const tm = setTimeout(() => {
-      router.replace({
-        pathname: "/send/success",
-        params: { amount: String(amount), mobile, contactName, message },
+    // Once-per-mount guard — accounts.data flipping from undefined to
+    // populated would otherwise fire the mutation twice.
+    if (ran.current) return;
+    if (accounts.data === undefined) return;
+    ran.current = true;
+
+    const account = accounts.data.accounts.find((a) => a.currency === activeCurrency);
+    if (account === undefined) {
+      setError(`No ${activeCurrency} wallet found.`);
+      return;
+    }
+
+    const amt = Number(amount || 0);
+    const destination = (contactName || mobile || "recipient").toString();
+
+    withdraw
+      .mutateAsync({
+        request: {
+          accountId: account.id,
+          amount: { amount: String(Math.round(amt * 100)), currency: account.currency },
+          destination,
+        },
+        idempotencyKey,
+      })
+      .then(() => {
+        router.replace({
+          pathname: "/send/success",
+          params: { amount: String(amount), mobile, contactName, message },
+        });
+      })
+      .catch((e: unknown) => {
+        setError(e instanceof Error ? e.message : "Send failed");
       });
-    }, 2500);
-    return () => clearTimeout(tm);
-  }, []);
+  }, [
+    accounts.data,
+    activeCurrency,
+    amount,
+    contactName,
+    mobile,
+    message,
+    idempotencyKey,
+    withdraw,
+  ]);
 
   return (
     <Screen
@@ -111,6 +155,20 @@ export default function SendProcessing() {
           />
         ))}
       </View>
+
+      {error !== null && (
+        <Text
+          style={{
+            marginTop: 20,
+            color: Colors.accent.red,
+            fontFamily: "Inter_400Regular",
+            fontSize: 13,
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </Text>
+      )}
     </Screen>
   );
 }

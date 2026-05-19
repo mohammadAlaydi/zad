@@ -6,8 +6,11 @@ import { View, Text, ScrollView, Pressable, StyleSheet, TextInput } from "react-
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
-import { useApp } from "@/store/appStore";
+import { useUserItems } from "@/features/userdata";
+import type { StockHolding } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+type StockPayload = Omit<StockHolding, "id">;
 
 const STOCKS = [
   {
@@ -64,7 +67,11 @@ type Tab = "market" | "portfolio";
 
 export default function InvestScreen() {
   const insets = useSafeAreaInsets();
-  const { stockHoldings } = useApp();
+  const stocksQuery = useUserItems<StockPayload>("stocks");
+  const stockHoldings: StockHolding[] = (stocksQuery.data?.items ?? []).map((it) => ({
+    ...it.payload,
+    id: it.id,
+  }));
   const [activeTab, setActiveTab] = useState<Tab>("market");
   const [search, setSearch] = useState("");
 

@@ -6,13 +6,19 @@ import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 export default function SendConfirm() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { balances, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+  const balanceQuery = useAccountBalance(account?.id);
+  const balance =
+    balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
   const { amount, mobile, contactName, message, tab } = useLocalSearchParams<{
     amount: string;
     mobile: string;
@@ -84,7 +90,7 @@ export default function SendConfirm() {
             <Text
               style={{ color: Colors.accent.green, fontFamily: "Inter_500Medium", fontSize: 12 }}
             >
-              Available {balances[activeCurrency].toLocaleString()} $
+              Available {balance.toLocaleString()} $
             </Text>
           </View>
           <Pressable onPress={() => router.push("/(tabs)/accounts")} hitSlop={8}>

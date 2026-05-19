@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View, Text, ScrollView, Pressable, RefreshControl, Modal, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,33 +8,131 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
 import { CURRENCY_FLAGS } from "@/constants/currencyFlags";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
+import { queryClient } from "@/lib/api/queryClient";
 import { useApp, type Currency } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+// Per-row balance loader — accounts tab shows several, each needs its own
+// query (balance is fetched by accountId, not in bulk).
+function useAccountRowBalance(accountId: string) {
+  const q = useAccountBalance(accountId);
+  return q.data === undefined ? 0 : Number(BigInt(q.data.balance.amount)) / 100;
+}
+
+function AccountRow({
+  accountId,
+  currency,
+  name,
+  active,
+  onPress,
+  index,
+  onTotal,
+}: {
+  accountId: string;
+  currency: Currency;
+  name: string;
+  active: boolean;
+  onPress: () => void;
+  index: number;
+  // The total row needs to sum live balances, so each row reports its
+  // current major-units balance back up via this callback.
+  onTotal: (id: string, amount: number) => void;
+}) {
+  const bal = useAccountRowBalance(accountId);
+  // Push the latest balance up on every render — cheap, parent dedupes.
+  onTotal(accountId, bal);
+  const symbol = currency === "USD" ? "$" : currency;
+  return (
+    <MotiView
+      from={{ opacity: 0, translateY: 8 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      transition={{ delay: index * 80, duration: 350 }}
+    >
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => ({
+          borderRadius: 16,
+          marginBottom: 12,
+          borderWidth: 1,
+          borderColor: active ? Colors.brand.primary : Colors.ink[100],
+          backgroundColor: Colors.white,
+          opacity: pressed ? 0.85 : 1,
+          shadowColor: "#101225",
+          shadowOpacity: 0.03,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: active ? 2 : 1,
+        })}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", padding: 14 }}>
+          <Text style={{ fontSize: 26, marginRight: 12 }}>{CURRENCY_FLAGS[currency] ?? "💵"}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 15 }}>
+              {name}
+            </Text>
+            <Text
+              style={{
+                color: Colors.accent.green,
+                fontFamily: "Inter_500Medium",
+                fontSize: 12,
+                marginTop: 2,
+              }}
+            >
+              Available {bal.toLocaleString()} {symbol}
+            </Text>
+          </View>
+          <Text
+            style={{
+              color: Colors.accent.green,
+              fontFamily: "Inter_600SemiBold",
+              fontSize: 15,
+              marginRight: 8,
+            }}
+          >
+            {bal.toLocaleString()} {symbol}
+          </Text>
+          <Ionicons name="chevron-forward" size={18} color={Colors.ink[300]} />
+        </View>
+      </Pressable>
+    </MotiView>
+  );
+}
 
 export default function Accounts() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { balances, activeCurrency, setActiveCurrency } = useApp();
+  const { activeCurrency, setActiveCurrency } = useApp();
+  const accounts = useMyAccounts();
   const [refreshing, setRefreshing] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [perRowTotals, setPerRowTotals] = useState<Record<string, number>>({});
 
-  const myRows = [
-    { code: "USD" as Currency, name: "US Dollar", currencySymbol: "$" },
-    { code: "AED" as Currency, name: t("accounts.aed"), currencySymbol: "AED" },
-  ];
+  const myAccounts = useMemo(
+    () => (accounts.data?.accounts ?? []).filter((a) => a.type === "wallet"),
+    [accounts.data],
+  );
+
+  const total = useMemo(
+    () => Object.values(perRowTotals).reduce((a, b) => a + b, 0),
+    [perRowTotals],
+  );
 
   const addableRows = [
     { code: "AUD" as Currency, name: t("accounts.aud") },
     { code: "CAD" as Currency, name: t("accounts.cad") },
-    { code: "AUD" as Currency, name: t("accounts.aud") },
-    { code: "CAD" as Currency, name: t("accounts.cad") },
   ];
 
-  const total = (balances.USD ?? 0) + (balances.AED ?? 0);
+  const reportRowTotal = (id: string, amount: number) => {
+    setPerRowTotals((prev) => (prev[id] === amount ? prev : { ...prev, [id]: amount }));
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 700);
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["wallet", "accounts"] }),
+      queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] }),
+    ]).finally(() => setRefreshing(false));
   };
 
   return (
@@ -62,72 +160,33 @@ export default function Accounts() {
         <Text style={styles.heading}>Accounts Details</Text>
         <Text style={styles.subtext}>{t("accounts.addCurrency")}</Text>
 
-        {/* Active currency rows — amount on the right in green */}
-        {myRows.map((r, i) => {
-          const active = r.code === activeCurrency;
-          const bal = balances[r.code] ?? 0;
-          return (
-            <MotiView
-              key={r.code}
-              from={{ opacity: 0, translateY: 8 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ delay: i * 80, duration: 350 }}
-            >
-              <Pressable
-                onPress={() => setActiveCurrency(r.code)}
-                style={({ pressed }) => ({
-                  borderRadius: 16,
-                  marginBottom: 12,
-                  borderWidth: 1,
-                  borderColor: active ? Colors.brand.primary : Colors.ink[100],
-                  backgroundColor: Colors.white,
-                  opacity: pressed ? 0.85 : 1,
-                  shadowColor: "#101225",
-                  shadowOpacity: 0.03,
-                  shadowRadius: 6,
-                  shadowOffset: { width: 0, height: 2 },
-                  elevation: active ? 2 : 1,
-                })}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", padding: 14 }}>
-                  <Text style={{ fontSize: 26, marginRight: 12 }}>{CURRENCY_FLAGS[r.code]}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        color: Colors.ink[900],
-                        fontFamily: "Inter_600SemiBold",
-                        fontSize: 15,
-                      }}
-                    >
-                      {r.name}
-                    </Text>
-                    <Text
-                      style={{
-                        color: Colors.accent.green,
-                        fontFamily: "Inter_500Medium",
-                        fontSize: 12,
-                        marginTop: 2,
-                      }}
-                    >
-                      Available {bal.toLocaleString()} {r.currencySymbol}
-                    </Text>
-                  </View>
-                  <Text
-                    style={{
-                      color: Colors.accent.green,
-                      fontFamily: "Inter_600SemiBold",
-                      fontSize: 15,
-                      marginRight: 8,
-                    }}
-                  >
-                    {bal.toLocaleString()} {r.currencySymbol}
-                  </Text>
-                  <Ionicons name="chevron-forward" size={18} color={Colors.ink[300]} />
-                </View>
-              </Pressable>
-            </MotiView>
-          );
-        })}
+        {/* Active currency rows — pulled from /v1/wallet/accounts */}
+        {myAccounts.length === 0 ? (
+          <Text
+            style={{
+              color: Colors.ink[500],
+              fontFamily: "Inter_400Regular",
+              fontSize: 13,
+              paddingVertical: 24,
+              textAlign: "center",
+            }}
+          >
+            {accounts.isLoading ? "Loading accounts…" : "No wallet accounts yet."}
+          </Text>
+        ) : (
+          myAccounts.map((a, i) => (
+            <AccountRow
+              key={a.id}
+              accountId={a.id}
+              currency={a.currency as Currency}
+              name={a.currency === "USD" ? "US Dollar" : a.currency}
+              active={a.currency === activeCurrency}
+              onPress={() => setActiveCurrency(a.currency as Currency)}
+              index={i}
+              onTotal={reportRowTotal}
+            />
+          ))
+        )}
 
         {/* All accounts summary row */}
         <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 200 }}>
@@ -137,7 +196,9 @@ export default function Accounts() {
             </View>
             <View style={styles.totalInfo}>
               <Text style={styles.totalLabel}>{t("accounts.allAccounts")}</Text>
-              <Text style={styles.totalSub}>2 accounts</Text>
+              <Text style={styles.totalSub}>
+                {myAccounts.length} account{myAccounts.length === 1 ? "" : "s"}
+              </Text>
             </View>
             <Text style={styles.totalAmount}>{total.toLocaleString()} $</Text>
           </View>

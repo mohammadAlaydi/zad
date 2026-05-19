@@ -1,6 +1,8 @@
 import {
   AccountBalanceResponseSchema,
   AccountListResponseSchema,
+  ExternalMovementResponseSchema,
+  TransferResponseSchema,
   WalletTransactionListResponseSchema,
 } from "@zadpay/validation";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -13,6 +15,10 @@ export const WalletTransactionListResponseJson = zodToJsonSchema(
   WalletTransactionListResponseSchema,
   { target },
 );
+export const TransferResponseJson = zodToJsonSchema(TransferResponseSchema, { target });
+export const ExternalMovementResponseJson = zodToJsonSchema(ExternalMovementResponseSchema, {
+  target,
+});
 
 export const ErrorResponseJson = {
   type: "object",

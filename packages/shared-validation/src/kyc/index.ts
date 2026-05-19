@@ -60,6 +60,6 @@ export const PresignDocumentResponseSchema = z.object({
   s3Key: z.string(),
   expiresAt: z.string().datetime(),
   // Echo the constraints back so the client can show them in errors.
-  maxSizeBytes: z.number().int().positive(),
+  maxSizeBytes: z.number().int().min(1),
 });
 export type PresignDocumentResponse = z.infer<typeof PresignDocumentResponseSchema>;

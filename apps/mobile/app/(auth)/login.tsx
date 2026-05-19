@@ -19,7 +19,7 @@ export default function Login() {
   const [phone, setPhone] = useState("");
   const [pwd, setPwd] = useState("");
 
-  const valid = phone.length >= 6 && pwd.length >= 4;
+  const valid = phone.length >= 6 && pwd.length >= 8;
 
   return (
     <Screen scroll keyboard>
@@ -46,10 +46,15 @@ export default function Login() {
       <View style={[styles.bottom, { paddingBottom: insets.bottom + 24 }]}>
         <Button
           title={t("auth.logIn")}
+          disabled={!valid}
           onPress={() =>
             router.push({
               pathname: "/(auth)/verify-phone",
-              params: { mode: "login", phone: `${country.dial}${phone}` },
+              params: {
+                mode: "login",
+                phone: `${country.dial}${phone}`,
+                password: pwd,
+              },
             })
           }
         />

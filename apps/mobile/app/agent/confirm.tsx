@@ -9,6 +9,10 @@ import { AmountStepper } from "@/components/AmountStepper";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useMyAccounts } from "@/features/wallet";
+import { dollarsToMinor, refundToWallet, spendFromWallet } from "@/features/wallet/spend";
+import { newIdempotencyKey } from "@/lib/api/idempotency";
+import { queryClient } from "@/lib/api/queryClient";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -19,7 +23,8 @@ function generateOTP(): string {
 export default function AgentConfirm() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { cashInAgent, cashOutAgent, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
+  const accounts = useMyAccounts();
   const { agentId, agentName, mode, floatLimit } = useLocalSearchParams<{
     agentId: string;
     agentName: string;
@@ -29,22 +34,49 @@ export default function AgentConfirm() {
 
   const [amount, setAmount] = useState(100);
   const [otp] = useState<string>(generateOTP);
+  const [submitting, setSubmitting] = useState(false);
 
   const isCashIn = mode === "cashin";
   const modeLabel = isCashIn ? "Cash In" : "Cash Out";
   const maxAmount = Number(floatLimit ?? 5000);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const clampedAmount = Math.min(amount, maxAmount);
-    if (isCashIn) {
-      cashInAgent(agentId ?? "", clampedAmount, activeCurrency);
-    } else {
-      cashOutAgent(agentId ?? "", clampedAmount, activeCurrency);
+    const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+    if (account === undefined) return;
+    setSubmitting(true);
+    try {
+      // Cash-in = agent gives you money → topup. Cash-out = you give the
+      // agent money → withdrawal. Both stamp the agent id as ref.
+      const ref = `agent:${agentId ?? "unknown"}`;
+      if (isCashIn) {
+        await refundToWallet({
+          accountId: account.id,
+          amountMinor: dollarsToMinor(clampedAmount),
+          currency: account.currency,
+          feature: "agent_cashin",
+          ref,
+          idempotencyKey: newIdempotencyKey(),
+        });
+      } else {
+        await spendFromWallet({
+          accountId: account.id,
+          amountMinor: dollarsToMinor(clampedAmount),
+          currency: account.currency,
+          feature: "agent_cashout",
+          ref,
+          idempotencyKey: newIdempotencyKey(),
+        });
+      }
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] });
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "transactions"] });
+      router.push({
+        pathname: "/agent/success",
+        params: { agentName, mode, amount: clampedAmount.toString() },
+      });
+    } finally {
+      setSubmitting(false);
     }
-    router.push({
-      pathname: "/agent/success",
-      params: { agentName, mode, amount: clampedAmount.toString() },
-    });
   };
 
   return (
@@ -115,7 +147,11 @@ export default function AgentConfirm() {
       </View>
 
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
-        <Button title={`Confirm ${modeLabel}`} onPress={handleConfirm} />
+        <Button
+          title={submitting ? "Confirming…" : `Confirm ${modeLabel}`}
+          onPress={() => void handleConfirm()}
+          disabled={submitting}
+        />
       </View>
     </Screen>
   );

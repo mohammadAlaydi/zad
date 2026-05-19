@@ -8,9 +8,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useUserItems } from "@/features/userdata";
+import { refundThenUpdateItem, spendThenUpdateItem } from "@/features/userdata/walletItems";
+import { useMyAccounts } from "@/features/wallet";
+import { queryClient } from "@/lib/api/queryClient";
 import { useApp } from "@/store/appStore";
 import type { SavingsPlan } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+type SavingsPayload = Omit<SavingsPlan, "id">;
 
 function isLocked(lockUntil?: string): boolean {
   if (!lockUntil) return false;
@@ -438,7 +444,14 @@ const cStyles = StyleSheet.create({
 
 export default function SavingsPlans() {
   const insets = useSafeAreaInsets();
-  const { savingsPlans, contributeSavings, withdrawSavings } = useApp();
+  const { activeCurrency } = useApp();
+  const plansQuery = useUserItems<SavingsPayload>("savings");
+  const savingsPlans: SavingsPlan[] = (plansQuery.data?.items ?? []).map((it) => ({
+    ...it.payload,
+    id: it.id,
+  }));
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
 
   const [selectedPlan, setSelectedPlan] = useState<SavingsPlan | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
@@ -457,12 +470,40 @@ export default function SavingsPlans() {
     setModalMode(null);
   }
 
-  function handleConfirm(amount: number) {
-    if (!selectedPlan || !modalMode) return;
-    if (modalMode === "contribute") {
-      contributeSavings(selectedPlan.id, amount);
-    } else {
-      withdrawSavings(selectedPlan.id, amount);
+  async function handleConfirm(amount: number) {
+    if (!selectedPlan || !modalMode || account === undefined) return;
+    const { id: _drop, ...rest } = selectedPlan;
+    const newSaved =
+      modalMode === "contribute"
+        ? selectedPlan.savedAmount + amount
+        : Math.max(0, selectedPlan.savedAmount - amount);
+    const walletArgs = {
+      accountId: account.id,
+      currency: account.currency,
+      amountUsd: amount,
+      feature: "savings",
+      ref: selectedPlan.id,
+    };
+    try {
+      if (modalMode === "contribute") {
+        await spendThenUpdateItem(
+          "savings",
+          selectedPlan.id,
+          { ...rest, savedAmount: newSaved },
+          walletArgs,
+        );
+      } else {
+        await refundThenUpdateItem(
+          "savings",
+          selectedPlan.id,
+          { ...rest, savedAmount: newSaved },
+          walletArgs,
+        );
+      }
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "balance"] });
+      void queryClient.invalidateQueries({ queryKey: ["wallet", "transactions"] });
+    } catch {
+      /* surfaced via mutation state */
     }
   }
 

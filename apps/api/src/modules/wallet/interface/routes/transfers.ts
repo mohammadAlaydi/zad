@@ -10,7 +10,7 @@ import { requireAuth } from "../../../../shared/middleware/auth.js";
 import { idempotency } from "../../../../shared/middleware/idempotency.js";
 import type { CreateTransferCommand } from "../../application/commands/CreateTransfer.js";
 import type { Transaction } from "../../domain/entities/Transaction.js";
-import { ErrorResponseJson } from "../schemas/wallet.js";
+import { ErrorResponseJson, TransferResponseJson } from "../schemas/wallet.js";
 
 export interface TransferRouteDeps {
   createTransfer: CreateTransferCommand;
@@ -51,7 +51,7 @@ export async function registerTransferRoutes(
         security: [{ bearerAuth: [] }],
         body: TransferRequestJson,
         response: {
-          200: ErrorResponseJson, // overridden below by typed contract; OpenAPI shows the response shape from TransferResponseSchema
+          200: TransferResponseJson,
           400: ErrorResponseJson,
           401: ErrorResponseJson,
           404: ErrorResponseJson,

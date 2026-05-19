@@ -114,8 +114,14 @@ export async function idempotency(req: FastifyRequest, reply: FastifyReply): Pro
 }
 
 // Hook installed once by registerIdempotencyHooks below — caches the
-// final response under the idempotency key.
-function onSendHook(req: FastifyRequest, reply: FastifyReply, payload: unknown): unknown {
+// final response under the idempotency key. Must be async (or take a
+// `done` callback) — a plain sync function with the wrong signature
+// silently hangs every response.
+async function onSendHook(
+  req: FastifyRequest,
+  reply: FastifyReply,
+  payload: unknown,
+): Promise<unknown> {
   const key = req.idempotencyKey;
   if (key === undefined || req.idempotencyFingerprint === undefined) return payload;
   const cached: CachedResponse = {

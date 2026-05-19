@@ -5,9 +5,11 @@ import { View, Text, Pressable, ScrollView, Alert, StyleSheet } from "react-nati
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
-import { useApp } from "@/store/appStore";
+import { useDeleteUserItem, useUpdateUserItem, useUserItems } from "@/features/userdata";
 import type { ScheduledPayment } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
+
+type ScheduledPayload = Omit<ScheduledPayment, "id">;
 
 const FREQ_LABEL: Record<ScheduledPayment["frequency"], string> = {
   daily: "Daily",
@@ -108,11 +110,24 @@ function PaymentCard({
 
 export default function ScheduledPayments() {
   const insets = useSafeAreaInsets();
-  const { scheduledPayments, toggleScheduledPayment, deleteScheduledPayment } = useApp();
+  const scheduledQuery = useUserItems<ScheduledPayload>("scheduled");
+  const scheduledPayments: ScheduledPayment[] = (scheduledQuery.data?.items ?? []).map((it) => ({
+    ...it.payload,
+    id: it.id,
+  }));
+  const updateScheduled = useUpdateUserItem("scheduled");
+  const deleteScheduled = useDeleteUserItem("scheduled");
 
   const active = scheduledPayments.filter((p) => p.isActive);
   const paused = scheduledPayments.filter((p) => !p.isActive);
   const isEmpty = scheduledPayments.length === 0;
+
+  function toggleScheduledPayment(id: string) {
+    const p = scheduledPayments.find((x) => x.id === id);
+    if (p === undefined) return;
+    const { id: _, ...rest } = p;
+    updateScheduled.mutate({ id, payload: { ...rest, isActive: !p.isActive } });
+  }
 
   function handleDelete(id: string, recipient: string) {
     Alert.alert("Delete Payment", `Remove the scheduled payment to ${recipient}?`, [
@@ -120,7 +135,7 @@ export default function ScheduledPayments() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => deleteScheduledPayment(id),
+        onPress: () => deleteScheduled.mutate(id),
       },
     ]);
   }

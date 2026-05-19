@@ -9,13 +9,19 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 export default function VisaDirect() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { balances, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+  const balanceQuery = useAccountBalance(account?.id);
+  const balance =
+    balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
 
   const [recipientName, setRecipientName] = useState("");
   const [cardLast4, setCardLast4] = useState("");
@@ -46,9 +52,7 @@ export default function VisaDirect() {
             <Text style={styles.flagEmoji}>🇺🇸</Text>
             <View style={styles.balanceInfo}>
               <Text style={styles.balanceName}>{activeCurrency} Balance</Text>
-              <Text style={styles.balanceAvailable}>
-                Available {balances[activeCurrency].toLocaleString()} $
-              </Text>
+              <Text style={styles.balanceAvailable}>Available {balance.toLocaleString()} $</Text>
             </View>
             <View style={styles.visaBadge}>
               <Text style={styles.visaBadgeText}>VISA</Text>

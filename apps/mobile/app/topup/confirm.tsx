@@ -1,32 +1,62 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useMyAccounts, useTopup } from "@/features/wallet";
+import { newIdempotencyKey } from "@/lib/api/idempotency";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 export default function TopUpConfirm() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { amount, cardId } = useLocalSearchParams<{ amount: string; cardId: string }>();
-  const { cards, addTransaction } = useApp();
+  const { amount, cardId, cardLast4 } = useLocalSearchParams<{
+    amount: string;
+    cardId: string;
+    cardLast4: string;
+  }>();
+  const { activeCurrency } = useApp();
   const amt = Number(amount || 0);
-  const card = cards.find((c) => c.id === cardId);
+  const card = { id: cardId ?? "card_demo", last4: cardLast4 ?? "0000" };
 
-  const handleTopUp = () => {
-    addTransaction({
-      id: "tx-" + Date.now(),
-      name: "Top Up",
-      category: "Top Up",
-      amount: amt,
-      currency: "USD",
-      date: new Date().toISOString(),
-    });
-    router.replace("/(tabs)/home");
-  };
+  const accounts = useMyAccounts();
+  const topup = useTopup();
+  const [error, setError] = useState<string | null>(null);
+
+  // One idempotency key per mounted confirm screen — retries of the same
+  // logical top-up are safe; navigating away + back generates a new one.
+  const idempotencyKey = useMemo(() => newIdempotencyKey(), []);
+
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+
+  async function handleTopUp() {
+    if (account === undefined) {
+      setError(`No ${activeCurrency} wallet found.`);
+      return;
+    }
+    setError(null);
+    try {
+      await topup.mutateAsync({
+        request: {
+          accountId: account.id,
+          // Minor units (cents). UI deals in major units.
+          amount: { amount: String(Math.round(amt * 100)), currency: account.currency },
+          // InMemoryPaymentProcessor in dev accepts any non-empty string.
+          source: `card_${card?.last4 ?? "demo"}`,
+        },
+        idempotencyKey,
+      });
+      router.replace("/(tabs)/home");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Top up failed");
+    }
+  }
+
+  const busy = topup.isPending || accounts.isLoading;
 
   return (
     <Screen bg={Colors.white}>
@@ -156,10 +186,28 @@ export default function TopUpConfirm() {
             </Text>
           </View>
         </View>
+
+        {error !== null && (
+          <Text
+            style={{
+              marginTop: 14,
+              color: Colors.accent.red,
+              fontFamily: "Inter_400Regular",
+              fontSize: 12,
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </Text>
+        )}
       </View>
 
       <View style={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 16 }}>
-        <Button title={t("topup.title")} onPress={handleTopUp} />
+        <Button
+          title={busy ? "Topping up…" : t("topup.title")}
+          disabled={busy}
+          onPress={handleTopUp}
+        />
       </View>
     </Screen>
   );

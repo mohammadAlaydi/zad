@@ -59,7 +59,7 @@ export type WalletTransactionResponse = z.infer<typeof WalletTransactionResponse
 export const WalletTransactionListResponseSchema = z.object({
   transactions: z.array(WalletTransactionResponseSchema),
   page: z.number().int().nonnegative(),
-  pageSize: z.number().int().positive(),
+  pageSize: z.number().int().min(1),
   total: z.number().int().nonnegative(),
 });
 export type WalletTransactionListResponse = z.infer<typeof WalletTransactionListResponseSchema>;

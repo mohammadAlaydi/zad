@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -16,7 +17,12 @@ const { width } = Dimensions.get("window");
 export default function QrDisplay() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { user, balances, activeCurrency } = useApp();
+  const { user, activeCurrency } = useApp();
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+  const balanceQuery = useAccountBalance(account?.id);
+  const balance =
+    balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
   const qrValue = JSON.stringify({ user: user.username, amount: 0, currency: activeCurrency });
 
   return (
@@ -129,7 +135,7 @@ export default function QrDisplay() {
             <Text
               style={{ color: Colors.accent.green, fontFamily: "Inter_500Medium", fontSize: 12 }}
             >
-              {balances[activeCurrency].toLocaleString()} $
+              {balance.toLocaleString()} $
             </Text>
           </View>
         </View>

@@ -84,6 +84,13 @@ export class ApiClient {
     return err(await this.toApiError(response));
   }
 
+  async deleteVoid(path: string, opts?: ApiRequestOptions): Promise<Result<void, ClientError>> {
+    const response = await this.doFetch("DELETE", path, undefined, opts);
+    if (response instanceof Error) return err(response);
+    if (response.status >= 200 && response.status < 300) return ok(undefined);
+    return err(await this.toApiError(response));
+  }
+
   private async request<T>(
     method: string,
     path: string,
@@ -130,9 +137,14 @@ export class ApiClient {
   ): Promise<Response | NetworkError> {
     const url = `${this.baseUrl}${path}`;
     const headers: Record<string, string> = {
-      "content-type": "application/json",
       "x-request-id": makeRequestId(),
     };
+    // Only declare a JSON content-type when there's actually a body —
+    // Fastify rejects requests that advertise application/json with no
+    // payload (FST_ERR_CTP_EMPTY_JSON_BODY).
+    if (body !== undefined) {
+      headers["content-type"] = "application/json";
+    }
     if (opts?.skipAuth !== true) {
       const token = this.hooks.getAccessToken();
       if (token !== null) headers["authorization"] = `Bearer ${token}`;

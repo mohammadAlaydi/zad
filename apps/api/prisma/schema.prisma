@@ -9,7 +9,7 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  schemas    = ["identity", "kyc", "wallet", "shared"]
+  schemas    = ["identity", "kyc", "wallet", "shared", "userdata"]
   extensions = [citext]
 }
 
@@ -239,4 +239,28 @@ model WalletAccountBalance {
 
   @@map("account_balances")
   @@schema("wallet")
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// userdata.* — generic per-user JSON store. Used by the mobile features
+// that don't have their own domain module yet (cards, goals, savings,
+// bnpl, vouchers, loyalty, scheduled, holdings, etc.). Each row carries
+// a `feature` tag and an opaque JSON payload — the mobile owns the
+// payload shape per feature.
+//
+// Soft userId reference (no FK) per ADR-0005's no-cross-schema-FK rule.
+// ──────────────────────────────────────────────────────────────────────
+
+model UserItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  feature   String   @db.VarChar(40)
+  payload   Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, feature])
+  @@index([userId, feature, createdAt])
+  @@map("items")
+  @@schema("userdata")
 }
