@@ -14,11 +14,13 @@ definitions:
 
     - step: &deploy
         name: Deploy to EC2
-        runs-on:
-          - self.hosted
-          - linux
         script:
-          - /bin/bash /home/ubuntu/zadpay/scripts/deploy.sh
+          - apt-get update -qq && apt-get install -y openssh-client
+          - mkdir -p ~/.ssh
+          - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          - chmod 600 ~/.ssh/id_rsa
+          - ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+          - ssh $EC2_USER@$EC2_HOST "/bin/bash /home/ubuntu/zadpay/scripts/deploy.sh"
 
 pipelines:
   branches:
