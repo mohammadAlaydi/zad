@@ -10,7 +10,8 @@ definitions:
         caches:
           - node
         script:
-          - npm install -g pnpm
+          - npm install -g pnpm --prefix ~/local
+          - export PATH="$HOME/local/bin:$PATH"
           - pnpm install --frozen-lockfile
           - pnpm --filter @zadpay/api run typecheck
           - pnpm --filter @zadpay/api run test
@@ -27,4 +28,4 @@ pipelines:
   branches:
     main:
       - step: *test
-      - step: *deploy #test
+      - step: *deploy
