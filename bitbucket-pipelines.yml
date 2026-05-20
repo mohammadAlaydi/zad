@@ -18,7 +18,7 @@ definitions:
           - self.hosted
           - linux
         script:
-          - /bin/bash /home/ubuntu/zadpay/scripts/deploy.sh
+          - sh /home/ubuntu/zadpay/scripts/deploy.sh
 
 pipelines:
   branches:
