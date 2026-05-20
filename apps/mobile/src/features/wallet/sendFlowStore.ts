@@ -19,6 +19,10 @@ export interface SendFlowState {
   // Same idempotency key is reused across retries of the same payment
   // intent, so duplicate Send taps don't double-debit.
   idempotencyKey: string;
+  // When set, the send was initiated from a payment request (QR / receive
+  // screen). The confirm screen calls markPaymentRequestPaid(id, txId)
+  // after a successful transfer so the recipient's request flips to paid.
+  pendingRequestId: string | null;
 
   setRecipient(
     args: {
@@ -31,6 +35,7 @@ export interface SendFlowState {
   setAmountMinor(value: number): void;
   setNote(note: string): void;
   setPassword(password: string | null): void;
+  setPendingRequestId(id: string | null): void;
   resetIdempotencyKey(): void;
   resetAll(): void;
 }
@@ -44,6 +49,7 @@ export const useSendFlow = create<SendFlowState>((set) => ({
   note: "",
   password: null,
   idempotencyKey: newIdempotencyKey(),
+  pendingRequestId: null,
 
   setRecipient(args) {
     set(
@@ -71,6 +77,9 @@ export const useSendFlow = create<SendFlowState>((set) => ({
   setPassword(password) {
     set({ password });
   },
+  setPendingRequestId(id) {
+    set({ pendingRequestId: id });
+  },
   resetIdempotencyKey() {
     set({ idempotencyKey: newIdempotencyKey() });
   },
@@ -84,6 +93,7 @@ export const useSendFlow = create<SendFlowState>((set) => ({
       note: "",
       password: null,
       idempotencyKey: newIdempotencyKey(),
+      pendingRequestId: null,
     });
   },
 }));

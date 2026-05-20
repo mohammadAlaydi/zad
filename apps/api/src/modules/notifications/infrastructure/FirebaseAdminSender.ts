@@ -100,12 +100,36 @@ class FirebaseAdminSender implements NotificationSender {
       token,
       notification: { title: message.title, body: message.body },
       data: message.data ?? {},
-      android: { priority: "high" as const },
+      android: {
+        // `high` priority + the HIGH-importance "default" channel created
+        // on the device (see mobile pushService.ts) is what lets Android
+        // wake the screen and display the banner when the app is closed
+        // or the phone is locked. Without channelId Android picks the
+        // implicit "miscellaneous" channel which is silent on 8.0+.
+        priority: "high" as const,
+        notification: {
+          channelId: "default",
+          sound: "default",
+          defaultSound: true,
+          defaultVibrateTimings: true,
+          priority: "high" as const,
+          visibility: "public" as const,
+        },
+      },
       apns: {
+        headers: {
+          // Time-Sensitive interruption + high priority so iOS surfaces
+          // the banner immediately on the lock screen, matching the
+          // Android behaviour above.
+          "apns-priority": "10",
+          "apns-push-type": "alert",
+        },
         payload: {
           aps: {
             alert: { title: message.title, body: message.body },
             sound: "default",
+            "mutable-content": 1,
+            "interruption-level": "time-sensitive",
           },
         },
       },

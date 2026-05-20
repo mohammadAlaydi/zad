@@ -17,11 +17,48 @@ export interface NotifyTransferDeps {
   sender: NotificationSender;
 }
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  AED: "د.إ",
+  EUR: "€",
+  GBP: "£",
+  CAD: "CA$",
+  AUD: "A$",
+  EGP: "E£",
+  SAR: "﷼",
+};
+
 function formatAmount(minor: bigint, currency: string): string {
-  // Minor units assumed = 100. Real money formatting (locale, symbol) will
-  // live alongside the mobile-side Money helper in a later PR.
+  // Minor units assumed = 100. Format with thousands separators and the
+  // currency symbol prefixed when known (InstaPay-style: "$1,250.00").
   const major = Number(minor) / 100;
-  return `${major.toFixed(2)} ${currency}`;
+  const pretty = major.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const symbol = CURRENCY_SYMBOLS[currency.toUpperCase()] ?? "";
+  return symbol === "" ? `${pretty} ${currency}` : `${symbol}${pretty} ${currency}`;
+}
+
+// Short, human-friendly transaction reference for the notification body —
+// the user can correlate it with the receipt screen without showing a 36
+// char UUID on the lock screen.
+function shortRef(transactionId: string): string {
+  const stripped = transactionId.replace(/-/g, "");
+  return stripped.slice(-8).toUpperCase();
+}
+
+function formatLocalTime(): string {
+  // Server-side approximation; the mobile receipt screen renders the
+  // authoritative timestamp from the transaction record.
+  const now = new Date();
+  return now.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
 export class NotifyTransferCommand {
@@ -29,6 +66,8 @@ export class NotifyTransferCommand {
 
   async execute(input: NotifyTransferInput): Promise<void> {
     const amount = formatAmount(input.amountMinor, input.currency);
+    const ref = shortRef(input.transactionId);
+    const when = formatLocalTime();
 
     // Two parallel fan-outs: one to sender devices, one to recipient.
     const [senderTokens, recipientTokens] = await Promise.all([
@@ -43,14 +82,18 @@ export class NotifyTransferCommand {
         this.deliver(
           senderTokens.map((t) => t.token),
           {
-            title: "Money sent",
-            body: `You sent ${amount} to ${input.recipientName}.`,
+            // InstaPay-style detailed copy: amount + counterparty in the
+            // title (visible on the lock screen), reference + time in the
+            // body so the user can confirm without opening the app.
+            title: `Sent ${amount} to ${input.recipientName}`,
+            body: `Your transfer was completed successfully. Ref ${ref} • ${when}. Tap to view receipt.`,
             data: {
               kind: "transfer.sent",
               transactionId: input.transactionId,
               counterparty: input.recipientName,
               amount: input.amountMinor.toString(),
               currency: input.currency,
+              ref,
             },
           },
         ),
@@ -61,14 +104,15 @@ export class NotifyTransferCommand {
         this.deliver(
           recipientTokens.map((t) => t.token),
           {
-            title: "Money received",
-            body: `You received ${amount} from ${input.senderName}.`,
+            title: `Received ${amount} from ${input.senderName}`,
+            body: `Your wallet has been credited. Ref ${ref} • ${when}. Tap to view receipt.`,
             data: {
               kind: "transfer.received",
               transactionId: input.transactionId,
               counterparty: input.senderName,
               amount: input.amountMinor.toString(),
               currency: input.currency,
+              ref,
             },
           },
         ),

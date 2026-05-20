@@ -52,14 +52,18 @@ export default function AccountDetails() {
     active: true,
   }));
 
-  const others: Row[] = [
-    { code: "AUD", name: "Austrian Dollar", sub: "AUD" },
-    { code: "CAD", name: "Canadian Dollar", sub: "Cad" },
-    { code: "AUD", name: "Austrian Dollar", sub: "AUD" },
-    { code: "CAD", name: "Canadian Dollar", sub: "Cad" },
-    { code: "AUD", name: "Austrian Dollar", sub: "AUD" },
-    { code: "CAD", name: "Canadian Dollar", sub: "Cad" },
+  const ALL_SUPPORTED: Row[] = [
+    { code: "USD", name: "US Dollar", sub: "USD" },
+    { code: "AED", name: "UAE Dirham", sub: "AED" },
+    { code: "EUR", name: "Euro", sub: "EUR" },
+    { code: "GBP", name: "British Pound", sub: "GBP" },
+    { code: "CAD", name: "Canadian Dollar", sub: "CAD" },
+    { code: "AUD", name: "Australian Dollar", sub: "AUD" },
+    { code: "EGP", name: "Egyptian Pound", sub: "EGP" },
+    { code: "SAR", name: "Saudi Riyal", sub: "SAR" },
   ];
+  const activeCodes = new Set(active.map((a) => a.code));
+  const others: Row[] = ALL_SUPPORTED.filter((c) => !activeCodes.has(c.code));
 
   return (
     <Screen bg={Colors.white}>
