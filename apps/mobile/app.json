@@ -79,7 +79,7 @@
       "eas": {
         "projectId": "3a43ceff-2f2d-41fb-9688-bbdc7a9a29b1"
       },
-      "apiBaseUrl": "http://localhost:3000",
+      "apiBaseUrl": "http://ec2-13-63-246-134.eu-north-1.compute.amazonaws.com",
       "appEnv": "development"
     },
     "owner": "mohammadalaydi"

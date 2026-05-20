@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { buildWirePayload } from "@/features/userdata";
 import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
@@ -23,7 +24,12 @@ export default function QrDisplay() {
   const balanceQuery = useAccountBalance(account?.id);
   const balance =
     balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
-  const qrValue = JSON.stringify({ user: user.username, amount: 0, currency: activeCurrency });
+  // Open-ended QR: amount=0 means "let the payer choose". The scanner will
+  // route to /send/index with the recipient prefilled. No payment_request
+  // row is created — there's nothing to track until the payer commits.
+  const qrValue = JSON.stringify(
+    buildWirePayload({ phone: user.phone, amountMinor: 0, currency: activeCurrency }),
+  );
 
   return (
     <Screen bg={Colors.white}>

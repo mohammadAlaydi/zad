@@ -14,16 +14,18 @@ import { Colors } from "@/theme/colors";
 export default function SendSuccess() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { amount, mobile, contactName, message } = useLocalSearchParams<{
+  const { amount, mobile, contactName, message, transactionId } = useLocalSearchParams<{
     amount: string;
     mobile: string;
     contactName: string;
     message: string;
+    transactionId: string;
   }>();
   const amt = Number(amount || 0);
-  const recipient = contactName || mobile || "Roaa Ali mohamed";
-  const phone = mobile || "0101663645";
-  const username = "@" + recipient.replace(/\s+/g, "").toLowerCase().slice(0, 10);
+  const recipient = contactName || mobile || "";
+  const phone = mobile || "";
+  const username = recipient ? "@" + recipient.replace(/\s+/g, "").toLowerCase().slice(0, 10) : "";
+  const ref = transactionId ? transactionId.replace(/-/g, "").slice(-8).toUpperCase() : "—";
 
   const handleShare = () => {
     router.replace("/(tabs)/home");
@@ -103,7 +105,7 @@ export default function SendSuccess() {
 
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>{t("send.reference")}</Text>
-            <Text style={styles.detailValue}>S2545455454515</Text>
+            <Text style={styles.detailValue}>{ref}</Text>
           </View>
 
           <View style={styles.detailRow}>
