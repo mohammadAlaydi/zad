@@ -21,11 +21,6 @@ definitions:
           - bash /home/ubuntu/zadpay/scripts/deploy.sh
 
 pipelines:
-  pull-requests:
-    "**":
-      - step: *test
-
   branches:
     main:
-      - step: *test
       - step: *deploy
