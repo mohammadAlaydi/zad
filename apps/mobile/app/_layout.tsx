@@ -19,6 +19,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { bootstrapAuth } from "@/features/auth";
+import { configureNotificationHandler, usePushNotifications } from "@/features/notifications";
 import { queryClient } from "@/lib/api/queryClient";
 import { ErrorBoundary } from "@/lib/error-boundary";
 import "@/i18n";
@@ -30,6 +31,16 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 // routing, so we don't show /(auth)/welcome to a returning user just
 // because the network is slow.
 void bootstrapAuth();
+
+// Tell expo-notifications to show alerts even when the app is in the
+// foreground (the InstaPay-style banner-while-using-the-app behaviour).
+configureNotificationHandler();
+
+function PushBootstrap() {
+  // Lives inside QueryClientProvider so the hook can invalidate caches.
+  usePushNotifications();
+  return null;
+}
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -49,6 +60,7 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
+        <PushBootstrap />
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaProvider>
             <StatusBar style="auto" />

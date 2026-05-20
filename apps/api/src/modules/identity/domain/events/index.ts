@@ -6,7 +6,7 @@ import type { DomainEvent } from "../../../../shared/events/DomainEvent.js";
 
 export type UserRegistered = DomainEvent<
   "identity.UserRegistered",
-  { userId: string; email: string }
+  { userId: string; email: string | null }
 >;
 
 export type LoginSucceeded = DomainEvent<

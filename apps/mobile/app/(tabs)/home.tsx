@@ -65,8 +65,11 @@ export default function Home() {
     () => accounts.data?.accounts.find((a) => a.currency === activeCurrency),
     [accounts.data, activeCurrency],
   );
-  const balance = useAccountBalance(activeAccount?.id);
-  const transactions = useMyTransactions({ page: 0, pageSize: 5 });
+  // 5s polling keeps the recipient device's balance + recent transactions
+  // in sync within ~5s of an incoming transfer, without requiring the user
+  // to pull-to-refresh.
+  const balance = useAccountBalance(activeAccount?.id, { poll: true });
+  const transactions = useMyTransactions({ page: 0, pageSize: 5, poll: true });
 
   const myAccountIds = useMemo(
     () => new Set(accounts.data?.accounts.map((a) => a.id) ?? []),

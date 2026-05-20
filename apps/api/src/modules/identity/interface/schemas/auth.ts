@@ -3,9 +3,12 @@
 // so there's no per-request cost.
 
 import {
+  ChangePasswordRequestSchema,
+  LoginByPhoneRequestSchema,
   LoginRequestSchema,
   LogoutRequestSchema,
   MeResponseSchema,
+  RecipientLookupResponseSchema,
   RefreshRequestSchema,
   RegisterRequestSchema,
   TokenPairResponseSchema,
@@ -15,11 +18,16 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 const target = "openApi3" as const;
 
 export const LoginRequestJson = zodToJsonSchema(LoginRequestSchema, { target });
+export const LoginByPhoneRequestJson = zodToJsonSchema(LoginByPhoneRequestSchema, { target });
 export const RefreshRequestJson = zodToJsonSchema(RefreshRequestSchema, { target });
 export const LogoutRequestJson = zodToJsonSchema(LogoutRequestSchema, { target });
 export const RegisterRequestJson = zodToJsonSchema(RegisterRequestSchema, { target });
 export const TokenPairResponseJson = zodToJsonSchema(TokenPairResponseSchema, { target });
 export const MeResponseJson = zodToJsonSchema(MeResponseSchema, { target });
+export const ChangePasswordRequestJson = zodToJsonSchema(ChangePasswordRequestSchema, { target });
+export const RecipientLookupResponseJson = zodToJsonSchema(RecipientLookupResponseSchema, {
+  target,
+});
 
 export const ErrorResponseJson = {
   type: "object",

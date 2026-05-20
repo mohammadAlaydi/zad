@@ -5,6 +5,7 @@
 export { bootstrapAuth, refreshSession } from "./bootstrap";
 export { useAuthSession } from "./hooks/useAuthSession";
 export { useLogin, type UseLoginResult } from "./hooks/useLogin";
+export { useLoginByPhone, type UseLoginByPhoneResult } from "./hooks/useLoginByPhone";
 export { useRegister, type UseRegisterResult } from "./hooks/useRegister";
 export { useLogout } from "./hooks/useLogout";
 export type { AuthSession } from "./store/authStore";

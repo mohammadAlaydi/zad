@@ -1,10 +1,14 @@
 import { type Result } from "@zadpay/errors";
 import {
+  ChangePasswordRequestSchema,
+  LoginByPhoneRequestSchema,
   LoginRequestSchema,
   RefreshRequestSchema,
   RegisterRequestSchema,
   TokenPairResponseSchema,
   MeResponseSchema,
+  type ChangePasswordRequest,
+  type LoginByPhoneRequest,
   type LoginRequest,
   type MeResponse,
   type RegisterRequest,
@@ -20,6 +24,13 @@ export const authService = {
   async login(input: LoginRequest): Promise<Result<TokenPairResponse, ClientError>> {
     LoginRequestSchema.parse(input); // catch caller mistakes early
     return api.post<TokenPairResponse>("/v1/auth/login", input, TokenPairResponseSchema, {
+      skipAuth: true,
+    });
+  },
+
+  async loginByPhone(input: LoginByPhoneRequest): Promise<Result<TokenPairResponse, ClientError>> {
+    LoginByPhoneRequestSchema.parse(input);
+    return api.post<TokenPairResponse>("/v1/auth/login-phone", input, TokenPairResponseSchema, {
       skipAuth: true,
     });
   },
@@ -49,5 +60,10 @@ export const authService = {
 
   async me(): Promise<Result<MeResponse, ClientError>> {
     return api.get<MeResponse>("/v1/identity/me", MeResponseSchema);
+  },
+
+  async changePassword(input: ChangePasswordRequest): Promise<Result<void, ClientError>> {
+    ChangePasswordRequestSchema.parse(input);
+    return api.postVoid("/v1/auth/change-password", input);
   },
 };

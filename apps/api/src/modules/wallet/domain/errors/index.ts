@@ -1,4 +1,9 @@
-import { ConflictError, NotFoundError, UnprocessableError } from "@zadpay/errors";
+import {
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+  UnprocessableError,
+} from "@zadpay/errors";
 
 export class AccountNotFound extends NotFoundError {
   override readonly code = "WALLET.ACCOUNT_NOT_FOUND";
@@ -62,5 +67,21 @@ export class ProcessorRejected extends UnprocessableError {
   override readonly code = "WALLET.PROCESSOR_REJECTED";
   constructor(reason: string) {
     super(`Payment processor rejected the request: ${reason}`, { reason });
+  }
+}
+
+// Phone-based send: no ZADPAY user found for the recipient phone.
+export class RecipientNotFound extends NotFoundError {
+  override readonly code = "WALLET.RECIPIENT_NOT_FOUND";
+  constructor() {
+    super("No ZADPAY user found with this phone number");
+  }
+}
+
+// Phone-based send: sender entered the wrong password.
+export class InvalidPassword extends UnauthorizedError {
+  override readonly code = "WALLET.INVALID_PASSWORD";
+  constructor() {
+    super("Password is incorrect");
   }
 }

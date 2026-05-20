@@ -9,7 +9,7 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  schemas    = ["identity", "kyc", "wallet", "shared", "userdata"]
+  schemas    = ["identity", "kyc", "wallet", "shared", "userdata", "notifications"]
   extensions = [citext]
 }
 
@@ -80,7 +80,15 @@ model IdempotencyKey {
 
 model User {
   id           String   @id @default(uuid()) @db.Uuid
-  email        String   @unique @db.Citext
+  /// Optional at signup — users can register with phone only and add an
+  /// email later. Still unique when present (Postgres treats NULL as
+  /// non-equal for unique constraints, so multiple null rows coexist).
+  email        String?  @unique @db.Citext
+  /// E.164 normalised phone number, e.g. "+15551234567". Unique because it
+  /// is used to look up the recipient when sending money.
+  phone        String?  @unique @db.VarChar(20)
+  /// Display name shown to senders during recipient lookup.
+  fullName     String?  @map("full_name") @db.VarChar(120)
   passwordHash String   @map("password_hash")
   kycStatus    String   @default("not_started") @map("kyc_status") @db.VarChar(20)
   roles        String[] @default(["customer"])
@@ -239,6 +247,27 @@ model WalletAccountBalance {
 
   @@map("account_balances")
   @@schema("wallet")
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// notifications.* — push tokens for FCM/APNs. Soft userId reference per
+// ADR-0005. A single user can have many tokens (multiple devices, or
+// fresh tokens after FCM rotation); we de-duplicate on the raw token
+// value so re-registering the same physical device is a no-op.
+// ──────────────────────────────────────────────────────────────────────
+
+model PushToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  token      String   @unique @db.VarChar(2048)
+  platform   String   @db.VarChar(10) // 'ios' | 'android' | 'web'
+  deviceName String?  @map("device_name") @db.VarChar(120)
+  createdAt  DateTime @default(now()) @map("created_at")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+
+  @@index([userId])
+  @@map("push_tokens")
+  @@schema("notifications")
 }
 
 // ──────────────────────────────────────────────────────────────────────

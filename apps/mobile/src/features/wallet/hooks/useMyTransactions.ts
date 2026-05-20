@@ -4,11 +4,13 @@ import { type ClientError } from "@/lib/api/errors";
 import { queryKeys } from "@/lib/api/queryClient";
 import { walletService } from "../services/walletService";
 
-export function useMyTransactions(opts: { page?: number; pageSize?: number } = {}) {
+export function useMyTransactions(opts: { page?: number; pageSize?: number; poll?: boolean } = {}) {
   const page = opts.page ?? 0;
   const pageSize = opts.pageSize ?? 20;
   return useQuery<WalletTransactionListResponse, ClientError>({
     queryKey: queryKeys.wallet.transactions(page, pageSize),
+    refetchInterval: opts.poll === true ? 5000 : false,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
       const result = await walletService.myTransactions({ page, pageSize });
       if (!result.ok) throw result.error;

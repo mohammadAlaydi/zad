@@ -11,7 +11,9 @@ export interface AuthSession {
   accessTokenExpiresAt: number; // ms epoch
   user: {
     id: string;
-    email: string;
+    email: string | null;
+    phone: string | null;
+    fullName: string | null;
     kycStatus: "not_started" | "pending" | "submitted" | "review" | "approved" | "rejected";
     roles: readonly string[];
   };

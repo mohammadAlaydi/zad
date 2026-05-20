@@ -21,6 +21,7 @@ import type { EventBus, EventHandler } from "../../src/shared/events/EventBus.js
 export class InMemoryUserRepository implements UserRepository {
   private readonly byId = new Map<string, User>();
   private readonly byEmail = new Map<string, User>();
+  private readonly byPhone = new Map<string, User>();
 
   async findById(id: string): Promise<User | null> {
     return this.byId.get(id) ?? null;
@@ -28,9 +29,13 @@ export class InMemoryUserRepository implements UserRepository {
   async findByEmail(email: Email): Promise<User | null> {
     return this.byEmail.get(email.value) ?? null;
   }
+  async findByPhone(phone: string): Promise<User | null> {
+    return this.byPhone.get(phone) ?? null;
+  }
   async save(user: User): Promise<void> {
     this.byId.set(user.id, user);
     this.byEmail.set(user.email.value, user);
+    if (user.phone !== null) this.byPhone.set(user.phone, user);
   }
 }
 

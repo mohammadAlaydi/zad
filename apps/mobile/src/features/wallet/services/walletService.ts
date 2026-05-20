@@ -3,11 +3,16 @@ import {
   AccountBalanceResponseSchema,
   AccountListResponseSchema,
   ExternalMovementResponseSchema,
+  RecipientLookupResponseSchema,
+  SendByPhoneResponseSchema,
   TransferResponseSchema,
   WalletTransactionListResponseSchema,
   type AccountBalanceResponse,
   type AccountListResponse,
   type ExternalMovementResponse,
+  type RecipientLookupResponse,
+  type SendByPhoneRequest,
+  type SendByPhoneResponse,
   type TopupRequest,
   type TransferRequest,
   type TransferResponse,
@@ -49,6 +54,23 @@ export const walletService = {
     return api.post<TransferResponse>("/v1/wallet/transfers", input, TransferResponseSchema, {
       idempotencyKey,
     });
+  },
+
+  sendByPhone(
+    input: SendByPhoneRequest,
+    idempotencyKey: string,
+  ): Promise<Result<SendByPhoneResponse, ClientError>> {
+    return api.post<SendByPhoneResponse>("/v1/wallet/send", input, SendByPhoneResponseSchema, {
+      idempotencyKey,
+    });
+  },
+
+  lookupByPhone(phone: string): Promise<Result<RecipientLookupResponse, ClientError>> {
+    const q = encodeURIComponent(phone);
+    return api.get<RecipientLookupResponse>(
+      `/v1/identity/lookup?phone=${q}`,
+      RecipientLookupResponseSchema,
+    );
   },
 
   topup(

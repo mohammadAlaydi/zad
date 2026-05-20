@@ -7,7 +7,9 @@ import { type Role } from "../value-objects/Role.js";
 export class User {
   private constructor(
     public readonly id: string,
-    public readonly email: Email,
+    public readonly email: Email | null,
+    public readonly phone: string | null,
+    public readonly fullName: string | null,
     public readonly passwordHash: string,
     public readonly kycStatus: KycStatus,
     public readonly roles: readonly Role[],
@@ -17,7 +19,9 @@ export class User {
 
   static rehydrate(props: {
     id: string;
-    email: Email;
+    email: Email | null;
+    phone: string | null;
+    fullName: string | null;
     passwordHash: string;
     kycStatus: KycStatus;
     roles: readonly Role[];
@@ -27,6 +31,8 @@ export class User {
     return new User(
       props.id,
       props.email,
+      props.phone,
+      props.fullName,
       props.passwordHash,
       props.kycStatus,
       props.roles,
@@ -35,10 +41,19 @@ export class User {
     );
   }
 
-  static create(props: { id: string; email: Email; passwordHash: string; now: Date }): User {
+  static create(props: {
+    id: string;
+    email: Email | null;
+    phone: string | null;
+    fullName: string | null;
+    passwordHash: string;
+    now: Date;
+  }): User {
     return new User(
       props.id,
       props.email,
+      props.phone,
+      props.fullName,
       props.passwordHash,
       "not_started",
       ["customer"],
@@ -55,7 +70,23 @@ export class User {
     return new User(
       this.id,
       this.email,
+      this.phone,
+      this.fullName,
       passwordHash,
+      this.kycStatus,
+      this.roles,
+      this.createdAt,
+      now,
+    );
+  }
+
+  withEmail(email: Email, now: Date): User {
+    return new User(
+      this.id,
+      email,
+      this.phone,
+      this.fullName,
+      this.passwordHash,
       this.kycStatus,
       this.roles,
       this.createdAt,

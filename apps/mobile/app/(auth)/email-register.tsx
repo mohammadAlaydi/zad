@@ -1,5 +1,5 @@
-// Minimal email + password registration. The full KYC wizard lands in
-// PR-7. For now: register → home; KYC stays optional until enforced.
+// Minimal full-name + phone + email + password registration. The phone
+// number is how other ZADPAY users find this account when sending money.
 
 import { router } from "expo-router";
 import { useState } from "react";
@@ -17,13 +17,31 @@ export default function EmailRegister() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { mutate, isPending, error } = useRegister();
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const canSubmit = email.includes("@") && password.length >= 10 && !isPending;
+  const phoneTrimmed = phone.trim();
+  const emailTrimmed = email.trim();
+  // Email is optional — if the user types something, it has to look like
+  // an email; if it's empty, we just don't send the field.
+  const emailLooksValid = emailTrimmed.length === 0 || emailTrimmed.includes("@");
+  const canSubmit =
+    fullName.trim().length >= 2 &&
+    phoneTrimmed.length > 0 &&
+    emailLooksValid &&
+    password.length >= 10 &&
+    !isPending;
 
   async function onSubmit() {
-    const result = await mutate({ email, password });
+    if (phoneTrimmed.length === 0) return;
+    const result = await mutate({
+      ...(emailTrimmed.length > 0 ? { email: emailTrimmed } : {}),
+      password,
+      phone: phoneTrimmed,
+      fullName: fullName.trim(),
+    });
     // New accounts start with kycStatus "not_started" — route through the
     // KYC screen to upload + submit before the user can enter the app.
     if (result.ok) router.replace("/(auth)/kyc-status");
@@ -51,10 +69,27 @@ export default function EmailRegister() {
             fontSize: 13,
           }}
         >
-          Minimum 10 characters. KYC verification follows next.
+          Your phone number is how other users send money to you.
         </Text>
         <Input
-          label={t("auth.email")}
+          label="Full name"
+          placeholder="Jane Doe"
+          autoCapitalize="words"
+          value={fullName}
+          onChangeText={setFullName}
+        />
+        <View style={{ height: 16 }} />
+        <Input
+          label="Phone number"
+          placeholder="Your mobile number"
+          autoCapitalize="none"
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
+        />
+        <View style={{ height: 16 }} />
+        <Input
+          label={`${t("auth.email")} (optional)`}
           placeholder="you@example.com"
           autoCapitalize="none"
           keyboardType="email-address"

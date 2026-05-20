@@ -2,6 +2,7 @@ import {
   AccountBalanceResponseSchema,
   AccountListResponseSchema,
   ExternalMovementResponseSchema,
+  SendByPhoneResponseSchema,
   TransferResponseSchema,
   WalletTransactionListResponseSchema,
 } from "@zadpay/validation";
@@ -16,6 +17,7 @@ export const WalletTransactionListResponseJson = zodToJsonSchema(
   { target },
 );
 export const TransferResponseJson = zodToJsonSchema(TransferResponseSchema, { target });
+export const SendByPhoneResponseJson = zodToJsonSchema(SendByPhoneResponseSchema, { target });
 export const ExternalMovementResponseJson = zodToJsonSchema(ExternalMovementResponseSchema, {
   target,
 });

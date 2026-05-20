@@ -81,6 +81,31 @@ export const TransferResponseSchema = z.object({
 });
 export type TransferResponse = z.infer<typeof TransferResponseSchema>;
 
+// ── POST /v1/wallet/send ───────────────────────────────────────────────
+// User-friendly transfer: recipient identified by phone, caller verified
+// inline by password (Argon2). API resolves both wallets and posts the
+// ledger movement.
+// Phone format is intentionally permissive in dev — see auth schemas for
+// the rationale. The recipient string has to match the stored phone
+// exactly, so signup and send must use the same value.
+export const SendByPhoneRequestSchema = z.object({
+  recipientPhone: z.string().trim().min(1).max(32),
+  amount: MoneyJsonSchema,
+  password: z.string().min(1).max(256),
+  note: z.string().max(280).optional(),
+});
+export type SendByPhoneRequest = z.infer<typeof SendByPhoneRequestSchema>;
+
+export const SendByPhoneResponseSchema = z.object({
+  transaction: WalletTransactionResponseSchema,
+  recipient: z.object({
+    userId: z.string().uuid(),
+    fullName: z.string(),
+    phone: z.string(),
+  }),
+});
+export type SendByPhoneResponse = z.infer<typeof SendByPhoneResponseSchema>;
+
 // ── POST /v1/wallet/topups ─────────────────────────────────────────────
 // `source` is an opaque token from the processor SDK (e.g. Stripe token,
 // network-tokenized PAN). The api never sees raw card data — PCI ADR.

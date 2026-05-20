@@ -1,19 +1,27 @@
 import type {
+  SendByPhoneRequest,
+  SendByPhoneResponse,
   TransferRequest,
   TransferResponse,
   WalletTransactionResponse,
 } from "@zadpay/validation";
-import { TransferRequestSchema } from "@zadpay/validation";
+import { SendByPhoneRequestSchema, TransferRequestSchema } from "@zadpay/validation";
 import type { FastifyInstance } from "fastify";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { requireAuth } from "../../../../shared/middleware/auth.js";
 import { idempotency } from "../../../../shared/middleware/idempotency.js";
 import type { CreateTransferCommand } from "../../application/commands/CreateTransfer.js";
+import type { SendByPhoneCommand } from "../../application/commands/SendByPhone.js";
 import type { Transaction } from "../../domain/entities/Transaction.js";
-import { ErrorResponseJson, TransferResponseJson } from "../schemas/wallet.js";
+import {
+  ErrorResponseJson,
+  SendByPhoneResponseJson,
+  TransferResponseJson,
+} from "../schemas/wallet.js";
 
 export interface TransferRouteDeps {
   createTransfer: CreateTransferCommand;
+  sendByPhone: SendByPhoneCommand;
 }
 
 function toResponse(tx: Transaction): WalletTransactionResponse {
@@ -33,6 +41,7 @@ function toResponse(tx: Transaction): WalletTransactionResponse {
 }
 
 const TransferRequestJson = zodToJsonSchema(TransferRequestSchema, { target: "openApi3" });
+const SendByPhoneRequestJson = zodToJsonSchema(SendByPhoneRequestSchema, { target: "openApi3" });
 
 export async function registerTransferRoutes(
   app: FastifyInstance,
@@ -101,6 +110,72 @@ export async function registerTransferRoutes(
         return;
       }
       const response: TransferResponse = { transaction: toResponse(result.value) };
+      await reply.status(200).send(response);
+    },
+  );
+
+  app.post<{ Body: SendByPhoneRequest }>(
+    "/v1/wallet/send",
+    {
+      preHandler: [requireAuth, idempotency],
+      schema: {
+        tags: ["wallet"],
+        summary:
+          "Send money to a recipient identified by phone number. Verifies the caller's password before debiting. Requires an Idempotency-Key header.",
+        security: [{ bearerAuth: [] }],
+        body: SendByPhoneRequestJson,
+        response: {
+          200: SendByPhoneResponseJson,
+          400: ErrorResponseJson,
+          401: ErrorResponseJson,
+          404: ErrorResponseJson,
+          422: ErrorResponseJson,
+        },
+      },
+    },
+    async (req, reply) => {
+      const userId = req.requestContext.get("userId");
+      if (userId === undefined) {
+        await reply.status(401).send({
+          code: "COMMON.UNAUTHORIZED",
+          message: "Authentication required",
+          requestId: req.id,
+        });
+        return;
+      }
+      const idempotencyKey = req.idempotencyKey;
+      if (idempotencyKey === undefined) {
+        await reply.status(400).send({
+          code: "COMMON.VALIDATION",
+          message: "Missing Idempotency-Key",
+          requestId: req.id,
+        });
+        return;
+      }
+
+      const result = await deps.sendByPhone.execute({
+        userId,
+        idempotencyKey,
+        recipientPhone: req.body.recipientPhone,
+        password: req.body.password,
+        amount: {
+          amount: BigInt(req.body.amount.amount),
+          currency: req.body.amount.currency,
+        },
+        note: req.body.note,
+      });
+      if (!result.ok) {
+        await reply.status(result.error.httpStatus).send({
+          code: result.error.code,
+          message: result.error.message,
+          requestId: req.id,
+        });
+        return;
+      }
+      const response: SendByPhoneResponse = {
+        transaction: toResponse(result.value.transaction),
+        recipient: result.value.recipient,
+      };
       await reply.status(200).send(response);
     },
   );

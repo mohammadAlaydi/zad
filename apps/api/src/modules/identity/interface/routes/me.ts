@@ -41,6 +41,8 @@ export async function registerMeRoutes(app: FastifyInstance, deps: MeRouteDeps):
       await reply.status(200).send({
         id: result.value.id,
         email: result.value.email,
+        phone: result.value.phone,
+        fullName: result.value.fullName,
         kycStatus: result.value.kycStatus,
         roles: [...result.value.roles],
         createdAt: result.value.createdAt.toISOString(),
