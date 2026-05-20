@@ -3,7 +3,7 @@ image: node:20-alpine
 definitions:
   steps:
     - step: &test
-        name: Test
+        name: Test #test
         caches:
           - node
         script:
