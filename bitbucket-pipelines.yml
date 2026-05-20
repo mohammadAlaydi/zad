@@ -1,0 +1,33 @@
+image: node:20-alpine
+
+definitions:
+  steps:
+    - step: &test
+        name: Test
+        caches:
+          - node
+        script:
+          - npm install -g pnpm
+          - pnpm install --frozen-lockfile
+          - pnpm --filter @zadpay/api run typecheck
+          - pnpm --filter @zadpay/api run test
+
+    - step: &deploy
+        name: Deploy to EC2
+        script:
+          - apt-get update -qq && apt-get install -y openssh-client
+          - mkdir -p ~/.ssh
+          - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          - chmod 600 ~/.ssh/id_rsa
+          - ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+          - ssh $EC2_USER@$EC2_HOST "bash /home/ubuntu/zadpay/scripts/deploy.sh"
+
+pipelines:
+  pull-requests:
+    "**":
+      - step: *test
+
+  branches:
+    main:
+      - step: *test
+      - step: *deploy
