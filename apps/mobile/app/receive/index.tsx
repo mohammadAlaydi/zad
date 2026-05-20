@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,6 +19,7 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
+import { buildWirePayload, useCreatePaymentRequest } from "@/features/userdata";
 import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
@@ -38,9 +40,51 @@ export default function ReceiveMoney() {
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
   const [tab, setTab] = useState<"username" | "mobile">("username");
-  const [showQr, setShowQr] = useState(false);
+  // The QR is rendered after a successful payment_request creation. While
+  // null the user is still composing the request.
+  const [qrValue, setQrValue] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const qrValue = JSON.stringify({ user: user.username, amount, currency: activeCurrency });
+  const createRequest = useCreatePaymentRequest();
+
+  const phone = user.phone;
+
+  async function onContinue() {
+    if (qrValue !== null) {
+      // Second tap acts as Done — back out.
+      router.back();
+      return;
+    }
+    setErrorMsg(null);
+    if (phone.length === 0) {
+      setErrorMsg("Your account has no phone number on file yet.");
+      return;
+    }
+    try {
+      const result = await createRequest.mutateAsync({
+        recipientPhone: phone,
+        recipientName: user.fullName,
+        amountMinor: String(Math.round(amount * 100)),
+        currency: activeCurrency,
+        channel: "receive",
+        ...(note.length > 0 ? { note } : {}),
+      });
+      const payload = buildWirePayload({
+        phone,
+        amountMinor: Math.round(amount * 100),
+        currency: activeCurrency,
+        ...(note.length > 0 ? { note } : {}),
+        requestId: result.id,
+      });
+      setQrValue(JSON.stringify(payload));
+    } catch (err) {
+      const code =
+        err !== null && typeof err === "object" && "code" in err
+          ? String((err as { code: unknown }).code)
+          : "UNKNOWN";
+      setErrorMsg(`Couldn't create payment request (${code}). Try again.`);
+    }
+  }
 
   return (
     <Screen bg={Colors.white} keyboard>
@@ -192,7 +236,20 @@ export default function ReceiveMoney() {
             />
           )}
 
-          {showQr && (
+          {errorMsg !== null ? (
+            <Text
+              style={{
+                color: Colors.accent.red,
+                fontFamily: "Inter_500Medium",
+                fontSize: 12,
+                marginTop: 12,
+              }}
+            >
+              {errorMsg}
+            </Text>
+          ) : null}
+
+          {qrValue !== null && (
             <View
               style={{
                 alignItems: "center",
@@ -224,44 +281,17 @@ export default function ReceiveMoney() {
               >
                 {t("receive.requestPayment")}
               </Text>
-              <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
-                <Pressable
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 6,
-                    paddingHorizontal: 18,
-                    paddingVertical: 10,
-                    borderRadius: 999,
-                    backgroundColor: Colors.brand.primary,
-                  }}
-                >
-                  <Ionicons name="link" size={16} color={Colors.white} />
-                  <Text
-                    style={{ color: Colors.white, fontFamily: "Inter_600SemiBold", fontSize: 13 }}
-                  >
-                    Share link
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 6,
-                    paddingHorizontal: 18,
-                    paddingVertical: 10,
-                    borderRadius: 999,
-                    backgroundColor: Colors.brand.primary,
-                  }}
-                >
-                  <Ionicons name="qr-code" size={16} color={Colors.white} />
-                  <Text
-                    style={{ color: Colors.white, fontFamily: "Inter_600SemiBold", fontSize: 13 }}
-                  >
-                    Share QR
-                  </Text>
-                </Pressable>
-              </View>
+              <Text
+                style={{
+                  marginTop: 4,
+                  color: Colors.ink[400],
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 11,
+                  textAlign: "center",
+                }}
+              >
+                Waiting for payer to scan…
+              </Text>
             </View>
           )}
         </ScrollView>
@@ -269,9 +299,23 @@ export default function ReceiveMoney() {
 
       <View style={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 16 }}>
         <Button
-          title={showQr ? t("common.done") : t("common.continue")}
-          onPress={() => (showQr ? router.back() : setShowQr(true))}
+          title={
+            qrValue !== null
+              ? t("common.done")
+              : createRequest.isPending
+                ? "Generating…"
+                : t("common.continue")
+          }
+          disabled={createRequest.isPending}
+          onPress={() => {
+            void onContinue();
+          }}
         />
+        {createRequest.isPending ? (
+          <View style={{ alignItems: "center", marginTop: 8 }}>
+            <ActivityIndicator color={Colors.brand.primary} />
+          </View>
+        ) : null}
       </View>
     </Screen>
   );

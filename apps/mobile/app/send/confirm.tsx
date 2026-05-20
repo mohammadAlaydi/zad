@@ -9,6 +9,7 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
+import { markPaymentRequestPaid } from "@/features/userdata";
 import { useAccountBalance, useMyAccounts, useSendByPhone, useSendFlow } from "@/features/wallet";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
@@ -29,6 +30,8 @@ export default function SendConfirm() {
   const amountMinor = useSendFlow((s) => s.amountMinor);
   const note = useSendFlow((s) => s.note);
   const idempotencyKey = useSendFlow((s) => s.idempotencyKey);
+  const pendingRequestId = useSendFlow((s) => s.pendingRequestId);
+  const setPendingRequestId = useSendFlow((s) => s.setPendingRequestId);
   const resetIdempotencyKey = useSendFlow((s) => s.resetIdempotencyKey);
 
   const sendMutation = useSendByPhone();
@@ -75,6 +78,15 @@ export default function SendConfirm() {
       });
       setPwModalOpen(false);
       setPassword("");
+      // If the send was triggered by a payment request (QR / receive),
+      // flip the request's status to "paid". We don't await — the receipt
+      // page can render immediately while this fires in the background.
+      if (pendingRequestId !== null) {
+        const requestIdForUpdate = pendingRequestId;
+        const txIdForUpdate = result.transaction.id;
+        setPendingRequestId(null);
+        void markPaymentRequestPaid(requestIdForUpdate, txIdForUpdate);
+      }
       router.replace({
         pathname: "/send/success",
         params: {
@@ -82,6 +94,7 @@ export default function SendConfirm() {
           mobile: result.recipient.phone,
           contactName: result.recipient.fullName,
           message: note,
+          transactionId: result.transaction.id,
         },
       });
     } catch (err) {
