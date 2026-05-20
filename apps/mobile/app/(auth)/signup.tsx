@@ -16,12 +16,13 @@ export default function Signup() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [country, setCountry] = useState(COUNTRIES[3]);
+  const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [pwd, setPwd] = useState("");
 
   // Backend requires min 8 chars; mirror that here so the API call later
   // can't fail validation after the user has gone through OTP.
-  const valid = phone.length >= 6 && pwd.length >= 8;
+  const valid = fullName.trim().length >= 2 && phone.length >= 6 && pwd.length >= 8;
 
   return (
     <Screen scroll keyboard>
@@ -29,6 +30,14 @@ export default function Signup() {
       <View style={styles.content}>
         <Text style={styles.heading}>{t("auth.signupTitle")}</Text>
         <Text style={styles.subheading}>{t("auth.loginSubtitle")}</Text>
+        <Input
+          label="Full name"
+          placeholder="Jane Doe"
+          autoCapitalize="words"
+          value={fullName}
+          onChangeText={setFullName}
+        />
+        <View style={styles.spacer} />
         <Text style={styles.fieldLabel}>{t("auth.phone")}</Text>
         <PhoneInput
           country={country}
@@ -54,8 +63,12 @@ export default function Signup() {
               pathname: "/(auth)/verify-phone",
               params: {
                 mode: "signup",
-                phone: `${country.dial}${phone}`,
+                // Permissive in dev: send whatever the user typed. The
+                // country picker is purely a visual hint until we tighten
+                // up to E.164 + SMS verification.
+                phone: phone.trim(),
                 password: pwd,
+                fullName: fullName.trim(),
               },
             })
           }

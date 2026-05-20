@@ -7,5 +7,6 @@ import type { Email } from "../value-objects/Email.js";
 export interface UserRepository {
   findById(id: string): Promise<User | null>;
   findByEmail(email: Email): Promise<User | null>;
+  findByPhone(phone: string): Promise<User | null>;
   save(user: User): Promise<void>;
 }

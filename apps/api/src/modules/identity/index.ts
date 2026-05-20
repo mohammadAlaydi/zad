@@ -20,5 +20,12 @@ export type {
   TokenSigner,
 } from "./domain/ports/TokenSigner.js";
 
+// Read-only directory exposed to other modules (e.g. wallet) so they can
+// resolve a phone number to a userId without coupling to identity internals.
+export type { PhoneLookup, PhoneLookupRecord } from "./application/queries/LookupByPhone.js";
+// Reverse: resolve a userId to a profile summary. Used by notifications
+// to render the sender/recipient name in push messages.
+export type { UserLookup, UserProfileSummary } from "./application/queries/LookupById.js";
+
 export { registerIdentityModule } from "./register.js";
-export type { IdentityModuleConfig } from "./register.js";
+export type { IdentityModuleConfig, IdentityModuleHandles } from "./register.js";

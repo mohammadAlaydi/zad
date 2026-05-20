@@ -38,6 +38,8 @@ export class UpdateKycStatusCommand {
     const updated = (await import("../../domain/entities/User.js")).User.rehydrate({
       id: user.id,
       email: user.email,
+      phone: user.phone,
+      fullName: user.fullName,
       passwordHash: user.passwordHash,
       kycStatus: next,
       roles: user.roles,

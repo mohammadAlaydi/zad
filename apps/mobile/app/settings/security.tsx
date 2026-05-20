@@ -246,6 +246,14 @@ export default function Security() {
               }}
             />
             <ListRow
+              icon={<Ionicons name="key-outline" size={18} color={Colors.brand.primary} />}
+              title="Change password"
+              onPress={() => {
+                haptic.selection();
+                router.push("/settings/security/change-password");
+              }}
+            />
+            <ListRow
               icon={
                 <Ionicons name="phone-portrait-outline" size={18} color={Colors.brand.primary} />
               }

@@ -8,7 +8,9 @@ export interface GetMeInput {
 
 export interface MeView {
   id: string;
-  email: string;
+  email: string | null;
+  phone: string | null;
+  fullName: string | null;
   kycStatus: string;
   roles: readonly string[];
   createdAt: Date;
@@ -26,7 +28,9 @@ export class GetMeQuery {
     if (user === null) return err(new UserNotFound());
     return ok({
       id: user.id,
-      email: user.email.value,
+      email: user.email?.value ?? null,
+      phone: user.phone,
+      fullName: user.fullName,
       kycStatus: user.kycStatus,
       roles: user.roles,
       createdAt: user.createdAt,

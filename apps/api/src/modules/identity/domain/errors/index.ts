@@ -34,9 +34,30 @@ export class EmailAlreadyExists extends ConflictError {
   }
 }
 
+export class PhoneAlreadyExists extends ConflictError {
+  override readonly code = "IDENTITY.PHONE_ALREADY_EXISTS";
+  constructor() {
+    super("An account with this phone number already exists");
+  }
+}
+
 export class UserNotFound extends NotFoundError {
   override readonly code = "IDENTITY.USER_NOT_FOUND";
   constructor() {
     super("User not found");
+  }
+}
+
+export class RecipientNotFound extends NotFoundError {
+  override readonly code = "IDENTITY.RECIPIENT_NOT_FOUND";
+  constructor() {
+    super("No ZADPAY user found with this phone number");
+  }
+}
+
+export class InvalidPassword extends UnauthorizedError {
+  override readonly code = "IDENTITY.INVALID_PASSWORD";
+  constructor() {
+    super("Password is incorrect");
   }
 }

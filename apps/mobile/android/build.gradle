@@ -15,6 +15,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+        classpath 'com.google.gms:google-services:4.4.1'
         classpath('com.android.tools.build:gradle')
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
@@ -22,6 +23,25 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// Some autolinked native modules (e.g. react-native-gesture-handler) read
+// compile/min/target SDK from rootProject.ext rather than buildscript.ext.
+// Mirror the values here so those modules compile.
+ext {
+    buildToolsVersion = findProperty('android.buildToolsVersion') ?: '34.0.0'
+    minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '23')
+    compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '34')
+    targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
+    kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.23'
+    ndkVersion = "26.1.10909125"
+    // pnpm hoists react-native to the workspace root rather than into
+    // apps/mobile/node_modules. Native modules that hard-code the
+    // `../node_modules/react-native` path break unless we tell them
+    // where react-native really lives. Despite the name, this is the
+    // path to the react-native folder itself — gesture-handler concats
+    // `/ReactAndroid/...` onto it.
+    REACT_NATIVE_NODE_MODULES_DIR = new File(rootDir, "../../../node_modules/react-native").canonicalPath
+}
 
 allprojects {
     repositories {

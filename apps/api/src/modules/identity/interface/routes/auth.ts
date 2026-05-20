@@ -1,4 +1,5 @@
 import type {
+  LoginByPhoneRequest,
   LoginRequest,
   LogoutRequest,
   RefreshRequest,
@@ -7,12 +8,14 @@ import type {
 } from "@zadpay/validation/auth";
 import type { FastifyInstance } from "fastify";
 import type { LoginCommand } from "../../application/commands/Login.js";
+import type { LoginByPhoneCommand } from "../../application/commands/LoginByPhone.js";
 import type { LogoutCommand } from "../../application/commands/Logout.js";
 import type { RefreshCommand } from "../../application/commands/Refresh.js";
 import type { RegisterCommand } from "../../application/commands/Register.js";
 import type { IssueTokensResult } from "../../application/commands/shared/issueTokens.js";
 import {
   ErrorResponseJson,
+  LoginByPhoneRequestJson,
   LoginRequestJson,
   LogoutRequestJson,
   RefreshRequestJson,
@@ -22,6 +25,7 @@ import {
 
 export interface AuthRouteDeps {
   login: LoginCommand;
+  loginByPhone: LoginByPhoneCommand;
   refresh: RefreshCommand;
   logout: LogoutCommand;
   register: RegisterCommand;
@@ -35,7 +39,9 @@ function toTokenPair(result: IssueTokensResult): TokenPairResponse {
     refreshTokenExpiresAt: result.refreshTokenExpiresAt.toISOString(),
     user: {
       id: result.user.id,
-      email: result.user.email.value,
+      email: result.user.email?.value ?? null,
+      phone: result.user.phone,
+      fullName: result.user.fullName,
       kycStatus: result.user.kycStatus,
       roles: [...result.user.roles],
     },
@@ -72,6 +78,35 @@ export async function registerAuthRoutes(app: FastifyInstance, deps: AuthRouteDe
     },
   );
 
+  app.post<{ Body: LoginByPhoneRequest }>(
+    "/v1/auth/login-phone",
+    {
+      schema: {
+        tags: ["auth"],
+        summary: "Phone + password login.",
+        body: LoginByPhoneRequestJson,
+        response: { 200: TokenPairResponseJson, 401: ErrorResponseJson },
+      },
+    },
+    async (req, reply) => {
+      const result = await deps.loginByPhone.execute({
+        phone: req.body.phone,
+        password: req.body.password,
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+      });
+      if (!result.ok) {
+        await reply.status(result.error.httpStatus).send({
+          code: result.error.code,
+          message: result.error.message,
+          requestId: req.id,
+        });
+        return;
+      }
+      await reply.status(200).send(toTokenPair(result.value));
+    },
+  );
+
   app.post<{ Body: RegisterRequest }>(
     "/v1/auth/register",
     {
@@ -86,6 +121,8 @@ export async function registerAuthRoutes(app: FastifyInstance, deps: AuthRouteDe
       const result = await deps.register.execute({
         email: req.body.email,
         password: req.body.password,
+        phone: req.body.phone,
+        fullName: req.body.fullName,
         ip: req.ip,
         userAgent: req.headers["user-agent"],
       });

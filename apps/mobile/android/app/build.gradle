@@ -2,9 +2,6 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
-project.ext.REACT_NATIVE_NODE_MODULES_DIR = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath()
-rootProject.ext.REACT_NATIVE_NODE_MODULES_DIR = project.ext.REACT_NATIVE_NODE_MODULES_DIR
-
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 static def versionToNumber(major, minor, patch) {
@@ -106,6 +103,14 @@ def enableProguardInReleaseBuilds = (findProperty('android.enableProguardInRelea
  */
 def jscFlavor = 'org.webkit:android-jsc:+'
 
+// pnpm workspace: react-native lives at the repo root, not inside
+// apps/mobile/node_modules. react-native-reanimated reads this property
+// from the *app* project (not rootProject), so set it here. The variable
+// despite its name points at the react-native folder itself.
+ext {
+    REACT_NATIVE_NODE_MODULES_DIR = new File(rootDir, "../../../node_modules/react-native").canonicalPath
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
 
@@ -119,9 +124,6 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
-        ndk {
-            abiFilters "armeabi-v7a", "arm64-v8a"
-        }
     }
     signingConfigs {
         debug {
@@ -205,3 +207,5 @@ if (rnVersion < versionToNumber(0, 75, 0)) {
     apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), "../native_modules.gradle");
     applyNativeModulesAppBuildGradle(project)
 }
+
+apply plugin: 'com.google.gms.google-services'

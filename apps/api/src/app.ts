@@ -19,6 +19,7 @@ import {
 } from "./infra/metrics/index.js";
 import { registerIdentityModule } from "./modules/identity/index.js";
 import { registerKycModule } from "./modules/kyc/index.js";
+import { registerNotificationsModule } from "./modules/notifications/index.js";
 import { registerUserdataModule } from "./modules/userdata/index.js";
 import { registerWalletModule } from "./modules/wallet/index.js";
 import { registerErrorHandler } from "./shared/errors/handler.js";
@@ -116,7 +117,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   // Module routes — ordered by dependency. Identity registers FIRST so its
   // subscribers are attached before KYC publishes any events at boot.
-  await registerIdentityModule(app, deps.prisma, deps.events, {
+  const identity = await registerIdentityModule(app, deps.prisma, deps.events, {
     jwtSigningKeyPem: env.JWT_SIGNING_KEY,
     jwtVerifyKeyPem: env.JWT_VERIFY_KEY,
     refreshTokenPepper: env.REFRESH_TOKEN_PEPPER,
@@ -129,9 +130,46 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     // KycProvider implementation with no auto-approval.
     inMemoryAutoApproveMs: 3000,
   });
-  await registerWalletModule(app, deps.prisma, deps.events, {
-    defaultCurrency: "USD",
+  // Wallet receives identity's phone directory + password verifier — the
+  // composition root is the only file that knows both modules exist.
+  const { Argon2PasswordHasher } =
+    await import("./modules/identity/infrastructure/adapters/Argon2PasswordHasher.js");
+  const argon = new Argon2PasswordHasher();
+  const wallet = await registerWalletModule(
+    app,
+    deps.prisma,
+    deps.events,
+    { defaultCurrency: "USD" },
+    {
+      recipients: {
+        byPhone: (phone) => identity.phoneLookup.byPhone(phone),
+      },
+      passwords: {
+        verify: async (userId, plain) => {
+          const row = await deps.prisma.user.findUnique({
+            where: { id: userId },
+            select: { passwordHash: true },
+          });
+          if (row === null) return false;
+          return argon.verify(plain, row.passwordHash);
+        },
+      },
+    },
+  );
+  // Now that wallet's lookup is available, wire identity's recipient-lookup
+  // route to it (forms the second half of the cross-module composition).
+  await identity.registerLookup({
+    primaryAccountForUser: (userId) => wallet.primaryAccountForUser(userId),
   });
+
+  // Notifications subscribes to wallet.TransferPosted and fires FCM push
+  // messages. It consumes read-only ports from identity (userId → name)
+  // and wallet (accountId → ownerId) — no other coupling.
+  await registerNotificationsModule(app, deps.prisma, deps.events, {
+    userLookup: identity.userLookup,
+    ownerOfAccount: (accountId) => wallet.ownerOfAccount(accountId),
+  });
+
   await registerUserdataModule(app, deps.prisma);
 
   return app;

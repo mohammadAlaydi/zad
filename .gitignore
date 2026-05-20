@@ -8,6 +8,18 @@ expo-env.d.ts
 # Dependencies
 node_modules/
 
+# Firebase credentials — never commit. The android prebuild copies the
+# root file into apps/mobile/android/app/google-services.json — ignore
+# that copy too.
+firebase-service-account.json
+apps/api/firebase-service-account.json
+apps/mobile/google-services.json
+apps/mobile/android/app/google-services.json
+apps/mobile/GoogleService-Info.plist
+
+# Claude Code workspace settings
+.claude/
+
 # Expo
 .expo/
 dist/

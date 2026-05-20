@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { MotiView } from "moti";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   View,
@@ -17,8 +17,15 @@ import { AmountStepper } from "@/components/AmountStepper";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
+import { PhoneInput } from "@/components/PhoneInput";
 import { Screen } from "@/components/Screen";
-import { useAccountBalance, useMyAccounts } from "@/features/wallet";
+import { COUNTRIES } from "@/data/countries";
+import {
+  useAccountBalance,
+  useMyAccounts,
+  useRecipientLookup,
+  useSendFlow,
+} from "@/features/wallet";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
@@ -35,22 +42,65 @@ export default function SendMoney() {
   const balanceQuery = useAccountBalance(account?.id);
   const balance =
     balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
-  const [amount, setAmount] = useState(200);
-  const [mobile, setMobile] = useState("");
-  const [contactName, setContactName] = useState("");
+  const [amount, setAmount] = useState(20);
+  // Default to Iraq for the dev/test scenario — adjust later via picker.
+  const [country, setCountry] = useState(COUNTRIES[3]);
+  // Local digits only; the country dial code is composed at send time.
+  const [phoneDigits, setPhoneDigits] = useState("");
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
   const [tab, setTab] = useState<Tab>("mobile");
 
+  const setRecipient = useSendFlow((s) => s.setRecipient);
+  const setAmountMinor = useSendFlow((s) => s.setAmountMinor);
+  const setNote = useSendFlow((s) => s.setNote);
+  const resetIdempotencyKey = useSendFlow((s) => s.resetIdempotencyKey);
+
+  // Permissive in dev: send whatever digits the user typed. The country
+  // picker stays as a visual hint but doesn't transform the value, so the
+  // string sent here matches what was stored at signup byte-for-byte.
+  const normalizedPhone = useMemo(
+    () => (phoneDigits.trim().length > 0 ? phoneDigits.trim() : null),
+    [phoneDigits],
+  );
+  const lookup = useRecipientLookup(tab === "mobile" ? normalizedPhone : null);
+
+  // Push the resolved recipient (or null) into the flow store so /send/confirm
+  // can read it without re-querying.
+  useEffect(() => {
+    if (tab !== "mobile") return;
+    if (lookup.data === undefined) {
+      setRecipient(null);
+      return;
+    }
+    setRecipient({
+      phone: lookup.data.phone,
+      name: lookup.data.fullName,
+      userId: lookup.data.userId,
+      currency: lookup.data.currency,
+    });
+  }, [tab, lookup.data, setRecipient]);
+
+  const lookupErrorCode =
+    lookup.error !== null && lookup.error !== undefined ? lookup.error.code : null;
+
   const canContinue =
-    amount > 0 &&
-    (tab === "mobile" ? mobile.length > 6 : tab === "username" ? contactName.length > 0 : true);
+    tab === "mobile" ? amount > 0 && lookup.data !== undefined && !lookup.isFetching : false;
 
   const tabs: { key: Tab; label: string; icon: React.ComponentProps<typeof Ionicons>["name"] }[] = [
     { key: "mobile", label: t("send.mobileNumber"), icon: "phone-portrait-outline" },
     { key: "username", label: t("receive.userName"), icon: "at-circle-outline" },
     { key: "visa", label: "Visa Direct", icon: "card-outline" },
   ];
+
+  function onContinue() {
+    if (lookup.data === undefined || normalizedPhone === null) return;
+    setAmountMinor(Math.round(amount * 100));
+    setNote(message);
+    // Fresh idempotency key when the user starts a new send intent.
+    resetIdempotencyKey();
+    router.push("/send/confirm");
+  }
 
   return (
     <Screen bg={Colors.white} keyboard>
@@ -111,28 +161,15 @@ export default function SendMoney() {
             })}
           </View>
 
-          {/* Visa Direct panel */}
-          {tab === "visa" ? (
-            <MotiView
-              from={{ opacity: 0, translateY: 8 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: "timing", duration: 300 }}
-              style={styles.visaPanel}
-            >
-              <View style={styles.visaCardGraphic}>
-                <Text style={styles.visaCardGraphicWord}>VISA</Text>
-              </View>
-              <Text style={styles.visaPanelTitle}>Send to any Visa card</Text>
-              <Text style={styles.visaPanelDesc}>
-                Send directly to any Visa card worldwide. Fast, secure, and reliable. $1.50 fee
-                applies per transfer.
+          {/* Mobile-number tab is the only wired flow on this branch. */}
+          {tab !== "mobile" ? (
+            <View style={styles.comingSoon}>
+              <Ionicons name="construct-outline" size={24} color={Colors.ink[400]} />
+              <Text style={styles.comingSoonText}>This flow is coming soon.</Text>
+              <Text style={styles.comingSoonSub}>
+                For now, send money using the recipient&apos;s phone number.
               </Text>
-              <Button
-                title="Get Started"
-                onPress={() => router.push("/send/visa-direct")}
-                size="md"
-              />
-            </MotiView>
+            </View>
           ) : (
             <>
               <Text style={styles.howMuch}>{t("send.howMuch")}</Text>
@@ -140,7 +177,7 @@ export default function SendMoney() {
 
               {/* Quick amounts */}
               <View style={styles.quickGrid}>
-                {[100, 200, 300, 400, 500, 600, 700, 800].map((v) => {
+                {[5, 10, 20, 50, 100, 200, 500, 1000].map((v) => {
                   const active = amount === v;
                   return (
                     <Pressable
@@ -161,35 +198,46 @@ export default function SendMoney() {
                 })}
               </View>
 
-              <Text style={styles.sendToLabel}>{t("send.sendTo")}</Text>
-              <View style={styles.inputRow}>
-                <View style={styles.flex1}>
-                  <Input
-                    placeholder={tab === "mobile" ? t("send.mobileNumber") : "@username"}
-                    value={tab === "mobile" ? mobile : contactName}
-                    onChangeText={tab === "mobile" ? setMobile : setContactName}
-                    keyboardType={tab === "mobile" ? "phone-pad" : "default"}
-                    leftIcon={
-                      <Ionicons
-                        name={tab === "mobile" ? "phone-portrait-outline" : "at-outline"}
-                        size={18}
-                        color={Colors.ink[400]}
-                      />
-                    }
-                  />
-                </View>
-                <Pressable style={styles.contactBtn}>
-                  <Ionicons name="person-add-outline" size={20} color={Colors.white} />
-                </Pressable>
-              </View>
-
+              <Text style={styles.sendToLabel}>Recipient phone</Text>
+              <PhoneInput
+                country={country}
+                onCountryChange={setCountry}
+                value={phoneDigits}
+                onChangeText={setPhoneDigits}
+                placeholder="Mobile number"
+              />
+              {/* Recipient preview / lookup status */}
               {tab === "mobile" && (
-                <Input
-                  placeholder={t("send.contactName")}
-                  value={contactName}
-                  onChangeText={setContactName}
-                  containerStyle={styles.contactNameInput}
-                />
+                <View style={{ marginTop: 8 }}>
+                  {normalizedPhone === null && phoneDigits.length > 0 ? (
+                    <Text style={styles.lookupHint}>Enter a valid mobile number.</Text>
+                  ) : null}
+                  {lookup.isFetching ? (
+                    <Text style={styles.lookupHint}>Looking up recipient…</Text>
+                  ) : null}
+                  {lookup.data !== undefined ? (
+                    <View style={styles.recipientPreview}>
+                      <View style={styles.recipientAvatar}>
+                        <Text style={styles.recipientAvatarText}>
+                          {lookup.data.fullName.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.recipientName}>{lookup.data.fullName}</Text>
+                        <Text style={styles.recipientPhone}>{lookup.data.phone}</Text>
+                      </View>
+                      <Ionicons name="checkmark-circle" size={22} color={Colors.accent.green} />
+                    </View>
+                  ) : null}
+                  {lookupErrorCode === "IDENTITY.RECIPIENT_NOT_FOUND" ? (
+                    <View style={styles.recipientMissing}>
+                      <Ionicons name="alert-circle-outline" size={18} color={Colors.accent.red} />
+                      <Text style={styles.recipientMissingText}>
+                        No ZADPAY user found with this number.
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
               )}
 
               {!showMessage ? (
@@ -216,24 +264,9 @@ export default function SendMoney() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {tab !== "visa" && (
+      {tab === "mobile" && (
         <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
-          <Button
-            title={t("common.continue")}
-            disabled={!canContinue}
-            onPress={() =>
-              router.push({
-                pathname: "/send/confirm",
-                params: {
-                  amount: amount.toString(),
-                  mobile: mobile || "07701234567",
-                  contactName: contactName || "Demo User",
-                  message,
-                  tab,
-                },
-              })
-            }
-          />
+          <Button title={t("common.continue")} disabled={!canContinue} onPress={onContinue} />
         </View>
       )}
     </Screen>
@@ -306,61 +339,81 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 8,
   },
-  inputRow: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  contactBtn: {
-    width: 52,
-    height: 52,
+  lookupHint: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+  },
+  recipientPreview: {
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: Colors.surface.background,
     borderRadius: 14,
+    padding: 12,
+  },
+  recipientAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.brand.primary,
     alignItems: "center",
     justifyContent: "center",
   },
-  contactNameInput: { marginTop: -6 },
-  addMessageBtn: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 },
-  addMessageText: { color: Colors.accent.green, fontFamily: "Inter_600SemiBold", fontSize: 13 },
-  bottomBar: { paddingHorizontal: 18 },
-  // Visa panel
-  visaPanel: {
-    backgroundColor: Colors.surface.background,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  visaCardGraphic: {
-    width: 120,
-    height: 72,
-    backgroundColor: "#1A1F71",
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-    shadowColor: "#1A1F71",
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  visaCardGraphicWord: {
+  recipientAvatarText: {
     color: Colors.white,
     fontFamily: "Sora_700Bold",
-    fontSize: 20,
-    letterSpacing: 3,
-    fontStyle: "italic",
+    fontSize: 16,
   },
-  visaPanelTitle: {
+  recipientName: {
     color: Colors.ink[900],
     fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    marginBottom: 8,
-    textAlign: "center",
+    fontSize: 14,
   },
-  visaPanelDesc: {
+  recipientPhone: {
     color: Colors.ink[500],
     fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  recipientMissing: {
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#FBEAEC",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  recipientMissingText: {
+    color: Colors.accent.red,
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    flex: 1,
+  },
+  addMessageBtn: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 14 },
+  addMessageText: { color: Colors.accent.green, fontFamily: "Inter_600SemiBold", fontSize: 13 },
+  bottomBar: { paddingHorizontal: 18 },
+  comingSoon: {
+    backgroundColor: Colors.surface.background,
+    borderRadius: 18,
+    padding: 28,
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+  },
+  comingSoonText: {
+    color: Colors.ink[900],
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    marginTop: 4,
+  },
+  comingSoonSub: {
+    color: Colors.ink[500],
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
     textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
   },
 });
