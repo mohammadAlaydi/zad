@@ -3,7 +3,10 @@ image: node:20-alpine
 definitions:
   steps:
     - step: &test
-        name: Test #test
+        name: Test
+        runs-on:
+          - self.hosted
+          - linux.shell
         caches:
           - node
         script:
@@ -16,11 +19,12 @@ definitions:
         name: Deploy to EC2
         runs-on:
           - self.hosted
-          - linux
+          - linux.shell
         script:
           - sh /home/ubuntu/zadpay/scripts/deploy.sh
 
 pipelines:
   branches:
     main:
+      - step: *test
       - step: *deploy
