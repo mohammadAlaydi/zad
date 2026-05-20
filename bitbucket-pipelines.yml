@@ -27,4 +27,4 @@ pipelines:
   branches:
     main:
       - step: *test
-      - step: *deploy #test
+      - step: *deploy
