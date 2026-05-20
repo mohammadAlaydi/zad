@@ -15,6 +15,7 @@ npx prisma migrate deploy
 cd /home/ubuntu/zadpay
 
 echo ">>> Restarting server..."
-pm2 restart zadpay-api
+pm2 describe zadpay-api > /dev/null 2>&1 && pm2 restart zadpay-api --update-env || (cd /home/ubuntu/zadpay/apps/api && pm2 start npx --name zadpay-api -- tsx --env-file=.env src/server.ts)
+pm2 save
 
 echo ">>> Done."
