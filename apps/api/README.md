@@ -262,6 +262,84 @@ pm2 restart zadpay-api
 
 ---
 
+## CI/CD with Bitbucket Pipelines
+
+Every push to `main` automatically tests and deploys to EC2.
+
+---
+
+### 1. Generate a Deploy SSH Key
+
+On your **local machine**:
+
+```bash
+ssh-keygen -t ed25519 -f bitbucket_deploy_key -N ""
+```
+
+This creates two files:
+
+- `bitbucket_deploy_key` — private key (goes into Bitbucket)
+- `bitbucket_deploy_key.pub` — public key (goes onto EC2)
+
+---
+
+### 2. Add the Public Key to EC2
+
+```bash
+ssh -i your-key.pem ubuntu@<EC2-IP>
+echo "PASTE_CONTENT_OF_bitbucket_deploy_key.pub" >> ~/.ssh/authorized_keys
+```
+
+---
+
+### 3. Add Variables to Bitbucket
+
+Go to **Repository → Settings → Repository variables** and add:
+
+| Variable          | Value                                           |
+| ----------------- | ----------------------------------------------- |
+| `SSH_PRIVATE_KEY` | content of `bitbucket_deploy_key` (private key) |
+| `EC2_HOST`        | your EC2 public IP (e.g. `13.61.34.102`)        |
+| `EC2_USER`        | `ubuntu`                                        |
+
+---
+
+### 4. Make the Deploy Script Executable on EC2
+
+```bash
+chmod +x /home/ubuntu/zadpay/scripts/deploy.sh
+```
+
+---
+
+### 5. Push to Trigger the Pipeline
+
+```bash
+git add bitbucket-pipelines.yml scripts/deploy.sh
+git commit -m "chore: add Bitbucket CI/CD pipeline"
+git push origin main
+```
+
+Go to **Bitbucket → Pipelines** to watch it run.
+
+---
+
+### Pipeline Behaviour
+
+| Event          | What runs                         |
+| -------------- | --------------------------------- |
+| Pull request   | Tests + typecheck only            |
+| Push to `main` | Tests + typecheck → deploy to EC2 |
+
+The deploy step SSHes into EC2 and runs `scripts/deploy.sh` which:
+
+1. `git pull` latest code
+2. `pnpm install`
+3. `prisma migrate deploy`
+4. `pm2 restart zadpay-api`
+
+---
+
 ## Quick Reference
 
 | Command                                        | Purpose               |
