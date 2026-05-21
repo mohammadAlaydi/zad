@@ -9,8 +9,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
+import { PhoneInput } from "@/components/PhoneInput";
 import { Screen } from "@/components/Screen";
+import { COUNTRIES } from "@/data/countries";
 import { useRegister } from "@/features/auth";
+import { validatePhone } from "@/lib/phone";
 import { Colors } from "@/theme/colors";
 
 export default function EmailRegister() {
@@ -18,28 +21,30 @@ export default function EmailRegister() {
   const insets = useSafeAreaInsets();
   const { mutate, isPending, error } = useRegister();
   const [fullName, setFullName] = useState("");
+  const [country, setCountry] = useState(COUNTRIES[3]); // IQ default
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const phoneTrimmed = phone.trim();
   const emailTrimmed = email.trim();
   // Email is optional — if the user types something, it has to look like
   // an email; if it's empty, we just don't send the field.
   const emailLooksValid = emailTrimmed.length === 0 || emailTrimmed.includes("@");
+  const phoneCheck = validatePhone(phone, country.code);
   const canSubmit =
     fullName.trim().length >= 2 &&
-    phoneTrimmed.length > 0 &&
+    phoneCheck.ok &&
     emailLooksValid &&
     password.length >= 8 &&
     !isPending;
 
   async function onSubmit() {
-    if (phoneTrimmed.length === 0) return;
+    if (!phoneCheck.ok) return;
     const result = await mutate({
       ...(emailTrimmed.length > 0 ? { email: emailTrimmed } : {}),
       password,
-      phone: phoneTrimmed,
+      phone: phoneCheck.e164,
+      country: country.code,
       fullName: fullName.trim(),
     });
     // New accounts start with kycStatus "not_started" — route through the
@@ -79,11 +84,19 @@ export default function EmailRegister() {
           onChangeText={setFullName}
         />
         <View style={{ height: 16 }} />
-        <Input
-          label="Phone number"
-          placeholder="Your mobile number"
-          autoCapitalize="none"
-          keyboardType="phone-pad"
+        <Text
+          style={{
+            color: Colors.ink[700],
+            fontFamily: "Inter_500Medium",
+            fontSize: 13,
+            marginBottom: 6,
+          }}
+        >
+          Phone number
+        </Text>
+        <PhoneInput
+          country={country}
+          onCountryChange={setCountry}
           value={phone}
           onChangeText={setPhone}
         />

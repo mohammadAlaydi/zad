@@ -10,6 +10,7 @@ import { Input } from "@/components/Input";
 import { PhoneInput } from "@/components/PhoneInput";
 import { Screen } from "@/components/Screen";
 import { COUNTRIES } from "@/data/countries";
+import { validatePhone } from "@/lib/phone";
 import { Colors } from "@/theme/colors";
 
 export default function Signup() {
@@ -22,7 +23,8 @@ export default function Signup() {
 
   // Backend requires min 8 chars; mirror that here so the API call later
   // can't fail validation after the user has gone through OTP.
-  const valid = fullName.trim().length >= 2 && phone.length >= 6 && pwd.length >= 8;
+  const phoneCheck = validatePhone(phone, country.code);
+  const valid = fullName.trim().length >= 2 && phoneCheck.ok && pwd.length >= 8;
 
   return (
     <Screen scroll keyboard>
@@ -58,20 +60,19 @@ export default function Signup() {
         <Button
           title={t("auth.signUp")}
           disabled={!valid}
-          onPress={() =>
+          onPress={() => {
+            if (!phoneCheck.ok) return;
             router.push({
               pathname: "/(auth)/verify-phone",
               params: {
                 mode: "signup",
-                // Permissive in dev: send whatever the user typed. The
-                // country picker is purely a visual hint until we tighten
-                // up to E.164 + SMS verification.
-                phone: phone.trim(),
+                phone: phoneCheck.e164,
+                country: country.code,
                 password: pwd,
                 fullName: fullName.trim(),
               },
-            })
-          }
+            });
+          }}
         />
       </View>
     </Screen>

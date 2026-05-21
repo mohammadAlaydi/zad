@@ -1,0 +1,55 @@
+# When present at the repo root, EAS Build uses this instead of .gitignore for
+# the build archive. Mirrors .gitignore but ALLOWS google-services.json through
+# so the Android Firebase plugin can find it.
+
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Built artifacts
+*.apk
+*.aab
+*.ipa
+
+# Native build outputs
+**/android/.gradle/
+**/android/build/
+**/android/app/build/
+
+# Metro
+.metro-health-check*
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Other credentials that should still NOT be uploaded
+firebase-service-account.json
+apps/api/firebase-service-account.json
+apps/mobile/GoogleService-Info.plist
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Claude/local workspace
+.claude/
+.pnpm-store/

@@ -1,10 +1,12 @@
-import type {
-  LoginByPhoneRequest,
-  LoginRequest,
-  LogoutRequest,
-  RefreshRequest,
-  RegisterRequest,
-  TokenPairResponse,
+import {
+  LoginByPhoneRequestSchema,
+  RegisterRequestSchema,
+  type LoginByPhoneRequest,
+  type LoginRequest,
+  type LogoutRequest,
+  type RefreshRequest,
+  type RegisterRequest,
+  type TokenPairResponse,
 } from "@zadpay/validation/auth";
 import type { FastifyInstance } from "fastify";
 import type { LoginCommand } from "../../application/commands/Login.js";
@@ -89,9 +91,20 @@ export async function registerAuthRoutes(app: FastifyInstance, deps: AuthRouteDe
       },
     },
     async (req, reply) => {
+      // Re-run Zod parse to enforce the cross-field phone/country refinement
+      // — Fastify's JSON-Schema validator can't express it.
+      const parsed = LoginByPhoneRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        await reply.status(400).send({
+          code: "validation.failed",
+          message: parsed.error.issues[0]?.message ?? "Invalid request",
+          requestId: req.id,
+        });
+        return;
+      }
       const result = await deps.loginByPhone.execute({
-        phone: req.body.phone,
-        password: req.body.password,
+        phone: parsed.data.phone,
+        password: parsed.data.password,
         ip: req.ip,
         userAgent: req.headers["user-agent"],
       });
@@ -118,11 +131,20 @@ export async function registerAuthRoutes(app: FastifyInstance, deps: AuthRouteDe
       },
     },
     async (req, reply) => {
+      const parsed = RegisterRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        await reply.status(400).send({
+          code: "validation.failed",
+          message: parsed.error.issues[0]?.message ?? "Invalid request",
+          requestId: req.id,
+        });
+        return;
+      }
       const result = await deps.register.execute({
-        email: req.body.email,
-        password: req.body.password,
-        phone: req.body.phone,
-        fullName: req.body.fullName,
+        email: parsed.data.email,
+        password: parsed.data.password,
+        phone: parsed.data.phone,
+        fullName: parsed.data.fullName,
         ip: req.ip,
         userAgent: req.headers["user-agent"],
       });

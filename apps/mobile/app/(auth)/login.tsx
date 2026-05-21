@@ -10,6 +10,7 @@ import { Input } from "@/components/Input";
 import { PhoneInput } from "@/components/PhoneInput";
 import { Screen } from "@/components/Screen";
 import { COUNTRIES } from "@/data/countries";
+import { validatePhone } from "@/lib/phone";
 import { Colors } from "@/theme/colors";
 
 export default function Login() {
@@ -19,7 +20,8 @@ export default function Login() {
   const [phone, setPhone] = useState("");
   const [pwd, setPwd] = useState("");
 
-  const valid = phone.length >= 6 && pwd.length >= 8;
+  const phoneCheck = validatePhone(phone, country.code);
+  const valid = phoneCheck.ok && pwd.length >= 8;
 
   return (
     <Screen scroll keyboard>
@@ -47,16 +49,18 @@ export default function Login() {
         <Button
           title={t("auth.logIn")}
           disabled={!valid}
-          onPress={() =>
+          onPress={() => {
+            if (!phoneCheck.ok) return;
             router.push({
               pathname: "/(auth)/verify-phone",
               params: {
                 mode: "login",
-                phone: `${country.dial}${phone}`,
+                phone: phoneCheck.e164,
+                country: country.code,
                 password: pwd,
               },
-            })
-          }
+            });
+          }}
         />
       </View>
     </Screen>

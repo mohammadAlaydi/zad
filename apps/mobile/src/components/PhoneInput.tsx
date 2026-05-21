@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { View, Text, TextInput, Pressable, Modal, FlatList, StyleSheet } from "react-native";
 import { COUNTRIES, type Country } from "@/data/countries";
+import { getMaxNationalLength, validatePhone } from "@/lib/phone";
 import { Colors } from "@/theme/colors";
 
 type Props = {
@@ -21,15 +22,34 @@ export function PhoneInput({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  const maxLen = getMaxNationalLength(country.code);
+  // Don't show the error until the user has touched + left the field, OR
+  // they've typed the full max-length and it's still invalid. Avoids
+  // shouting "too short" at someone mid-typing.
+  const check = validatePhone(value, country.code);
+  const showError =
+    !check.ok && value.length > 0 && ((touched && !focused) || value.length >= maxLen);
   return (
     <>
       <View
         style={[
           styles.container,
-          { borderColor: focused ? Colors.brand.primary : Colors.ink[200] },
+          {
+            borderColor: showError
+              ? Colors.accent.red
+              : focused
+                ? Colors.brand.primary
+                : Colors.ink[200],
+          },
         ]}
       >
-        <Pressable onPress={() => setOpen(true)} style={styles.countryBtn}>
+        <Pressable
+          onPress={() => setOpen(true)}
+          style={styles.countryBtn}
+          accessibilityLabel={`Country: ${country.name}`}
+        >
           <Text style={styles.flagEmoji}>{country.flag}</Text>
           <Text style={styles.dialCode}>{country.dial}</Text>
           <Ionicons name="chevron-down" size={14} color={Colors.ink[500]} />
@@ -37,15 +57,25 @@ export function PhoneInput({
         <View style={styles.separator} />
         <TextInput
           value={value}
-          onChangeText={(t) => onChangeText(t.replace(/[^0-9]/g, ""))}
+          onChangeText={(t) => {
+            const digits = t.replace(/[^0-9]/g, "").slice(0, maxLen);
+            onChangeText(digits);
+          }}
           placeholder={placeholder}
           placeholderTextColor={Colors.ink[400]}
           keyboardType="phone-pad"
+          maxLength={maxLen}
           onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onBlur={() => {
+            setFocused(false);
+            setTouched(true);
+          }}
           style={styles.input}
         />
       </View>
+      {showError ? (
+        <Text style={styles.errorText}>{errorMessage(check.reason, country.name)}</Text>
+      ) : null}
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setOpen(false)} />
         <View style={styles.modalSheet}>
@@ -74,6 +104,20 @@ export function PhoneInput({
   );
 }
 
+function errorMessage(
+  reason: "too_short" | "too_long" | "invalid_for_country",
+  countryName: string,
+): string {
+  switch (reason) {
+    case "too_short":
+      return `Number is too short for ${countryName}.`;
+    case "too_long":
+      return `Number is too long for ${countryName}.`;
+    case "invalid_for_country":
+      return `Not a valid ${countryName} phone number.`;
+  }
+}
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
@@ -82,6 +126,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     overflow: "hidden",
+  },
+  errorText: {
+    marginTop: 6,
+    color: Colors.accent.red,
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
   },
   countryBtn: {
     flexDirection: "row",

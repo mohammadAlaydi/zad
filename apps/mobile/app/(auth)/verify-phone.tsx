@@ -15,9 +15,10 @@ import { Colors } from "@/theme/colors";
 export default function VerifyPhone() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { mode, phone, password, fullName } = useLocalSearchParams<{
+  const { mode, phone, country, password, fullName } = useLocalSearchParams<{
     mode: string;
     phone: string;
+    country: string;
     password: string;
     fullName?: string;
   }>();
@@ -38,11 +39,12 @@ export default function VerifyPhone() {
 
   async function onSubmit() {
     // Any 6-digit code is accepted — the phone OTP is a UI stub in dev.
-    // Phone is also intentionally permissive: whatever the user typed at
-    // signup is what they'll type at login + receive at on send.
+    // Phone arrives here already in E.164 form (validated against `country`
+    // on the previous screen). We re-check before submit as a defensive
+    // guard, and the backend validates again.
     if (!valid || submitting) return;
-    if (typeof phone !== "string" || typeof password !== "string") {
-      setError("Missing phone or password. Please go back and re-enter.");
+    if (typeof phone !== "string" || typeof password !== "string" || typeof country !== "string") {
+      setError("Missing phone, country, or password. Please go back and re-enter.");
       return;
     }
     const phoneStr = phone.trim();
@@ -62,6 +64,7 @@ export default function VerifyPhone() {
         }
         const result = await register.mutate({
           phone: phoneStr,
+          country,
           password,
           fullName: name,
         });
@@ -74,7 +77,7 @@ export default function VerifyPhone() {
         void autoSubmitKyc();
         router.replace("/(tabs)/home");
       } else {
-        const result = await login.mutate({ phone: phoneStr, password });
+        const result = await login.mutate({ phone: phoneStr, country, password });
         if (!result.ok) {
           setError(result.error.message);
           return;

@@ -2,15 +2,34 @@
 //   • apps/api (route validation, OpenAPI generation)
 //   • apps/mobile (typed API client — types inferred from these schemas)
 
+import { parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js";
 import { z } from "zod";
 
-// ── Phone (permissive) ────────────────────────────────────────────────
-// Intentionally relaxed for dev: accept any non-empty string the user
-// types. We'll tighten to strict E.164 once the signup/SMS verification
-// flow is wired. The string is used as a unique identifier in the DB —
-// equality has to match exactly, so the same value must be used at
-// signup and at send time.
-export const PhoneSchema = z.string().trim().min(1).max(32);
+// ── Phone (E.164) ────────────────────────────────────────────────────
+// Strict format: `+<country code><national number>`. Per-country validity
+// (correct length for IQ vs EG, etc.) is enforced via `phoneMatchesCountry`
+// on schemas that carry both `phone` and `country`.
+export const PhoneSchema = z
+  .string()
+  .trim()
+  .regex(/^\+[1-9]\d{6,15}$/, "Phone must be in E.164 format, e.g. +9647712345678");
+
+// ── Country (ISO-3166-1 alpha-2) ─────────────────────────────────────
+export const CountrySchema = z
+  .string()
+  .trim()
+  .length(2)
+  .regex(/^[A-Z]{2}$/, "Country must be a 2-letter ISO code");
+
+function phoneMatchesCountry(value: { phone: string; country: string }): boolean {
+  const parsed = parsePhoneNumberFromString(value.phone, value.country as CountryCode);
+  return parsed !== undefined && parsed.isValid() && parsed.country === value.country;
+}
+
+const phoneCountryRefinement = {
+  message: "Phone number is not valid for the selected country",
+  path: ["phone"] as ["phone"],
+};
 
 // ── Login ──────────────────────────────────────────────────────────────
 export const LoginRequestSchema = z.object({
@@ -21,11 +40,13 @@ export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 
 // ── Phone login ────────────────────────────────────────────────────────
 // Used by accounts created via the phone-first signup (no email on file).
-// Phone is permissive — see PhoneSchema for the rationale.
-export const LoginByPhoneRequestSchema = z.object({
-  phone: PhoneSchema,
-  password: z.string().min(8).max(256),
-});
+export const LoginByPhoneRequestSchema = z
+  .object({
+    phone: PhoneSchema,
+    country: CountrySchema,
+    password: z.string().min(8).max(256),
+  })
+  .refine(phoneMatchesCountry, phoneCountryRefinement);
 export type LoginByPhoneRequest = z.infer<typeof LoginByPhoneRequestSchema>;
 
 // ── Refresh ────────────────────────────────────────────────────────────
@@ -43,12 +64,15 @@ export type LogoutRequest = z.infer<typeof LogoutRequestSchema>;
 // ── Register ───────────────────────────────────────────────────────────
 // Email is optional — users register with phone + name + password and can
 // add an email later from settings.
-export const RegisterRequestSchema = z.object({
-  email: z.string().email().max(254).optional(),
-  password: z.string().min(8).max(256),
-  phone: PhoneSchema,
-  fullName: z.string().trim().min(2).max(120),
-});
+export const RegisterRequestSchema = z
+  .object({
+    email: z.string().email().max(254).optional(),
+    password: z.string().min(8).max(256),
+    phone: PhoneSchema,
+    country: CountrySchema,
+    fullName: z.string().trim().min(2).max(120),
+  })
+  .refine(phoneMatchesCountry, phoneCountryRefinement);
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
 
 // ── Change password ────────────────────────────────────────────────────
