@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { isCurrency } from "@zadpay/types";
 import { router } from "expo-router";
+import { useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -13,6 +15,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { usePayCheckout } from "@/features/checkout";
+import { newIdempotencyKey } from "@/lib/api/idempotency";
+import { useApp } from "@/store/appStore";
 import { useCheckoutStore, type PaymentMethod } from "@/store/checkoutStore";
 import { Colors } from "@/theme/colors";
 
@@ -26,19 +31,76 @@ export default function Checkout() {
     loyaltyBalance,
     status,
     oauthConnected,
+    errorMessage,
     setPaymentMethod,
     toggleLoyalty,
     setOAuthConnected,
-    processPayment,
+    setStatus,
+    setError,
   } = useCheckoutStore();
+  const { activeCurrency } = useApp();
+  const pay = usePayCheckout();
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
   const loyaltyDiscount = useLoyltyPoints ? Math.min(loyaltyBalance * 0.01, subtotal * 0.1) : 0;
   const total = subtotal - loyaltyDiscount;
 
-  /* OAuth connect simulation */
+  // One idempotency key per mounted checkout screen. Reused across
+  // retries of the same payment intent so multiple taps don't double-
+  // charge. Re-mounting the screen generates a new one.
+  const idempotencyKeyRef = useRef(newIdempotencyKey());
+
+  const currency = useMemo(
+    () => (isCurrency(activeCurrency) ? activeCurrency : null),
+    [activeCurrency],
+  );
+
+  /* OAuth connect simulation — kept as UI flair; the real auth was the
+     bearer token used to call the backend. */
   const handleOAuth = () => {
     setOAuthConnected(true);
+  };
+
+  const handlePay = async () => {
+    if (merchant === null) {
+      setError("No merchant selected.");
+      setStatus("failed");
+      return;
+    }
+    if (currency === null) {
+      setError("Unsupported currency.");
+      setStatus("failed");
+      return;
+    }
+    setError(null);
+    setStatus("processing");
+    const result = await pay
+      .mutateAsync({
+        request: {
+          merchantPhone: merchant.phone,
+          items: cart.map((c) => ({
+            id: c.id,
+            name: c.name,
+            priceMinor: String(Math.round(c.price * 100)),
+            quantity: c.quantity,
+          })),
+          totalMinor: String(Math.round(total * 100)),
+          currency,
+        },
+        idempotencyKey: idempotencyKeyRef.current,
+      })
+      .catch((e: unknown) => {
+        const message =
+          e !== null && typeof e === "object" && "message" in e
+            ? String((e as { message: unknown }).message)
+            : "Checkout failed";
+        setError(message);
+        setStatus("failed");
+        return null;
+      });
+    if (result !== null) {
+      setStatus("success");
+    }
   };
 
   /* Success view */
@@ -73,7 +135,35 @@ export default function Checkout() {
         <View style={styles.successContainer}>
           <ActivityIndicator size="large" color={Colors.brand.primary} />
           <Text style={[styles.successTitle, { marginTop: 20 }]}>Processing Payment...</Text>
-          <Text style={styles.successSub}>Verifying fraud checks and completing your order.</Text>
+          <Text style={styles.successSub}>Charging your wallet and notifying the merchant.</Text>
+        </View>
+      </Screen>
+    );
+  }
+
+  /* Failure view — surfaces backend errors (insufficient balance,
+     merchant not found, currency mismatch, etc.) so the user can act. */
+  if (status === "failed") {
+    return (
+      <Screen bg={Colors.surface.background}>
+        <StatusBar barStyle="dark-content" />
+        <View style={styles.successContainer}>
+          <View style={[styles.successCircle, { backgroundColor: Colors.accent.red }]}>
+            <Ionicons name="close" size={48} color={Colors.white} />
+          </View>
+          <Text style={styles.successTitle}>Payment Failed</Text>
+          <Text style={styles.successSub}>
+            {errorMessage ?? "We couldn't complete this payment. Please try again."}
+          </Text>
+          <Button
+            title="Try again"
+            onPress={() => {
+              setError(null);
+              setStatus("idle");
+              idempotencyKeyRef.current = newIdempotencyKey();
+            }}
+            style={{ marginTop: 30, paddingHorizontal: 18 }}
+          />
         </View>
       </Screen>
     );
@@ -227,7 +317,12 @@ export default function Checkout() {
 
       {/* Pay button */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 12 }]}>
-        <Button title={`Pay $${total.toFixed(2)}`} onPress={processPayment} />
+        <Button
+          title={`Pay $${total.toFixed(2)}`}
+          onPress={handlePay}
+          loading={pay.isPending}
+          disabled={pay.isPending || cart.length === 0}
+        />
       </View>
     </Screen>
   );

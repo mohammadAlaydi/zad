@@ -9,7 +9,7 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  schemas    = ["identity", "kyc", "wallet", "shared", "userdata", "notifications"]
+  schemas    = ["identity", "kyc", "wallet", "shared", "userdata", "notifications", "checkout"]
   extensions = [citext]
 }
 
@@ -330,4 +330,33 @@ model UserItem {
   @@index([userId, feature, createdAt])
   @@map("items")
   @@schema("userdata")
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// checkout.* — merchant-driven purchases. An order is created when the
+// customer hits "pay" in the checkout screen; the row holds the cart
+// snapshot plus the resulting wallet transactionId once the transfer
+// posts. Both customer and merchant are soft references to identity.users
+// (ADR-0005: no cross-schema FKs).
+// ──────────────────────────────────────────────────────────────────────
+
+model Order {
+  id              String    @id @default(uuid()) @db.Uuid
+  customerId      String    @map("customer_id") @db.Uuid
+  merchantId      String    @map("merchant_id") @db.Uuid
+  merchantName    String    @map("merchant_name") @db.VarChar(120)
+  items           Json
+  totalMinor      BigInt    @map("total_minor")
+  currency        String    @db.VarChar(3)
+  status          String    @default("pending") @db.VarChar(20) // 'pending' | 'paid' | 'failed' | 'cancelled'
+  transactionId   String?   @map("transaction_id") @db.Uuid
+  failureReason   String?   @map("failure_reason") @db.VarChar(200)
+  idempotencyKey  String    @unique @map("idempotency_key") @db.VarChar(120)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  paidAt          DateTime? @map("paid_at")
+
+  @@index([customerId, createdAt(sort: Desc)])
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@map("orders")
+  @@schema("checkout")
 }

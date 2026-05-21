@@ -1,6 +1,7 @@
 // Composition root for the wallet module.
 
 import type { PrismaClient } from "@prisma/client";
+import type { Currency } from "@zadpay/types";
 import type { FastifyInstance } from "fastify";
 import { logger } from "../../infra/logger/index.js";
 import type { EventBus } from "../../shared/events/EventBus.js";
@@ -45,6 +46,19 @@ export interface WalletModuleHandles {
   // Reverse of the above — used by the notifications module to resolve
   // a transfer entry's accountId back to its owning user.
   ownerOfAccount(accountId: string): Promise<string | null>;
+  // Cross-module transfer used by the checkout module. Resolves both
+  // wallets, then runs the standard CreateTransferCommand so all the
+  // ledger invariants (idempotency, ownership, currency, balance,
+  // event publication) are applied. Returns the transaction id on
+  // success or an opaque error code on failure.
+  transferBetweenUsers(input: {
+    senderUserId: string;
+    recipientUserId: string;
+    amountMinor: bigint;
+    currency: Currency;
+    idempotencyKey: string;
+    note?: string;
+  }): Promise<{ ok: true; transactionId: string } | { ok: false; code: string; message: string }>;
 }
 
 export async function registerWalletModule(
@@ -141,6 +155,40 @@ export async function registerWalletModule(
     ownerOfAccount: async (accountId: string) => {
       const account = await accounts.findById(accountId);
       return account === null ? null : account.ownerId;
+    },
+    transferBetweenUsers: async (input) => {
+      const source = await accounts.findByOwnerAndCurrency(
+        input.senderUserId,
+        input.currency,
+        "wallet",
+      );
+      if (source === null) {
+        return { ok: false, code: "WALLET.ACCOUNT_NOT_FOUND", message: "Sender wallet not found" };
+      }
+      const dest = await accounts.findByOwnerAndCurrency(
+        input.recipientUserId,
+        input.currency,
+        "wallet",
+      );
+      if (dest === null) {
+        return {
+          ok: false,
+          code: "WALLET.ACCOUNT_NOT_FOUND",
+          message: "Recipient wallet not found",
+        };
+      }
+      const result = await createTransfer.execute({
+        userId: input.senderUserId,
+        idempotencyKey: input.idempotencyKey,
+        sourceAccountId: source.id,
+        destAccountId: dest.id,
+        amount: { amount: input.amountMinor, currency: input.currency },
+        ...(input.note === undefined ? {} : { note: input.note }),
+      });
+      if (!result.ok) {
+        return { ok: false, code: result.error.code, message: result.error.message };
+      }
+      return { ok: true, transactionId: result.value.id };
     },
   };
 }

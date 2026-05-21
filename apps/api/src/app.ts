@@ -17,6 +17,7 @@ import {
   httpRequestsTotal,
   register as metricsRegister,
 } from "./infra/metrics/index.js";
+import { registerCheckoutModule } from "./modules/checkout/index.js";
 import { registerIdentityModule } from "./modules/identity/index.js";
 import { registerKycModule } from "./modules/kyc/index.js";
 import { registerNotificationsModule } from "./modules/notifications/index.js";
@@ -171,6 +172,22 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   await registerUserdataModule(app, deps.prisma);
+
+  // Checkout depends on identity (merchant lookup) + wallet (transfer
+  // between users). Both ports are abstract — checkout doesn't import
+  // either module's internals.
+  await registerCheckoutModule(app, deps.prisma, {
+    merchants: {
+      byPhone: async (phone) => {
+        const r = await identity.phoneLookup.byPhone(phone);
+        if (r === null) return null;
+        return { userId: r.userId, phone: r.phone, fullName: r.fullName ?? null };
+      },
+    },
+    wallet: {
+      transfer: (input) => wallet.transferBetweenUsers(input),
+    },
+  });
 
   return app;
 }

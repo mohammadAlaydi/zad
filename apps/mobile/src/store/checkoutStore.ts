@@ -6,7 +6,7 @@ export type CheckoutStatus = "idle" | "authenticating" | "processing" | "success
 export type CartItem = {
   id: string;
   name: string;
-  price: number;
+  price: number; // major units (e.g. dollars). Converted to minor for the API.
   quantity: number;
   image?: string;
 };
@@ -14,6 +14,9 @@ export type CartItem = {
 export type MerchantInfo = {
   id: string;
   name: string;
+  // Phone of the merchant account on ZADPAY. Required for the backend
+  // checkout endpoint — that's how we resolve which wallet to credit.
+  phone: string;
   logo?: string;
   verified: boolean;
 };
@@ -27,13 +30,14 @@ type CheckoutState = {
   status: CheckoutStatus;
   oauthConnected: boolean;
   fraudChecked: boolean;
+  errorMessage: string | null;
   purchaseHistory: { id: string; merchant: string; amount: number; date: string; items: number }[];
   setMerchant: (m: MerchantInfo) => void;
   setPaymentMethod: (m: PaymentMethod) => void;
   toggleLoyalty: () => void;
   setStatus: (s: CheckoutStatus) => void;
   setOAuthConnected: (v: boolean) => void;
-  processPayment: () => void;
+  setError: (msg: string | null) => void;
   clearCart: () => void;
 };
 
@@ -67,8 +71,20 @@ const sampleHistory = [
   },
 ];
 
-export const useCheckoutStore = create<CheckoutState>((set, get) => ({
-  merchant: { id: "m1", name: "TechStore", verified: true },
+// Placeholder merchant for the demo entry point. Swap `phone` for a real
+// ZADPAY account phone that exists on the server before testing — the
+// backend resolves this to a userId via identity.phoneLookup and credits
+// that user's wallet on a successful purchase. The customer cannot be the
+// merchant — the backend returns CHECKOUT.MERCHANT_NOT_FOUND if they are.
+const DEMO_MERCHANT: MerchantInfo = {
+  id: "m1",
+  name: "TechStore",
+  phone: "+10000000001",
+  verified: true,
+};
+
+export const useCheckoutStore = create<CheckoutState>((set) => ({
+  merchant: DEMO_MERCHANT,
   cart: sampleCart,
   paymentMethod: "wallet",
   useLoyltyPoints: false,
@@ -76,6 +92,7 @@ export const useCheckoutStore = create<CheckoutState>((set, get) => ({
   status: "idle",
   oauthConnected: false,
   fraudChecked: false,
+  errorMessage: null,
   purchaseHistory: sampleHistory,
 
   setMerchant: (m) => set({ merchant: m }),
@@ -83,13 +100,7 @@ export const useCheckoutStore = create<CheckoutState>((set, get) => ({
   toggleLoyalty: () => set((s) => ({ useLoyltyPoints: !s.useLoyltyPoints })),
   setStatus: (s) => set({ status: s }),
   setOAuthConnected: (v) => set({ oauthConnected: v }),
+  setError: (errorMessage) => set({ errorMessage }),
 
-  processPayment: () => {
-    set({ status: "processing", fraudChecked: true });
-    setTimeout(() => {
-      set({ status: "success" });
-    }, 2500);
-  },
-
-  clearCart: () => set({ cart: [], status: "idle" }),
+  clearCart: () => set({ cart: [], status: "idle", errorMessage: null }),
 }));
