@@ -13,4 +13,4 @@ definitions:
 pipelines:
   branches:
     main:
-      - step: *deploy
+      - step: *deploy #test
