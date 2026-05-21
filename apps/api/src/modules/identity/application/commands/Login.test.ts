@@ -38,6 +38,8 @@ describe("LoginCommand", () => {
     const user = User.create({
       id: ids.uuid(),
       email: Email.of("alice@example.com"),
+      phone: null,
+      fullName: null,
       passwordHash: await passwordHasher.hash("correct horse battery staple"),
       now: clock.now(),
     });
@@ -65,7 +67,7 @@ describe("LoginCommand", () => {
     if (!result.ok) return;
     expect(result.value.accessToken).toMatch(/^at:/);
     expect(result.value.refreshToken).toMatch(/^refresh-/);
-    expect(result.value.user.email.value).toBe("alice@example.com");
+    expect(result.value.user.email?.value).toBe("alice@example.com");
     expect(refreshTokens.tokens.size).toBe(1);
     expect(events.published[0]?.name).toBe("identity.LoginSucceeded");
   });

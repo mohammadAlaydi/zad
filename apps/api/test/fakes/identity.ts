@@ -34,7 +34,7 @@ export class InMemoryUserRepository implements UserRepository {
   }
   async save(user: User): Promise<void> {
     this.byId.set(user.id, user);
-    this.byEmail.set(user.email.value, user);
+    if (user.email !== null) this.byEmail.set(user.email.value, user);
     if (user.phone !== null) this.byPhone.set(user.phone, user);
   }
 }

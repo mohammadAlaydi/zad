@@ -62,6 +62,8 @@ describe("RefreshCommand", () => {
     const user = User.create({
       id: ids.uuid(),
       email: Email.of("alice@example.com"),
+      phone: null,
+      fullName: null,
       passwordHash: await passwordHasher.hash("p"),
       now: clock.now(),
     });
