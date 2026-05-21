@@ -1,9 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { MotiView } from "moti";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { Text, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/Button";
@@ -48,39 +47,18 @@ export default function EditProfile() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Avatar */}
+        {/* Avatar — uses generated initials. A photo upload affordance
+            is intentionally not shown here yet: the backend has no avatar
+            storage endpoint, so a camera badge would be a lie. When the
+            POST /v1/identity/me/avatar route lands, restore the Pressable
+            with an expo-image-picker handler. */}
         <MotiView
           from={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: "spring", damping: 14 }}
           style={{ alignItems: "center", marginTop: 14, marginBottom: 22 }}
         >
-          <Pressable
-            onPress={() => haptic.light()}
-            style={({ pressed }) => ({
-              position: "relative",
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <Avatar name={fullName} size={96} />
-            <View
-              style={{
-                position: "absolute",
-                bottom: 0,
-                right: 0,
-                width: 34,
-                height: 34,
-                borderRadius: 17,
-                backgroundColor: Colors.brand.primary,
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 3,
-                borderColor: Colors.white,
-              }}
-            >
-              <Ionicons name="camera" size={16} color={Colors.white} />
-            </View>
-          </Pressable>
+          <Avatar name={fullName} size={96} />
         </MotiView>
 
         <MotiView

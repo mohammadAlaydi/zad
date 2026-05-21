@@ -1,13 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
 import { useTranslation } from "react-i18next";
-import { Text, ScrollView, Alert } from "react-native";
+import { Text, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
-import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
 import { Colors } from "@/theme/colors";
 
+// Documents (statements / tax forms) require backend infrastructure that
+// isn't in place yet: object storage for the generated PDFs, plus a
+// statement-generation job. Until that lands the screen shows an honest
+// empty state instead of mock entries that won't open.
 export default function Documents() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -19,6 +22,7 @@ export default function Documents() {
         contentContainerStyle={{
           paddingHorizontal: 22,
           paddingBottom: insets.bottom + 24,
+          flexGrow: 1,
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -46,39 +50,39 @@ export default function Documents() {
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 100, duration: 320 }}
           style={{
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.surface.background,
             borderRadius: 18,
-            borderWidth: 1,
-            borderColor: Colors.ink[100],
-            overflow: "hidden",
+            paddingVertical: 36,
+            paddingHorizontal: 24,
+            alignItems: "center",
+            marginTop: 8,
           }}
         >
-          <ListRow
-            icon={<Ionicons name="document-text-outline" size={18} color={Colors.brand.primary} />}
-            title={t("documents.consolidated")}
-            subtitle="To help fill out your taxes"
-            onPress={() =>
-              Alert.alert(
-                "Coming Soon",
-                "Consolidated statements will be available in a future update.",
-              )
-            }
-          />
-          <ListRow
-            icon={<Ionicons name="person-outline" size={18} color={Colors.brand.primary} />}
-            title={t("documents.personal")}
-            onPress={() =>
-              Alert.alert("Coming Soon", "Personal documents will be available in a future update.")
-            }
-          />
-          <ListRow
-            icon={<Ionicons name="file-tray-full-outline" size={18} color={Colors.brand.primary} />}
-            title={t("documents.general")}
-            divider={false}
-            onPress={() =>
-              Alert.alert("Coming Soon", "General documents will be available in a future update.")
-            }
-          />
+          <Ionicons name="document-text-outline" size={44} color={Colors.ink[300]} />
+          <Text
+            style={{
+              color: Colors.ink[900],
+              fontFamily: "Inter_600SemiBold",
+              fontSize: 15,
+              marginTop: 14,
+              marginBottom: 6,
+              textAlign: "center",
+            }}
+          >
+            No documents available yet
+          </Text>
+          <Text
+            style={{
+              color: Colors.ink[500],
+              fontFamily: "Inter_400Regular",
+              fontSize: 13,
+              textAlign: "center",
+              lineHeight: 19,
+            }}
+          >
+            Monthly statements and tax documents will appear here once your account has activity to
+            report.
+          </Text>
         </MotiView>
       </ScrollView>
     </Screen>

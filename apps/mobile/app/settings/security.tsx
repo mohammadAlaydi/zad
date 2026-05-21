@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
 import { Switch } from "@/components/Switch";
+import { SUPPORT } from "@/constants/support";
 import { useAuthSession } from "@/features/auth";
 import { useSettings } from "@/features/userdata";
 import { useHaptic } from "@/hooks/useHaptic";
@@ -369,8 +370,9 @@ export default function Security() {
             </View>
           </View>
 
-          {/* Active banner */}
-          {whatsappEnabled && (
+          {/* Active banner — only shown when an actual bot number is
+              configured. Avoids printing a fake "1-800" placeholder. */}
+          {whatsappEnabled && SUPPORT.whatsappBotNumber !== "" && (
             <MotiView
               from={{ opacity: 0, scaleY: 0.85 }}
               animate={{ opacity: 1, scaleY: 1 }}
@@ -379,7 +381,21 @@ export default function Security() {
             >
               <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
               <Text style={styles.whatsappBannerText}>
-                Bot active — message <Text style={styles.whatsappBannerNum}>+1 (800) ZAD-PAY</Text>
+                Bot active — message{" "}
+                <Text style={styles.whatsappBannerNum}>{SUPPORT.whatsappBotNumber}</Text>
+              </Text>
+            </MotiView>
+          )}
+          {whatsappEnabled && SUPPORT.whatsappBotNumber === "" && (
+            <MotiView
+              from={{ opacity: 0, scaleY: 0.85 }}
+              animate={{ opacity: 1, scaleY: 1 }}
+              transition={{ type: "spring", damping: 18, stiffness: 240 }}
+              style={styles.whatsappBanner}
+            >
+              <Ionicons name="information-circle" size={16} color={Colors.brand.primary} />
+              <Text style={styles.whatsappBannerText}>
+                Bot enabled. Number will appear here once the service is published.
               </Text>
             </MotiView>
           )}
