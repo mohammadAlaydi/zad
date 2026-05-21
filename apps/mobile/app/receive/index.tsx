@@ -110,7 +110,7 @@ export default function ReceiveMoney() {
               marginBottom: 18,
             }}
           >
-            <Text style={{ fontSize: 22, marginRight: 10 }}>USD</Text>
+            <Text style={{ fontSize: 22, marginRight: 10 }}>{activeCurrency}</Text>
             <View style={{ flex: 1 }}>
               <Text
                 style={{ color: Colors.ink[900], fontFamily: "Inter_600SemiBold", fontSize: 14 }}
@@ -309,7 +309,13 @@ export default function ReceiveMoney() {
                 ? "Generating…"
                 : t("common.continue")
           }
-          disabled={createRequest.isPending}
+          // Block submit if the form is empty: a payment_request with
+          // amount=0 or no source label is meaningless. The "done" tap
+          // (after QR is shown) always re-enables.
+          disabled={
+            createRequest.isPending ||
+            (qrValue === null && (amount <= 0 || from.trim().length === 0))
+          }
           onPress={() => {
             void onContinue();
           }}

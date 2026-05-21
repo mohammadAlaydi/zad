@@ -25,8 +25,6 @@ export default function TopUpPayment() {
     last4: c.payload.last4 ?? "0000",
   }));
   const [selected, setSelected] = useState<string | null>(cards[0]?.id ?? null);
-  const [tab, setTab] = useState<"cards" | "banks">("cards");
-
   const selectedCard = cards.find((c) => c.id === selected);
   const canContinue = selectedCard !== undefined;
 
@@ -34,41 +32,7 @@ export default function TopUpPayment() {
     <Screen bg={Colors.white}>
       <Header title={t("topup.choosePayment")} />
       <View style={{ flex: 1, paddingHorizontal: 18 }}>
-        {/* Tabs */}
-        <View
-          style={{
-            flexDirection: "row",
-            marginBottom: 18,
-            borderBottomWidth: 1,
-            borderBottomColor: Colors.ink[100],
-          }}
-        >
-          {(["cards", "banks"] as const).map((key) => (
-            <Pressable
-              key={key}
-              onPress={() => setTab(key)}
-              style={{
-                flex: 1,
-                alignItems: "center",
-                paddingVertical: 10,
-                borderBottomWidth: key === tab ? 2 : 0,
-                borderBottomColor: Colors.brand.primary,
-              }}
-            >
-              <Text
-                style={{
-                  color: key === tab ? Colors.brand.primary : Colors.ink[400],
-                  fontFamily: key === tab ? "Inter_600SemiBold" : "Inter_400Regular",
-                  fontSize: 13,
-                }}
-              >
-                {key === "cards" ? t("cards.myCards") : "Banks"}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        {tab === "cards" && cards.length === 0 && (
+        {cards.length === 0 && (
           <View style={{ alignItems: "center", paddingTop: 32, paddingHorizontal: 12 }}>
             <View
               style={{
@@ -107,85 +71,84 @@ export default function TopUpPayment() {
           </View>
         )}
 
-        {tab === "cards" &&
-          cards.map((card) => (
-            <Pressable
-              key={card.id}
-              onPress={() => setSelected(card.id)}
-              style={({ pressed }) => ({
-                backgroundColor: Colors.white,
-                borderRadius: 16,
-                marginBottom: 12,
-                borderWidth: 1,
-                borderColor: selected === card.id ? Colors.brand.primary : Colors.ink[100],
-                opacity: pressed ? 0.85 : 1,
-              })}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", padding: 14 }}>
+        {cards.map((card) => (
+          <Pressable
+            key={card.id}
+            onPress={() => setSelected(card.id)}
+            style={({ pressed }) => ({
+              backgroundColor: Colors.white,
+              borderRadius: 16,
+              marginBottom: 12,
+              borderWidth: 1,
+              borderColor: selected === card.id ? Colors.brand.primary : Colors.ink[100],
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", padding: 14 }}>
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: "#EB001B",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 12,
+                  overflow: "hidden",
+                }}
+              >
                 <View
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: "#EB001B",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginRight: 12,
-                    overflow: "hidden",
+                    width: 20,
+                    height: 20,
+                    borderRadius: 10,
+                    backgroundColor: "#F79E1B",
+                    position: "absolute",
+                    right: 6,
+                  }}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    color: Colors.ink[900],
+                    fontFamily: "Inter_600SemiBold",
+                    fontSize: 14,
                   }}
                 >
+                  {t("topup.masterCard")}
+                </Text>
+                <Text
+                  style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 12 }}
+                >
+                  **** **** **** {card.last4}
+                </Text>
+              </View>
+              <View
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  borderWidth: 2,
+                  borderColor: selected === card.id ? Colors.brand.primary : Colors.ink[300],
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {selected === card.id && (
                   <View
                     style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 10,
-                      backgroundColor: "#F79E1B",
-                      position: "absolute",
-                      right: 6,
+                      width: 12,
+                      height: 12,
+                      borderRadius: 6,
+                      backgroundColor: Colors.brand.primary,
                     }}
                   />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: Colors.ink[900],
-                      fontFamily: "Inter_600SemiBold",
-                      fontSize: 14,
-                    }}
-                  >
-                    {t("topup.masterCard")}
-                  </Text>
-                  <Text
-                    style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 12 }}
-                  >
-                    **** **** **** {card.last4}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 11,
-                    borderWidth: 2,
-                    borderColor: selected === card.id ? Colors.brand.primary : Colors.ink[300],
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {selected === card.id && (
-                    <View
-                      style={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: 6,
-                        backgroundColor: Colors.brand.primary,
-                      }}
-                    />
-                  )}
-                </View>
+                )}
               </View>
-            </Pressable>
-          ))}
+            </View>
+          </Pressable>
+        ))}
 
         <Pressable
           onPress={() => router.push("/topup/add-card")}

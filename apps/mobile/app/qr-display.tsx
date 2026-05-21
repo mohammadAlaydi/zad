@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { MotiView } from "moti";
 import { useTranslation } from "react-i18next";
-import { View, Text, Pressable, Dimensions } from "react-native";
+import { View, Text, Pressable, Dimensions, Share } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
@@ -74,6 +74,15 @@ export default function QrDisplay() {
           </Text>
           <View style={{ flexDirection: "row", gap: 12, marginTop: 20, width: "100%" }}>
             <Pressable
+              onPress={() => {
+                void Share.share({
+                  message:
+                    `Send me money on ZADPay — phone ${userPhone}.\n` +
+                    `Open the app and scan this QR or paste my number.`,
+                }).catch(() => {
+                  // user dismissed
+                });
+              }}
               style={({ pressed }) => ({
                 flex: 1,
                 flexDirection: "row",
@@ -92,6 +101,17 @@ export default function QrDisplay() {
               </Text>
             </Pressable>
             <Pressable
+              onPress={() => {
+                // Share the QR payload as text. A future iteration could
+                // capture the QR SVG as a PNG and share the image; for now
+                // the wire payload (phone + amount=0 + currency) is enough
+                // for another ZADPay user to paste into Send.
+                void Share.share({
+                  message: `ZADPay payment to ${userPhone}\n\nPayload:\n${qrValue}`,
+                }).catch(() => {
+                  // user dismissed
+                });
+              }}
               style={({ pressed }) => ({
                 flex: 1,
                 flexDirection: "row",

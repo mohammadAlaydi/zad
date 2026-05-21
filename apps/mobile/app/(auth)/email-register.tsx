@@ -31,7 +31,7 @@ export default function EmailRegister() {
     fullName.trim().length >= 2 &&
     phoneTrimmed.length > 0 &&
     emailLooksValid &&
-    password.length >= 10 &&
+    password.length >= 8 &&
     !isPending;
 
   async function onSubmit() {
