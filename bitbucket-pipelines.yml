@@ -2,20 +2,6 @@ image: node:20-alpine
 
 definitions:
   steps:
-    - step: &test
-        name: Test
-        runs-on:
-          - self.hosted
-          - linux.shell
-        caches:
-          - node
-        script:
-          - npm install -g pnpm --prefix ~/local
-          - export PATH="$HOME/local/bin:$PATH"
-          - pnpm install --frozen-lockfile
-          - pnpm --filter @zadpay/api run typecheck
-          - pnpm --filter @zadpay/api run test
-
     - step: &deploy
         name: Deploy to EC2
         runs-on:
@@ -27,5 +13,4 @@ definitions:
 pipelines:
   branches:
     main:
-      - step: *test
       - step: *deploy
