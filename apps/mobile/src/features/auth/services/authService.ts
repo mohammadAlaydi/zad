@@ -5,6 +5,8 @@ import {
   LoginRequestSchema,
   RefreshRequestSchema,
   RegisterRequestSchema,
+  RevokeAllSessionsResponseSchema,
+  SessionListResponseSchema,
   TokenPairResponseSchema,
   MeResponseSchema,
   UpdateMeRequestSchema,
@@ -13,6 +15,8 @@ import {
   type LoginRequest,
   type MeResponse,
   type RegisterRequest,
+  type RevokeAllSessionsResponse,
+  type SessionListResponse,
   type TokenPairResponse,
   type UpdateMeRequest,
 } from "@zadpay/validation";
@@ -72,5 +76,21 @@ export const authService = {
   async changePassword(input: ChangePasswordRequest): Promise<Result<void, ClientError>> {
     ChangePasswordRequestSchema.parse(input);
     return api.postVoid("/v1/auth/change-password", input);
+  },
+
+  async listSessions(): Promise<Result<SessionListResponse, ClientError>> {
+    return api.get<SessionListResponse>("/v1/identity/sessions", SessionListResponseSchema);
+  },
+
+  async revokeSession(sessionId: string): Promise<Result<void, ClientError>> {
+    return api.deleteVoid(`/v1/identity/sessions/${sessionId}`);
+  },
+
+  async revokeAllSessions(): Promise<Result<RevokeAllSessionsResponse, ClientError>> {
+    return api.post<RevokeAllSessionsResponse>(
+      "/v1/identity/sessions/revoke-all",
+      {},
+      RevokeAllSessionsResponseSchema,
+    );
   },
 };

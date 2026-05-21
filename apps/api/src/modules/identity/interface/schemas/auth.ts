@@ -11,6 +11,8 @@ import {
   RecipientLookupResponseSchema,
   RefreshRequestSchema,
   RegisterRequestSchema,
+  RevokeAllSessionsResponseSchema,
+  SessionListResponseSchema,
   TokenPairResponseSchema,
   UpdateMeRequestSchema,
 } from "@zadpay/validation/auth";
@@ -27,6 +29,10 @@ export const TokenPairResponseJson = zodToJsonSchema(TokenPairResponseSchema, { 
 export const MeResponseJson = zodToJsonSchema(MeResponseSchema, { target });
 export const ChangePasswordRequestJson = zodToJsonSchema(ChangePasswordRequestSchema, { target });
 export const UpdateMeRequestJson = zodToJsonSchema(UpdateMeRequestSchema, { target });
+export const SessionListResponseJson = zodToJsonSchema(SessionListResponseSchema, { target });
+export const RevokeAllSessionsResponseJson = zodToJsonSchema(RevokeAllSessionsResponseSchema, {
+  target,
+});
 export const RecipientLookupResponseJson = zodToJsonSchema(RecipientLookupResponseSchema, {
   target,
 });

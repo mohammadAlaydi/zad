@@ -61,3 +61,10 @@ export class InvalidPassword extends UnauthorizedError {
     super("Password is incorrect");
   }
 }
+
+export class SessionNotFound extends NotFoundError {
+  override readonly code = "IDENTITY.SESSION_NOT_FOUND";
+  constructor() {
+    super("Session not found or already revoked");
+  }
+}

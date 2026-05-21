@@ -1,16 +1,36 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { MotiView } from "moti";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView, Modal } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useRevokeAllSessions } from "@/features/auth";
+import { useHaptic } from "@/hooks/useHaptic";
 import { Colors } from "@/theme/colors";
 
 export default function LostDevice() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const haptic = useHaptic();
+  const revokeAll = useRevokeAllSessions();
+  const [confirm, setConfirm] = useState(false);
+
+  async function onLock() {
+    setConfirm(false);
+    haptic.heavy();
+    await revokeAll.mutateAsync().catch(() => {
+      // surfaces via revokeAll.error
+    });
+    // useRevokeAllSessions.onSuccess clears the local session, which
+    // unmounts the (tabs) stack via the nav guard. Belt-and-braces: also
+    // dismissAll any modal stack so we land cleanly on the auth flow.
+    if (router.canDismiss()) router.dismissAll();
+  }
+
   return (
     <Screen bg={Colors.surface.background}>
       <Header title={t("security.lostDevice")} />
@@ -133,17 +153,73 @@ export default function LostDevice() {
 
           <View style={{ marginTop: 24 }}>
             <Button
-              title="Lock My Account"
-              onPress={() =>
-                Alert.alert(
-                  "Account Locked",
-                  "Your account has been locked. Contact support to regain access.",
-                )
-              }
+              title={revokeAll.isPending ? "Locking…" : "Lock My Account"}
+              onPress={() => setConfirm(true)}
+              disabled={revokeAll.isPending}
             />
+            {revokeAll.error !== null && (
+              <Text
+                style={{
+                  marginTop: 12,
+                  color: Colors.accent.red,
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 12,
+                  textAlign: "center",
+                }}
+              >
+                Couldn&apos;t revoke your sessions. Please try again.
+              </Text>
+            )}
           </View>
         </MotiView>
       </ScrollView>
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={confirm}
+        onRequestClose={() => setConfirm(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15,15,30,0.55)",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+          }}
+        >
+          <View style={{ backgroundColor: Colors.white, borderRadius: 20, padding: 22 }}>
+            <Text
+              style={{
+                color: Colors.ink[900],
+                fontFamily: "Sora_700Bold",
+                fontSize: 17,
+                marginBottom: 6,
+              }}
+            >
+              Lock all devices?
+            </Text>
+            <Text
+              style={{
+                color: Colors.ink[500],
+                fontFamily: "Inter_400Regular",
+                fontSize: 13,
+                marginBottom: 18,
+              }}
+            >
+              Every device signed in to your account — including this one — will be signed out
+              immediately. You&apos;ll need to log in again on every device you still own.
+            </Text>
+            <Button
+              title="Yes, lock everything"
+              onPress={() => void onLock()}
+              loading={revokeAll.isPending}
+            />
+            <View style={{ height: 8 }} />
+            <Button title="Cancel" variant="secondary" onPress={() => setConfirm(false)} />
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }

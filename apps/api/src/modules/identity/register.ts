@@ -12,9 +12,14 @@ import { LoginByPhoneCommand } from "./application/commands/LoginByPhone.js";
 import { LogoutCommand } from "./application/commands/Logout.js";
 import { RefreshCommand } from "./application/commands/Refresh.js";
 import { RegisterCommand } from "./application/commands/Register.js";
+import {
+  RevokeAllSessionsCommand,
+  RevokeSessionCommand,
+} from "./application/commands/RevokeSession.js";
 import { UpdateKycStatusCommand } from "./application/commands/UpdateKycStatus.js";
 import { UpdateProfileCommand } from "./application/commands/UpdateProfile.js";
 import { GetMeQuery } from "./application/queries/GetMe.js";
+import { ListSessionsQuery } from "./application/queries/ListSessions.js";
 import { type UserLookup, UserRepositoryUserLookup } from "./application/queries/LookupById.js";
 import {
   type PhoneLookup,
@@ -30,6 +35,7 @@ import { PrismaUserRepository } from "./infrastructure/repositories/PrismaUserRe
 import { registerAuthRoutes } from "./interface/routes/auth.js";
 import { type PhoneAccountResolver, registerLookupRoutes } from "./interface/routes/lookup.js";
 import { registerMeRoutes } from "./interface/routes/me.js";
+import { registerSessionRoutes } from "./interface/routes/sessions.js";
 
 export interface IdentityModuleConfig {
   jwtSigningKeyPem: string;
@@ -89,6 +95,9 @@ export async function registerIdentityModule(
   const updateKycStatus = new UpdateKycStatusCommand({ users, clock });
   const changePassword = new ChangePasswordCommand({ users, passwordHasher, clock });
   const updateProfile = new UpdateProfileCommand({ users, clock });
+  const listSessions = new ListSessionsQuery({ refreshTokens, clock });
+  const revokeSession = new RevokeSessionCommand({ refreshTokens, clock });
+  const revokeAllSessions = new RevokeAllSessionsCommand({ refreshTokens, clock });
   const phoneLookup = new UserRepositoryPhoneLookup(users);
   const userLookup = new UserRepositoryUserLookup(users);
 
@@ -106,6 +115,7 @@ export async function registerIdentityModule(
 
   await registerAuthRoutes(app, { login, loginByPhone, refresh, logout, register });
   await registerMeRoutes(app, { getMe, updateProfile });
+  await registerSessionRoutes(app, { listSessions, revokeSession, revokeAllSessions });
 
   return {
     phoneLookup,

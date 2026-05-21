@@ -33,6 +33,11 @@ web-build/
 *.key
 *.mobileprovision
 
+# Built APKs / IPAs — these are produced by EAS/CI, not committed
+*.apk
+*.aab
+*.ipa
+
 # Metro
 .metro-health-check*
 

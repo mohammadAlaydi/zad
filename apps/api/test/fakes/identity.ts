@@ -91,6 +91,63 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
       }
     }
   }
+
+  async findActiveByUser(userId: string, now: Date): Promise<readonly RefreshToken[]> {
+    const out: RefreshToken[] = [];
+    for (const t of this.tokens.values()) {
+      if (
+        t.userId === userId &&
+        t.revokedAt === null &&
+        t.rotatedTo === null &&
+        t.expiresAt.getTime() > now.getTime()
+      ) {
+        out.push(t);
+      }
+    }
+    return out;
+  }
+
+  async revokeById(id: string, userId: string, now: Date): Promise<boolean> {
+    const t = this.tokens.get(id);
+    if (t === undefined || t.userId !== userId || t.revokedAt !== null) return false;
+    this.tokens.set(
+      id,
+      RefreshToken.rehydrate({
+        id: t.id,
+        userId: t.userId,
+        family: t.family,
+        tokenHash: t.tokenHash,
+        expiresAt: t.expiresAt,
+        createdAt: t.createdAt,
+        revokedAt: now,
+        rotatedTo: t.rotatedTo,
+      }),
+    );
+    return true;
+  }
+
+  async revokeAllForUser(userId: string, now: Date): Promise<number> {
+    let n = 0;
+    for (const [id, t] of this.tokens) {
+      if (t.userId === userId && t.revokedAt === null) {
+        this.tokens.set(
+          id,
+          RefreshToken.rehydrate({
+            id: t.id,
+            userId: t.userId,
+            family: t.family,
+            tokenHash: t.tokenHash,
+            expiresAt: t.expiresAt,
+            createdAt: t.createdAt,
+            revokedAt: now,
+            rotatedTo: t.rotatedTo,
+          }),
+        );
+        n++;
+      }
+    }
+    return n;
+  }
 }
 
 // Plaintext password "p" hashes to "h:p". Deterministic; never use in prod.

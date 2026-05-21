@@ -63,4 +63,30 @@ export class PrismaRefreshTokenRepository implements RefreshTokenRepository {
       data: { revokedAt: new Date() },
     });
   }
+
+  async findActiveByUser(userId: string, now: Date): Promise<readonly RefreshToken[]> {
+    const rows = await this.prisma.refreshToken.findMany({
+      where: { userId, revokedAt: null, rotatedTo: null, expiresAt: { gt: now } },
+      orderBy: { createdAt: "desc" },
+    });
+    return rows.map(toDomain);
+  }
+
+  async revokeById(id: string, userId: string, now: Date): Promise<boolean> {
+    // Scope the update by userId so a leaked token id can't be used to
+    // revoke someone else's session.
+    const result = await this.prisma.refreshToken.updateMany({
+      where: { id, userId, revokedAt: null },
+      data: { revokedAt: now },
+    });
+    return result.count > 0;
+  }
+
+  async revokeAllForUser(userId: string, now: Date): Promise<number> {
+    const result = await this.prisma.refreshToken.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: now },
+    });
+    return result.count;
+  }
 }

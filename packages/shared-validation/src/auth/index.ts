@@ -106,3 +106,25 @@ export const UpdateMeRequestSchema = z.object({
   fullName: z.string().trim().min(2).max(120),
 });
 export type UpdateMeRequest = z.infer<typeof UpdateMeRequestSchema>;
+
+// ── /v1/identity/sessions ──────────────────────────────────────────────
+// Each row = one logged-in device (active refresh token). The `family`
+// field groups rotated tokens — clients can hide it; it's exposed for
+// debugging / future "this is your current device" UI.
+export const SessionSchema = z.object({
+  id: z.string().uuid(),
+  family: z.string().uuid(),
+  createdAt: z.string().datetime(),
+  expiresAt: z.string().datetime(),
+});
+export type Session = z.infer<typeof SessionSchema>;
+
+export const SessionListResponseSchema = z.object({
+  sessions: z.array(SessionSchema),
+});
+export type SessionListResponse = z.infer<typeof SessionListResponseSchema>;
+
+export const RevokeAllSessionsResponseSchema = z.object({
+  revoked: z.number().int().nonnegative(),
+});
+export type RevokeAllSessionsResponse = z.infer<typeof RevokeAllSessionsResponseSchema>;
