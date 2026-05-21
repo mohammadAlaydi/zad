@@ -11,7 +11,7 @@ let startupCompleted = false;
 
 export async function registerHealthRoutes(app: FastifyInstance): Promise<void> {
   app.get("/test", { logLevel: "warn" }, async (_req, reply) => {
-    await reply.send({ status: "test success v2" });
+    await reply.send({ status: "test success" });
   });
 
   app.get("/health/live", { logLevel: "warn" }, async (_req, reply) => {
