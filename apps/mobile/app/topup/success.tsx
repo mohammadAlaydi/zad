@@ -5,40 +5,23 @@ import { useTranslation } from "react-i18next";
 import { View, Text, StyleSheet, Share } from "react-native";
 import { Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/Button";
 import { Screen } from "@/components/Screen";
 import { SuccessIllustration } from "@/illustrations/SuccessIllustration";
 import { Colors } from "@/theme/colors";
 
-export default function SendSuccess() {
+export default function TopUpSuccess() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { amount, mobile, contactName, message, transactionId } = useLocalSearchParams<{
+  const { amount, currency, cardLast4, transactionId } = useLocalSearchParams<{
     amount: string;
-    mobile: string;
-    contactName: string;
-    message: string;
+    currency: string;
+    cardLast4: string;
     transactionId: string;
   }>();
   const amt = Number(amount || 0);
-  const recipient = contactName || mobile || "";
-  const phone = mobile || "";
-  const username = recipient ? "@" + recipient.replace(/\s+/g, "").toLowerCase().slice(0, 10) : "";
   const ref = transactionId ? transactionId.replace(/-/g, "").slice(-8).toUpperCase() : "—";
-
-  const handleShare = async () => {
-    const headline = recipient
-      ? `I just sent $${amt.toFixed(2)} to ${recipient} via ZADPay.`
-      : `I just sent $${amt.toFixed(2)} via ZADPay.`;
-    const body = `${headline}\nReference: ${ref}`;
-    try {
-      await Share.share({ message: body });
-    } catch {
-      // User dismissed the sheet or the OS returned an error — no-op,
-      // the user stays on the success screen.
-    }
-  };
+  const last4 = cardLast4 || "";
 
   const now = new Date();
   const dateStr =
@@ -46,10 +29,18 @@ export default function SendSuccess() {
     " " +
     now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).toLowerCase();
 
+  const handleShare = async () => {
+    const body = `I topped up ${amt.toFixed(2)} ${currency || ""} to my ZADPay wallet.\nReference: ${ref}`;
+    try {
+      await Share.share({ message: body });
+    } catch {
+      // user dismissed
+    }
+  };
+
   return (
     <Screen scroll bg={Colors.white}>
       <View style={[styles.topSection, { paddingTop: Math.max(insets.top, 24) + 20 }]}>
-        {/* Illustration */}
         <MotiView
           from={{ opacity: 0, scale: 0.7 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -58,51 +49,44 @@ export default function SendSuccess() {
           <SuccessIllustration size={180} />
         </MotiView>
 
-        {/* Success text */}
         <MotiView
           from={{ opacity: 0, translateY: 12 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 250, duration: 500 }}
           style={styles.successTextWrap}
         >
-          <Text style={styles.successLabel}>{t("send.success")}</Text>
-          <Text style={styles.amountText}>$ {amt.toFixed(2).replace(".", ",")}</Text>
-          <Text style={styles.totalLabel}>{t("send.totalSentMoney")}</Text>
+          <Text style={styles.successLabel}>{t("topup.success")}</Text>
+          <Text style={styles.amountText}>
+            {amt.toFixed(2)} {currency || ""}
+          </Text>
+          <Text style={styles.totalLabel}>{t("topup.totalToppedUp")}</Text>
         </MotiView>
       </View>
 
-      {/* Sent to card */}
-      <MotiView
-        from={{ opacity: 0, translateY: 16 }}
-        animate={{ opacity: 1, translateY: 0 }}
-        transition={{ delay: 450, duration: 500 }}
-        style={styles.cardWrap}
-      >
-        <View style={styles.card}>
-          {/* Sended to header */}
-          <Text style={styles.cardSectionLabel}>{t("send.sentTo")}</Text>
-
-          {/* Recipient row */}
-          <View style={styles.recipientRow}>
-            <Avatar name={recipient} size={44} />
-            <View style={styles.recipientInfo}>
-              <Text style={styles.recipientName}>{recipient}</Text>
-              <Text style={styles.recipientPhone}>{phone}</Text>
-              <Text style={styles.recipientUsername}>{username}</Text>
+      {/* Source card */}
+      {last4 !== "" && (
+        <MotiView
+          from={{ opacity: 0, translateY: 16 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 450, duration: 500 }}
+          style={styles.cardWrap}
+        >
+          <View style={styles.card}>
+            <Text style={styles.cardSectionLabel}>{t("topup.addedFrom")}</Text>
+            <View style={styles.recipientRow}>
+              <View style={styles.cardIconWrap}>
+                <Ionicons name="card-outline" size={22} color={Colors.brand.primary} />
+              </View>
+              <View style={styles.recipientInfo}>
+                <Text style={styles.recipientName}>{t("topup.masterCard")}</Text>
+                <Text style={styles.recipientPhone}>•••• {last4}</Text>
+              </View>
             </View>
           </View>
+        </MotiView>
+      )}
 
-          {/* Message */}
-          {message ? (
-            <View style={styles.messageSection}>
-              <Text style={styles.messageLabel}>Message</Text>
-              <Text style={styles.messageText}>{message}</Text>
-            </View>
-          ) : null}
-        </View>
-      </MotiView>
-
-      {/* Transaction details card */}
+      {/* Transaction details */}
       <MotiView
         from={{ opacity: 0, translateY: 16 }}
         animate={{ opacity: 1, translateY: 0 }}
@@ -124,7 +108,6 @@ export default function SendSuccess() {
         </View>
       </MotiView>
 
-      {/* Share + Done buttons */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 20 }]}>
         <Button
           title={t("send.share")}
@@ -168,6 +151,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 13,
     marginTop: 4,
+    textAlign: "center",
   },
   cardWrap: {
     paddingHorizontal: 18,
@@ -188,6 +172,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  cardIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.brand.primary50,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   recipientInfo: {
     marginLeft: 12,
     flex: 1,
@@ -202,29 +194,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 12,
     marginTop: 1,
-  },
-  recipientUsername: {
-    color: Colors.accent.green,
-    fontFamily: "Inter_500Medium",
-    fontSize: 11,
-    marginTop: 1,
-  },
-  messageSection: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: Colors.ink[200],
-  },
-  messageLabel: {
-    color: Colors.ink[500],
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-  },
-  messageText: {
-    color: Colors.ink[900],
-    fontFamily: "Inter_500Medium",
-    fontSize: 13,
-    marginTop: 3,
   },
   detailsTitle: {
     color: Colors.ink[900],

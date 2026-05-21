@@ -20,15 +20,15 @@ export default function TopUpPayment() {
   const insets = useSafeAreaInsets();
   const { amount } = useLocalSearchParams<{ amount: string }>();
   const cardsQuery = useUserItems<CardPayload>("cards");
-  // Show server-stored cards first; fall back to a demo card so the user
-  // can complete a top-up before they've issued one.
   const cards = (cardsQuery.data?.items ?? []).map((c) => ({
     id: c.id,
     last4: c.payload.last4 ?? "0000",
   }));
-  const display = cards.length > 0 ? cards : [{ id: "card_demo", last4: "4242" }];
-  const [selected, setSelected] = useState<string | null>(display[0]?.id ?? null);
+  const [selected, setSelected] = useState<string | null>(cards[0]?.id ?? null);
   const [tab, setTab] = useState<"cards" | "banks">("cards");
+
+  const selectedCard = cards.find((c) => c.id === selected);
+  const canContinue = selectedCard !== undefined;
 
   return (
     <Screen bg={Colors.white}>
@@ -68,8 +68,47 @@ export default function TopUpPayment() {
           ))}
         </View>
 
+        {tab === "cards" && cards.length === 0 && (
+          <View style={{ alignItems: "center", paddingTop: 32, paddingHorizontal: 12 }}>
+            <View
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                backgroundColor: Colors.brand.primary50,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 14,
+              }}
+            >
+              <Ionicons name="card-outline" size={28} color={Colors.brand.primary} />
+            </View>
+            <Text
+              style={{
+                color: Colors.ink[900],
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 16,
+                marginBottom: 6,
+                textAlign: "center",
+              }}
+            >
+              {t("topup.noCardsTitle")}
+            </Text>
+            <Text
+              style={{
+                color: Colors.ink[500],
+                fontFamily: "Inter_400Regular",
+                fontSize: 13,
+                textAlign: "center",
+              }}
+            >
+              {t("topup.noCardsHint")}
+            </Text>
+          </View>
+        )}
+
         {tab === "cards" &&
-          display.map((card) => (
+          cards.map((card) => (
             <Pressable
               key={card.id}
               onPress={() => setSelected(card.id)}
@@ -179,16 +218,18 @@ export default function TopUpPayment() {
       <View style={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 16 }}>
         <Button
           title={t("common.continue")}
-          onPress={() =>
+          disabled={!canContinue}
+          onPress={() => {
+            if (selectedCard === undefined) return;
             router.push({
               pathname: "/topup/confirm",
               params: {
                 amount: amount.toString(),
-                cardId: selected ?? display[0]?.id ?? "card_demo",
-                cardLast4: display.find((c) => c.id === selected)?.last4 ?? "0000",
+                cardId: selectedCard.id,
+                cardLast4: selectedCard.last4,
               },
-            })
-          }
+            });
+          }}
         />
       </View>
     </Screen>

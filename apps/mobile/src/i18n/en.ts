@@ -155,6 +155,11 @@ const en = {
     addNewCard: "Add new card",
     topUpYour: "Top up your",
     zadpayWallet: "ZADPAY Wallet",
+    success: "Top up successful",
+    totalToppedUp: "Total topped up to your wallet",
+    addedFrom: "Added from",
+    noCardsTitle: "No card on file",
+    noCardsHint: "Add a payment card to top up your wallet.",
     addNewCardTitle: "Add new card",
     addNewCardHint:
       "Enter your chosen card carefully. By adding the card we will save it to your chosen payment method.",

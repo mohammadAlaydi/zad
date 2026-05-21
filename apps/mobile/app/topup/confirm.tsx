@@ -40,7 +40,7 @@ export default function TopUpConfirm() {
     }
     setError(null);
     try {
-      await topup.mutateAsync({
+      const result = await topup.mutateAsync({
         request: {
           accountId: account.id,
           // Minor units (cents). UI deals in major units.
@@ -50,7 +50,15 @@ export default function TopUpConfirm() {
         },
         idempotencyKey,
       });
-      router.replace("/(tabs)/home");
+      router.replace({
+        pathname: "/topup/success",
+        params: {
+          amount: String(amt),
+          currency: account.currency,
+          cardLast4: card?.last4 ?? "",
+          transactionId: result.transaction.id,
+        },
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Top up failed");
     }
