@@ -47,7 +47,23 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Inter_400Regular.ttf",
+            "./assets/fonts/Inter_500Medium.ttf",
+            "./assets/fonts/Inter_600SemiBold.ttf",
+            "./assets/fonts/Inter_700Bold.ttf",
+            "./assets/fonts/Sora_700Bold.ttf",
+            "./assets/fonts/ionicons.ttf",
+            "./assets/fonts/material-community.ttf",
+            "./assets/fonts/FontAwesome5Free-Regular.ttf",
+            "./assets/fonts/FontAwesome5Free-Solid.ttf",
+            "./assets/fonts/FontAwesome5Free-Brand.ttf"
+          ]
+        }
+      ],
       [
         "expo-camera",
         {

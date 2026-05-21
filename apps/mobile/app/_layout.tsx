@@ -16,7 +16,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { bootstrapAuth } from "@/features/auth";
@@ -44,37 +44,28 @@ function PushBootstrap() {
 }
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
+  // All fonts (Inter, Sora, Ionicons, MaterialCommunityIcons, FontAwesome5)
+  // are bundled natively at android/app/src/main/assets/fonts/ via the
+  // expo-font config plugin. In a prebuilt APK, ReactFontManager registers
+  // them at startup and ExpoFontLoader.customNativeFonts contains every
+  // family name we use here — so `useFonts` resolves synchronously on the
+  // first render (no async, no race, no asset-registry lookup). In Expo Go
+  // (which can't see our bundled fonts) it still does a Metro fetch as
+  // before. We don't block render on it either way.
+  useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
     Sora_700Bold,
-    // Preload the @expo/vector-icons font families we actually use.
-    // Without this, Ionicons / MaterialCommunityIcons / FontAwesome5
-    // render as blank glyphs on the home screen and elsewhere because
-    // their .ttf assets aren't registered with native Font before first
-    // render in a prebuilt (non-Expo-Go) Android/iOS app.
     ...Ionicons.font,
     ...MaterialCommunityIcons.font,
     ...FontAwesome5.font,
   });
 
-  // Safety valve: never block the UI on fonts for more than 3s — if
-  // anything goes sideways with the asset bundle the app still boots.
-  const [fontTimeout, setFontTimeout] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setFontTimeout(true), 3000);
-    return () => clearTimeout(t);
+    SplashScreen.hideAsync().catch(() => {});
   }, []);
-
-  const ready = loaded || error !== null || fontTimeout;
-
-  useEffect(() => {
-    if (ready) SplashScreen.hideAsync().catch(() => {});
-  }, [ready]);
-
-  if (!ready) return null;
 
   return (
     <ErrorBoundary>
