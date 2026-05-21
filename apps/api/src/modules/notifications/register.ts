@@ -16,14 +16,17 @@ import {
   RegisterPushTokenCommand,
   UnregisterPushTokenCommand,
 } from "./application/RegisterPushToken.js";
+import { SubmitFraudReportCommand } from "./application/SubmitFraudReport.js";
 import type { NotificationSender } from "./domain/ports/NotificationSender.js";
 import {
   createFirebaseSender,
   NoopNotificationSender,
 } from "./infrastructure/FirebaseAdminSender.js";
+import { PrismaFraudReportRepository } from "./infrastructure/PrismaFraudReportRepository.js";
 import { PrismaNotificationInbox } from "./infrastructure/PrismaNotificationInbox.js";
 import { PrismaPushTokenRepository } from "./infrastructure/PrismaPushTokenRepository.js";
 import { registerDeviceRoutes } from "./interface/routes/devices.js";
+import { registerFraudRoutes } from "./interface/routes/fraud.js";
 import { registerInboxRoutes } from "./interface/routes/inbox.js";
 
 export interface NotificationsModuleDeps {
@@ -42,6 +45,7 @@ export async function registerNotificationsModule(
 ): Promise<void> {
   const tokens = new PrismaPushTokenRepository(prisma);
   const inbox = new PrismaNotificationInbox(prisma);
+  const fraudReports = new PrismaFraudReportRepository(prisma);
   const sender: NotificationSender = createFirebaseSender() ?? new NoopNotificationSender();
 
   const notifyTransfer = new NotifyTransferCommand({ tokens, sender, inbox });
@@ -50,6 +54,7 @@ export async function registerNotificationsModule(
   const listInbox = new ListInboxQuery(inbox);
   const markRead = new MarkReadCommand(inbox);
   const markAllRead = new MarkAllReadCommand(inbox);
+  const submitFraud = new SubmitFraudReportCommand(fraudReports);
 
   // Cross-module subscription. We pull the entries out of the published
   // event, resolve each side back to its owner via wallet, and look up the
@@ -97,4 +102,5 @@ export async function registerNotificationsModule(
 
   await registerDeviceRoutes(app, { register, unregister });
   await registerInboxRoutes(app, { list: listInbox, markRead, markAllRead });
+  await registerFraudRoutes(app, { submit: submitFraud });
 }

@@ -41,3 +41,24 @@ export const MarkAllReadResponseSchema = z.object({
   marked: z.number().int().nonnegative(),
 });
 export type MarkAllReadResponse = z.infer<typeof MarkAllReadResponseSchema>;
+
+// ── Fraud reports ──────────────────────────────────────────────────────
+// The app only ever creates these; ops / support reads them through
+// internal tooling. `transactionId` is optional so the user can report
+// something general (lost card, suspicious link, etc.).
+export const FraudCategorySchema = z.enum(["unauthorized", "scam", "phishing", "other"]);
+export type FraudCategory = z.infer<typeof FraudCategorySchema>;
+
+export const SubmitFraudReportRequestSchema = z.object({
+  transactionId: z.string().uuid().nullable().optional(),
+  category: FraudCategorySchema,
+  description: z.string().trim().min(10).max(2000),
+});
+export type SubmitFraudReportRequest = z.infer<typeof SubmitFraudReportRequestSchema>;
+
+export const FraudReportResponseSchema = z.object({
+  id: z.string().uuid(),
+  status: z.string(),
+  createdAt: z.string().datetime(),
+});
+export type FraudReportResponse = z.infer<typeof FraudReportResponseSchema>;

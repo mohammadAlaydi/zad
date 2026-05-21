@@ -289,6 +289,25 @@ model Notification {
   @@schema("notifications")
 }
 
+/// User-submitted fraud reports. Lives in the notifications schema because
+/// the support / risk team consumes them alongside push events. Status
+/// field lets ops triage; the app only ever writes "open".
+model FraudReport {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  transactionId String?   @map("transaction_id") @db.Uuid
+  category      String    @db.VarChar(40) // 'unauthorized' | 'scam' | 'other'
+  description   String    @db.VarChar(2000)
+  status        String    @default("open") @db.VarChar(20) // 'open' | 'in_review' | 'resolved'
+  createdAt     DateTime  @default(now()) @map("created_at")
+  resolvedAt    DateTime? @map("resolved_at")
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("fraud_reports")
+  @@schema("notifications")
+}
+
 // ──────────────────────────────────────────────────────────────────────
 // userdata.* — generic per-user JSON store. Used by the mobile features
 // that don't have their own domain module yet (cards, goals, savings,
