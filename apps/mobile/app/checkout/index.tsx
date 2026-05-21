@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { isCurrency } from "@zadpay/types";
-import { router } from "expo-router";
-import { useMemo, useRef } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -16,34 +16,109 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
 import { usePayCheckout } from "@/features/checkout";
+import { useUserItems } from "@/features/userdata";
+import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { newIdempotencyKey } from "@/lib/api/idempotency";
 import { useApp } from "@/store/appStore";
-import { useCheckoutStore, type PaymentMethod } from "@/store/checkoutStore";
+import {
+  useCheckoutStore,
+  type CartItem,
+  type MerchantInfo,
+  type PaymentMethod,
+} from "@/store/checkoutStore";
 import { Colors } from "@/theme/colors";
+
+interface CardPayload {
+  last4?: string;
+  brand?: string;
+}
+
+// Merchants build a deep link of the form
+//   zadpay://checkout?merchantPhone=...&merchantName=...&total=...&items=<base64-json>
+// We read those params on mount and hydrate the store. If they're missing,
+// the screen shows a "no checkout in progress" empty state — never a seeded
+// demo cart.
+function parseItemsParam(raw: string | undefined): CartItem[] {
+  if (raw === undefined || raw === "") return [];
+  try {
+    const decoded = decodeURIComponent(raw);
+    const parsed: unknown = JSON.parse(decoded);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(
+        (it): it is CartItem =>
+          it !== null &&
+          typeof it === "object" &&
+          "id" in it &&
+          "name" in it &&
+          "price" in it &&
+          "quantity" in it,
+      )
+      .map((it) => ({
+        id: String(it.id),
+        name: String(it.name),
+        price: Number(it.price),
+        quantity: Number(it.quantity),
+      }));
+  } catch {
+    return [];
+  }
+}
 
 export default function Checkout() {
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{
+    merchantPhone?: string;
+    merchantName?: string;
+    merchantId?: string;
+    merchantVerified?: string;
+    items?: string;
+  }>();
   const {
     merchant,
     cart,
     paymentMethod,
-    useLoyltyPoints,
-    loyaltyBalance,
     status,
-    oauthConnected,
     errorMessage,
+    setIntent,
     setPaymentMethod,
-    toggleLoyalty,
-    setOAuthConnected,
     setStatus,
     setError,
+    reset,
   } = useCheckoutStore();
   const { activeCurrency } = useApp();
   const pay = usePayCheckout();
+  const accounts = useMyAccounts();
+  const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
+  const balanceQuery = useAccountBalance(account?.id);
+  const walletBalance =
+    balanceQuery.data === undefined ? 0 : Number(BigInt(balanceQuery.data.balance.amount)) / 100;
+  const cardsQuery = useUserItems<CardPayload>("cards");
+  const firstCard = cardsQuery.data?.items[0];
+
+  // Hydrate the store from URL params on first mount. We do this in an
+  // effect (rather than during render) so the store update doesn't trigger
+  // a re-render loop. If params are missing we leave the store empty.
+  useEffect(() => {
+    if (params.merchantPhone === undefined || params.merchantPhone === "") return;
+    const merchantInfo: MerchantInfo = {
+      id: params.merchantId ?? params.merchantPhone,
+      name: params.merchantName ?? "Merchant",
+      phone: params.merchantPhone,
+      verified: params.merchantVerified === "true",
+    };
+    setIntent(merchantInfo, parseItemsParam(params.items));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    params.merchantPhone,
+    params.merchantId,
+    params.merchantName,
+    params.merchantVerified,
+    params.items,
+  ]);
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const loyaltyDiscount = useLoyltyPoints ? Math.min(loyaltyBalance * 0.01, subtotal * 0.1) : 0;
-  const total = subtotal - loyaltyDiscount;
+  const total = subtotal;
 
   // One idempotency key per mounted checkout screen. Reused across
   // retries of the same payment intent so multiple taps don't double-
@@ -55,12 +130,6 @@ export default function Checkout() {
     [activeCurrency],
   );
 
-  /* OAuth connect simulation — kept as UI flair; the real auth was the
-     bearer token used to call the backend. */
-  const handleOAuth = () => {
-    setOAuthConnected(true);
-  };
-
   const handlePay = async () => {
     if (merchant === null) {
       setError("No merchant selected.");
@@ -69,6 +138,11 @@ export default function Checkout() {
     }
     if (currency === null) {
       setError("Unsupported currency.");
+      setStatus("failed");
+      return;
+    }
+    if (cart.length === 0) {
+      setError("Cart is empty.");
       setStatus("failed");
       return;
     }
@@ -103,6 +177,39 @@ export default function Checkout() {
     }
   };
 
+  /* Empty state — no merchant context */
+  if (merchant === null || cart.length === 0) {
+    return (
+      <Screen bg={Colors.surface.background}>
+        <StatusBar barStyle="dark-content" />
+        <Header title="Checkout" />
+        <View style={styles.successContainer}>
+          <View
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+              backgroundColor: Colors.ink[100],
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="storefront-outline" size={40} color={Colors.ink[400]} />
+          </View>
+          <Text style={styles.successTitle}>No checkout in progress</Text>
+          <Text style={styles.successSub}>
+            Open a merchant&apos;s checkout link or scan their QR to start a payment.
+          </Text>
+          <Button
+            title="Back to Home"
+            onPress={() => router.replace("/(tabs)/home")}
+            style={{ marginTop: 30, paddingHorizontal: 18 }}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
   /* Success view */
   if (status === "success") {
     return (
@@ -113,13 +220,14 @@ export default function Checkout() {
             <Ionicons name="checkmark" size={48} color={Colors.white} />
           </View>
           <Text style={styles.successTitle}>Payment Successful!</Text>
-          <Text style={styles.successSub}>
-            Your order with {merchant?.name} has been confirmed.
-          </Text>
+          <Text style={styles.successSub}>Your order with {merchant.name} has been confirmed.</Text>
           <Text style={styles.successAmount}>${total.toFixed(2)}</Text>
           <Button
             title="Back to Home"
-            onPress={() => router.replace("/(tabs)/home")}
+            onPress={() => {
+              reset();
+              router.replace("/(tabs)/home");
+            }}
             style={{ marginTop: 30, paddingHorizontal: 18 }}
           />
         </View>
@@ -169,6 +277,28 @@ export default function Checkout() {
     );
   }
 
+  // Payment method options. Card option is hidden when the user has no
+  // saved card so we never show fake "Visa ending in 4242".
+  type IconName = React.ComponentProps<typeof Ionicons>["name"];
+  const methods: { key: PaymentMethod; label: string; icon: IconName; desc: string }[] = [
+    {
+      key: "wallet",
+      label: "ZADPay Wallet",
+      icon: "wallet",
+      desc: `Balance: ${activeCurrency} ${walletBalance.toLocaleString()}`,
+    },
+  ];
+  if (firstCard !== undefined) {
+    const last4 = firstCard.payload.last4 ?? "0000";
+    const brand = firstCard.payload.brand ?? "Card";
+    methods.push({
+      key: "card",
+      label: "Saved Card",
+      icon: "card",
+      desc: `${brand} ending in ${last4}`,
+    });
+  }
+
   return (
     <Screen bg={Colors.surface.background}>
       <StatusBar barStyle="dark-content" />
@@ -178,33 +308,22 @@ export default function Checkout() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       >
         {/* Merchant Info */}
-        {merchant && (
-          <View style={styles.merchantRow}>
-            <View style={styles.merchantIcon}>
-              <Ionicons name="storefront" size={22} color={Colors.brand.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Text style={styles.merchantName}>{merchant.name}</Text>
-                {merchant.verified && (
-                  <Ionicons name="shield-checkmark" size={14} color={Colors.accent.green} />
-                )}
-              </View>
-              <Text style={styles.merchantSub}>Verified Merchant</Text>
-            </View>
-            {!oauthConnected ? (
-              <Pressable onPress={handleOAuth} style={styles.oauthBtn}>
-                <Ionicons name="log-in" size={14} color={Colors.white} />
-                <Text style={styles.oauthBtnText}>Connect</Text>
-              </Pressable>
-            ) : (
-              <View style={styles.connectedBadge}>
-                <Ionicons name="checkmark-circle" size={14} color={Colors.accent.green} />
-                <Text style={styles.connectedText}>Connected</Text>
-              </View>
-            )}
+        <View style={styles.merchantRow}>
+          <View style={styles.merchantIcon}>
+            <Ionicons name="storefront" size={22} color={Colors.brand.primary} />
           </View>
-        )}
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={styles.merchantName}>{merchant.name}</Text>
+              {merchant.verified && (
+                <Ionicons name="shield-checkmark" size={14} color={Colors.accent.green} />
+              )}
+            </View>
+            <Text style={styles.merchantSub}>
+              {merchant.verified ? "Verified Merchant" : merchant.phone}
+            </Text>
+          </View>
+        </View>
 
         {/* Cart Items */}
         <View style={styles.section}>
@@ -226,26 +345,7 @@ export default function Checkout() {
         {/* Payment Method */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Method</Text>
-          {[
-            {
-              key: "wallet" as PaymentMethod,
-              label: "ZADPay Wallet",
-              icon: "wallet",
-              desc: "Pay from your wallet balance",
-            },
-            {
-              key: "card" as PaymentMethod,
-              label: "Saved Card",
-              icon: "card",
-              desc: "Visa ending in 4242",
-            },
-            {
-              key: "loyalty" as PaymentMethod,
-              label: "Loyalty Points",
-              icon: "star",
-              desc: `${loyaltyBalance} points available`,
-            },
-          ].map((m) => (
+          {methods.map((m) => (
             <Pressable
               key={m.key}
               onPress={() => setPaymentMethod(m.key)}
@@ -258,7 +358,7 @@ export default function Checkout() {
                 ]}
               >
                 <Ionicons
-                  name={m.icon as any}
+                  name={m.icon}
                   size={20}
                   color={paymentMethod === m.key ? Colors.brand.primary : Colors.ink[500]}
                 />
@@ -274,36 +374,12 @@ export default function Checkout() {
           ))}
         </View>
 
-        {/* Loyalty Toggle */}
-        <View style={styles.section}>
-          <Pressable onPress={toggleLoyalty} style={styles.loyaltyRow}>
-            <Ionicons name="gift" size={20} color={Colors.accent.amber} />
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.loyaltyLabel}>Use Loyalty Points</Text>
-              <Text style={styles.loyaltyDesc}>Save up to 10% with {loyaltyBalance} points</Text>
-            </View>
-            <View style={[styles.checkBox, useLoyltyPoints && styles.checkBoxActive]}>
-              {useLoyltyPoints && <Ionicons name="checkmark" size={14} color={Colors.white} />}
-            </View>
-          </Pressable>
-        </View>
-
         {/* Totals */}
         <View style={styles.totalsCard}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal</Text>
             <Text style={styles.totalValue}>${subtotal.toFixed(2)}</Text>
           </View>
-          {loyaltyDiscount > 0 && (
-            <View style={styles.totalRow}>
-              <Text style={[styles.totalLabel, { color: Colors.accent.green }]}>
-                Loyalty Discount
-              </Text>
-              <Text style={[styles.totalValue, { color: Colors.accent.green }]}>
-                -${loyaltyDiscount.toFixed(2)}
-              </Text>
-            </View>
-          )}
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Transaction Fee</Text>
             <Text style={[styles.totalValue, { color: Colors.accent.green }]}>FREE</Text>
@@ -358,26 +434,6 @@ const styles = StyleSheet.create({
     color: Colors.ink[500],
     marginTop: 2,
   },
-  oauthBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: Colors.brand.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 16,
-  },
-  oauthBtnText: { fontFamily: "Inter_600SemiBold", fontSize: 12, color: Colors.white },
-  connectedBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: Colors.accent.greenSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  connectedText: { fontFamily: "Inter_500Medium", fontSize: 11, color: Colors.accent.green },
   section: { paddingHorizontal: 18, marginTop: 16 },
   sectionTitle: {
     fontFamily: "Inter_600SemiBold",
@@ -443,30 +499,6 @@ const styles = StyleSheet.create({
   },
   radioActive: { borderColor: Colors.brand.primary },
   radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.brand.primary },
-  loyaltyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    padding: 14,
-  },
-  loyaltyLabel: { fontFamily: "Inter_600SemiBold", fontSize: 14, color: Colors.ink[900] },
-  loyaltyDesc: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 11,
-    color: Colors.ink[500],
-    marginTop: 2,
-  },
-  checkBox: {
-    width: 24,
-    height: 24,
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: Colors.ink[300],
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkBoxActive: { backgroundColor: Colors.brand.primary, borderColor: Colors.brand.primary },
   totalsCard: {
     marginHorizontal: 18,
     marginTop: 16,
@@ -516,6 +548,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: Colors.ink[900],
     marginTop: 24,
+    textAlign: "center",
   },
   successSub: {
     fontFamily: "Inter_400Regular",

@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,8 +21,6 @@ export default function TopUpConfirm() {
   }>();
   const { activeCurrency } = useApp();
   const amt = Number(amount || 0);
-  const card = { id: cardId ?? "card_demo", last4: cardLast4 ?? "0000" };
-
   const accounts = useMyAccounts();
   const topup = useTopup();
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +28,22 @@ export default function TopUpConfirm() {
   // One idempotency key per mounted confirm screen — retries of the same
   // logical top-up are safe; navigating away + back generates a new one.
   const idempotencyKey = useMemo(() => newIdempotencyKey(), []);
+
+  const missingCard =
+    cardId === undefined || cardId === "" || cardLast4 === undefined || cardLast4 === "";
+
+  // Topup requires a card. If we arrived here without one (deep-link or
+  // refresh), bounce back to the card picker instead of showing a fake
+  // "**** 4242" entry. The redirect happens in an effect so hooks above
+  // still run in a stable order on every render.
+  useEffect(() => {
+    if (missingCard) {
+      router.replace({ pathname: "/topup/payment", params: { amount: amount ?? "0" } });
+    }
+  }, [missingCard, amount]);
+
+  if (missingCard) return null;
+  const card = { id: cardId, last4: cardLast4 };
 
   const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
 
@@ -45,8 +59,10 @@ export default function TopUpConfirm() {
           accountId: account.id,
           // Minor units (cents). UI deals in major units.
           amount: { amount: String(Math.round(amt * 100)), currency: account.currency },
-          // InMemoryPaymentProcessor in dev accepts any non-empty string.
-          source: `card_${card?.last4 ?? "demo"}`,
+          // The card id from userdata acts as the funding source. The
+          // InMemoryPaymentProcessor in dev accepts any non-empty value;
+          // a real PSP would use this to look up tokenised PAN.
+          source: `card_${card.id}`,
         },
         idempotencyKey,
       });
@@ -55,7 +71,7 @@ export default function TopUpConfirm() {
         params: {
           amount: String(amt),
           currency: account.currency,
-          cardLast4: card?.last4 ?? "",
+          cardLast4: card.last4,
           transactionId: result.transaction.id,
         },
       });
@@ -132,7 +148,7 @@ export default function TopUpConfirm() {
               {t("topup.masterCard")}
             </Text>
             <Text style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 12 }}>
-              **** **** **** {card?.last4 ?? "4242"}
+              **** **** **** {card.last4}
             </Text>
           </View>
         </View>
