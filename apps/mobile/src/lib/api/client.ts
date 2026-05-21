@@ -26,7 +26,14 @@ export interface ApiRequestOptions {
   skipAuth?: boolean;
   /** Skip the refresh-on-401 interceptor (e.g. inside refresh itself). */
   skipRefresh?: boolean;
+  /** Timeout in ms. Defaults to 30s. Pass `null` to disable. */
+  timeoutMs?: number | null;
 }
+
+// Default network timeout. 30s is generous enough for cold-start lambdas
+// and slow mobile connections but bounded so the app never hangs forever
+// when a request is dropped at the carrier.
+const DEFAULT_TIMEOUT_MS = 30_000;
 
 export class ApiClient {
   private hooks: ApiAuthHooks = {
@@ -171,14 +178,26 @@ export class ApiClient {
     if (opts?.idempotencyKey !== undefined) {
       headers["idempotency-key"] = opts.idempotencyKey;
     }
+    const timeoutMs = opts?.timeoutMs === undefined ? DEFAULT_TIMEOUT_MS : opts.timeoutMs;
+    const controller = timeoutMs === null ? null : new AbortController();
+    const timer = controller === null ? null : setTimeout(() => controller.abort(), timeoutMs ?? 0);
     try {
       return await fetch(url, {
         method,
         headers,
         body: body === undefined ? undefined : JSON.stringify(body),
+        signal: controller?.signal,
       });
     } catch (e) {
-      return new NetworkError(e instanceof Error ? e.message : String(e));
+      const message =
+        e instanceof Error
+          ? e.name === "AbortError"
+            ? `Request timed out after ${String(timeoutMs)}ms`
+            : e.message
+          : String(e);
+      return new NetworkError(message);
+    } finally {
+      if (timer !== null) clearTimeout(timer);
     }
   }
 

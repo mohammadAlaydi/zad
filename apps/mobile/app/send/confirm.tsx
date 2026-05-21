@@ -1,3 +1,4 @@
+import { isCurrency, type Currency } from "@zadpay/types";
 import { router } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -46,8 +47,16 @@ export default function SendConfirm() {
   const recipient = recipientName ?? "ZADPAY user";
   const username = "@" + recipient.replace(/\s+/g, "").toLowerCase();
 
-  // Guard: if the flow store is empty (deep-link / refresh), bounce home.
-  if (recipientPhone === null || amountMinor <= 0) {
+  // Guard: if the flow store is empty (deep-link / refresh), or the
+  // recipient's currency isn't one we support, bounce home. Falls back
+  // to activeCurrency so the lookup-failed-but-recovered case still
+  // works; if neither is a supported code we abort.
+  const maybeCurrency: Currency | null = isCurrency(recipientCurrency)
+    ? recipientCurrency
+    : isCurrency(activeCurrency)
+      ? activeCurrency
+      : null;
+  if (recipientPhone === null || amountMinor <= 0 || maybeCurrency === null) {
     return (
       <Screen bg={Colors.white}>
         <Header title={t("send.confirmation")} />
@@ -61,6 +70,9 @@ export default function SendConfirm() {
       </Screen>
     );
   }
+  // After the early-return, capture the narrowed currency in a const so
+  // it's safely usable from the async send closure below.
+  const sendCurrency: Currency = maybeCurrency;
 
   async function onConfirmSend() {
     if (recipientPhone === null) return;
@@ -70,7 +82,7 @@ export default function SendConfirm() {
       const result = await sendMutation.mutateAsync({
         request: {
           recipientPhone,
-          amount: { amount: String(amountMinor), currency: recipientCurrency ?? activeCurrency },
+          amount: { amount: String(amountMinor), currency: sendCurrency },
           password,
           ...(note.length > 0 ? { note } : {}),
         },
