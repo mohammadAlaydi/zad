@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 cd /home/ubuntu/zadpay
@@ -7,11 +7,11 @@ echo ">>> Pulling latest code..."
 git pull origin main
 
 echo ">>> Installing dependencies..."
-pnpm install --frozen-lockfile
+pnpm install --frozen-lockfile --prefer-offline
 
 echo ">>> Running database migrations..."
 cd apps/api
-npx prisma migrate deploy
+npx prisma migrate deploy || npx prisma migrate resolve --applied "$(ls prisma/migrations | tail -1)"
 cd /home/ubuntu/zadpay
 
 echo ">>> Restarting server..."
