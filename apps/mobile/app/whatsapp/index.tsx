@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
-import { useApp } from "@/store/appStore";
+import { useAuthSession } from "@/features/auth";
 import { Colors } from "@/theme/colors";
 
 const COMMANDS = [
@@ -23,7 +23,8 @@ const COMMANDS = [
 
 export default function WhatsAppBot() {
   const insets = useSafeAreaInsets();
-  const { user } = useApp();
+  const { session } = useAuthSession();
+  const userPhone = session?.user.phone ?? "";
   const [isLinked, setIsLinked] = useState(false);
   const [balanceNotif, setBalanceNotif] = useState(true);
   const [txNotif, setTxNotif] = useState(true);
@@ -56,7 +57,7 @@ export default function WhatsAppBot() {
           ) : (
             <View style={styles.linkedBadge}>
               <Ionicons name="checkmark-circle" size={18} color={Colors.accent.green} />
-              <Text style={styles.linkedText}>Linked to {user.phone}</Text>
+              <Text style={styles.linkedText}>Linked to {userPhone}</Text>
             </View>
           )}
         </View>
@@ -68,7 +69,7 @@ export default function WhatsAppBot() {
               <View style={styles.statusDot} />
               <Text style={styles.statusLabel}>Bot Active</Text>
             </View>
-            <Text style={styles.statusPhone}>Connected to: {user.phone}</Text>
+            <Text style={styles.statusPhone}>Connected to: {userPhone}</Text>
             <Text style={styles.statusInfo}>
               Identity verified via secure OTP binding. Messages are end-to-end encrypted.
             </Text>

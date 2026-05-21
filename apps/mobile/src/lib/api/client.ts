@@ -65,6 +65,14 @@ export class ApiClient {
   ): Promise<Result<T, ClientError>> {
     return this.request<T>("PUT", path, body, schema, opts);
   }
+  patch<T>(
+    path: string,
+    body: unknown,
+    schema: ZodTypeAny,
+    opts?: ApiRequestOptions,
+  ): Promise<Result<T, ClientError>> {
+    return this.request<T>("PATCH", path, body, schema, opts);
+  }
   delete<T>(
     path: string,
     schema: ZodTypeAny,

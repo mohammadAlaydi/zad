@@ -13,6 +13,7 @@ import { LogoutCommand } from "./application/commands/Logout.js";
 import { RefreshCommand } from "./application/commands/Refresh.js";
 import { RegisterCommand } from "./application/commands/Register.js";
 import { UpdateKycStatusCommand } from "./application/commands/UpdateKycStatus.js";
+import { UpdateProfileCommand } from "./application/commands/UpdateProfile.js";
 import { GetMeQuery } from "./application/queries/GetMe.js";
 import { type UserLookup, UserRepositoryUserLookup } from "./application/queries/LookupById.js";
 import {
@@ -87,6 +88,7 @@ export async function registerIdentityModule(
   const getMe = new GetMeQuery({ users });
   const updateKycStatus = new UpdateKycStatusCommand({ users, clock });
   const changePassword = new ChangePasswordCommand({ users, passwordHasher, clock });
+  const updateProfile = new UpdateProfileCommand({ users, clock });
   const phoneLookup = new UserRepositoryPhoneLookup(users);
   const userLookup = new UserRepositoryUserLookup(users);
 
@@ -103,7 +105,7 @@ export async function registerIdentityModule(
   });
 
   await registerAuthRoutes(app, { login, loginByPhone, refresh, logout, register });
-  await registerMeRoutes(app, { getMe });
+  await registerMeRoutes(app, { getMe, updateProfile });
 
   return {
     phoneLookup,

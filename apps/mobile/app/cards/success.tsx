@@ -7,8 +7,8 @@ import { Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Screen } from "@/components/Screen";
+import { useAuthSession } from "@/features/auth";
 import { useUserItems } from "@/features/userdata";
-import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 interface CardPayload {
@@ -20,7 +20,7 @@ interface CardPayload {
 export default function CardSuccess() {
   const insets = useSafeAreaInsets();
   const { type } = useLocalSearchParams<{ type: string }>();
-  const { user } = useApp();
+  const { session } = useAuthSession();
   const cardsQuery = useUserItems<CardPayload>("cards");
   const cards = cardsQuery.data?.items ?? [];
   const isPhysical = type === "physical";
@@ -30,7 +30,7 @@ export default function CardSuccess() {
   const maskedNumber = latestCard?.last4
     ? `•••• •••• •••• ${latestCard.last4}`
     : "•••• •••• •••• ••••";
-  const cardName = latestCard?.name ?? user.fullName ?? "CARD HOLDER";
+  const cardName = latestCard?.name ?? session?.user.fullName ?? "CARD HOLDER";
 
   return (
     <Screen bg={Colors.surface.background}>

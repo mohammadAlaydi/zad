@@ -8,15 +8,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
 import { Switch } from "@/components/Switch";
+import { useAuthSession } from "@/features/auth";
 import { useHaptic } from "@/hooks/useHaptic";
-import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 export default function Security() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const haptic = useHaptic();
-  const profile = useApp((s) => s.user);
+  const { session } = useAuthSession();
+  const profile = session?.user;
 
   const [whatsappEnabled, setWhatsappEnabled] = useState(false);
 

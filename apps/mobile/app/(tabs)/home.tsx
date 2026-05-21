@@ -20,6 +20,7 @@ import { BalanceCard } from "@/components/BalanceCard";
 import { Screen } from "@/components/Screen";
 import { ServiceTile } from "@/components/ServiceTile";
 import { TransactionRow } from "@/components/TransactionRow";
+import { useAuthSession } from "@/features/auth";
 import { useMyAccounts, useAccountBalance, useMyTransactions } from "@/features/wallet";
 import { queryClient } from "@/lib/api/queryClient";
 import { useApp } from "@/store/appStore";
@@ -52,8 +53,10 @@ function toLegacyTx(api: WalletTransactionResponse, myAccountIds: Set<string>): 
 export default function Home() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { user, activeCurrency, setActiveCurrency } = useApp();
-  const firstName = (user.fullName ?? "").split(" ")[0];
+  const { activeCurrency, setActiveCurrency } = useApp();
+  const { session } = useAuthSession();
+  const fullName = session?.user.fullName ?? "";
+  const firstName = fullName.split(" ")[0] ?? "";
   const [refreshing, setRefreshing] = useState(false);
   const [currencyModalOpen, setCurrencyModalOpen] = useState(false);
 
@@ -140,7 +143,7 @@ export default function Home() {
       >
         {/* Header row: avatar + greeting + notification */}
         <View style={styles.headerRow}>
-          <Avatar name={user.fullName} size={44} />
+          <Avatar name={fullName} size={44} />
           <View style={styles.greetingWrap}>
             <Text style={styles.greetingName}>{t("home.greeting", { name: firstName })}</Text>
             <Text style={styles.greetingSub}>{t("home.subgreeting")}</Text>
@@ -166,7 +169,7 @@ export default function Home() {
           <BalanceCard
             amount={displayBalance}
             currency={activeCurrency}
-            iban={user.username}
+            iban={session?.user.phone ?? ""}
             onGetQr={() => router.push("/qr-display")}
           />
         </View>

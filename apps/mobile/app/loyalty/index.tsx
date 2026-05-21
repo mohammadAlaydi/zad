@@ -7,8 +7,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useAuthSession } from "@/features/auth";
 import { useCreateUserItem, useUpdateUserItem, useUserItems } from "@/features/userdata";
-import { useApp } from "@/store/appStore";
 import type { LoyaltyLevel } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -279,7 +279,7 @@ const ref = StyleSheet.create({
 // ─── Main Screen ───────────────────────────────────────────────────────────────
 export default function LoyaltyScreen() {
   const insets = useSafeAreaInsets();
-  const { user } = useApp();
+  const { session } = useAuthSession();
 
   // The loyalty "stats" live as a single userdata item (feature="loyalty",
   // first row). Created lazily on first redeem if it doesn't exist.
@@ -496,7 +496,7 @@ export default function LoyaltyScreen() {
       />
       <ReferModal
         visible={showRefer}
-        userName={user.username}
+        userName={session?.user.fullName ?? ""}
         onClose={() => setShowRefer(false)}
         onSimulateReferral={handleSimulateReferral}
       />

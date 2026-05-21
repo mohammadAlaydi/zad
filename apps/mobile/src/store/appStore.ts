@@ -173,15 +173,6 @@ export type CryptoHolding = {
 export type AppState = {
   bootstrapped: boolean;
   hasOnboarded: boolean;
-  user: {
-    fullName: string;
-    username: string;
-    email: string;
-    phone: string;
-    avatar?: string;
-    dob?: string;
-    gender?: "Male" | "Female";
-  };
   balances: Record<Currency, number>;
   activeCurrency: Currency;
   hideBalance: boolean;
@@ -230,7 +221,6 @@ export type AppState = {
   setFaceId: (v: boolean) => void;
   setActiveCurrency: (c: Currency) => void;
   setLocale: (l: Locale) => void;
-  updateUser: (patch: Partial<AppState["user"]>) => void;
   addTransaction: (t: Transaction) => void;
   addCard: (c: SavedCard) => void;
 };
@@ -609,14 +599,6 @@ export const useApp = create<AppState>()(
     (set) => ({
       bootstrapped: false,
       hasOnboarded: false,
-      user: {
-        fullName: "Mahmoud Hafez",
-        username: "@Mahmoudhafez",
-        email: "Mahmoudrafathafez@gmail.com",
-        phone: "+8801514855445158",
-        dob: "16/07/1998",
-        gender: "Male",
-      },
       balances: { USD: 8600, AED: 8800, CAD: 0, AUD: 0 },
       activeCurrency: "USD",
       hideBalance: false,
@@ -852,17 +834,17 @@ export const useApp = create<AppState>()(
       setFaceId: (v) => set({ faceIdEnabled: v }),
       setActiveCurrency: (c) => set({ activeCurrency: c }),
       setLocale: (l) => set({ locale: l }),
-      updateUser: (patch) => set((s) => ({ user: { ...s.user, ...patch } })),
       addTransaction: (t) => set((s) => ({ transactions: [t, ...s.transactions] })),
       addCard: (c) => set((s) => ({ cards: [...s.cards, c] })),
     }),
     {
       // Bump the persist name to invalidate stale records with isAuthenticated/setAuthenticated.
-      name: "zadpay-store-v6",
+      // v7: dropped the mock `user` slice — real user data lives in
+      // features/auth's authStore (populated from JWT + GET /v1/identity/me).
+      name: "zadpay-store-v7",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         hasOnboarded: s.hasOnboarded,
-        user: s.user,
         balances: s.balances,
         activeCurrency: s.activeCurrency,
         hideBalance: s.hideBalance,

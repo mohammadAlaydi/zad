@@ -96,3 +96,13 @@ export const MeResponseSchema = z.object({
   createdAt: z.string().datetime(),
 });
 export type MeResponse = z.infer<typeof MeResponseSchema>;
+
+// ── PATCH /v1/identity/me request ──────────────────────────────────────
+// Only fields the user can edit themselves are listed here. Email + phone
+// changes require a separate verification flow and are intentionally
+// excluded — they're set at signup and only changed via a re-verification
+// endpoint (out of Phase 1 scope).
+export const UpdateMeRequestSchema = z.object({
+  fullName: z.string().trim().min(2).max(120),
+});
+export type UpdateMeRequest = z.infer<typeof UpdateMeRequestSchema>;

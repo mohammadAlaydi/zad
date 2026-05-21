@@ -233,6 +233,8 @@ const en = {
     upnHint: "Customise your UPN to be easy to find",
     accountsDetails: "Accounts Details",
     notifyEmail: "Notify Your Email",
+    nameTooShort: "Please enter at least 2 characters.",
+    saveError: "Couldn't save changes. Please try again.",
   },
   security: {
     title: "ZADPAY Security",

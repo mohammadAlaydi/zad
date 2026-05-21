@@ -10,31 +10,31 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
+import { useAuthSession, useUpdateProfile } from "@/features/auth";
 import { useHaptic } from "@/hooks/useHaptic";
-import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
 export default function EditProfile() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const haptic = useHaptic();
-  const { user, updateUser } = useApp();
-  const [fullName, setFullName] = useState(user.fullName);
-  const [username, setUsername] = useState(user.username);
-  const [phone, setPhone] = useState(user.phone);
-  const [email, setEmail] = useState(user.email);
-  const [dob, setDob] = useState(user.dob ?? "");
-  const [gender, setGender] = useState(user.gender ?? "");
+  const { session } = useAuthSession();
+  const user = session?.user;
+  const updateProfile = useUpdateProfile();
 
-  const emailInvalid = !!email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const [fullName, setFullName] = useState(user?.fullName ?? "");
+  const phone = user?.phone ?? "";
+  const email = user?.email ?? "";
 
-  const handleSave = () => {
-    haptic.success();
-    // Gender is bound to a freeform text Input; cast covers the type gap.
-    // Proper picker UI lands in PR-5 (auth feature migration per ADR-0003).
-    const normalizedGender = gender === "Male" || gender === "Female" ? gender : undefined;
-    updateUser({ fullName, username, phone, email, dob, gender: normalizedGender });
-    router.back();
+  const nameInvalid = fullName.trim().length < 2;
+
+  const handleSave = async () => {
+    if (nameInvalid || updateProfile.isPending) return;
+    const result = await updateProfile.mutate({ fullName: fullName.trim() });
+    if (result.ok) {
+      haptic.success();
+      router.back();
+    }
   };
 
   return (
@@ -88,54 +88,35 @@ export default function EditProfile() {
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 100, duration: 360 }}
         >
-          <Input label={t("auth.fullName")} value={fullName} onChangeText={setFullName} />
           <Input
-            label={t("auth.username")}
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-            leftIcon={
-              <Text
-                style={{
-                  color: Colors.ink[400],
-                  fontFamily: "Inter_500Medium",
-                  fontSize: 15,
-                }}
-              >
-                @
-              </Text>
-            }
+            label={t("auth.fullName")}
+            value={fullName}
+            onChangeText={setFullName}
+            error={nameInvalid && fullName.length > 0 ? t("profile.nameTooShort") : undefined}
           />
-          <Input
-            label="phone number"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-          />
+          <Input label="phone number" value={phone} editable={false} keyboardType="phone-pad" />
           <Input
             label={t("auth.email")}
             value={email}
-            onChangeText={setEmail}
+            editable={false}
             keyboardType="email-address"
             autoCapitalize="none"
-            error={emailInvalid ? t("profile.notifyEmail") : undefined}
-          />
-          <Input
-            label={t("auth.dob")}
-            value={dob}
-            onChangeText={setDob}
-            placeholder="dd / mm / yy"
-            leftIcon={<Ionicons name="calendar-outline" size={18} color={Colors.ink[400]} />}
-            rightIcon={<Ionicons name="chevron-down" size={18} color={Colors.ink[400]} />}
-          />
-          <Input
-            label={t("auth.gender")}
-            value={gender}
-            onChangeText={setGender}
-            placeholder={t("auth.chooseGender")}
-            rightIcon={<Ionicons name="chevron-down" size={18} color={Colors.ink[400]} />}
           />
         </MotiView>
+
+        {updateProfile.error !== null && (
+          <Text
+            style={{
+              color: Colors.accent.red,
+              fontFamily: "Inter_500Medium",
+              fontSize: 13,
+              marginTop: 12,
+              textAlign: "center",
+            }}
+          >
+            {t("profile.saveError")}
+          </Text>
+        )}
       </ScrollView>
 
       <View
@@ -146,7 +127,12 @@ export default function EditProfile() {
           backgroundColor: Colors.white,
         }}
       >
-        <Button title={t("common.save")} onPress={handleSave} />
+        <Button
+          title={t("common.save")}
+          onPress={handleSave}
+          loading={updateProfile.isPending}
+          disabled={nameInvalid || updateProfile.isPending}
+        />
       </View>
     </Screen>
   );

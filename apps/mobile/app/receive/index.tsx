@@ -19,6 +19,7 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
+import { useAuthSession } from "@/features/auth";
 import { buildWirePayload, useCreatePaymentRequest } from "@/features/userdata";
 import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { useApp } from "@/store/appStore";
@@ -29,7 +30,9 @@ const { width } = Dimensions.get("window");
 export default function ReceiveMoney() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { activeCurrency, user } = useApp();
+  const { activeCurrency } = useApp();
+  const { session } = useAuthSession();
+  const user = session?.user;
   const accounts = useMyAccounts();
   const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
   const balanceQuery = useAccountBalance(account?.id);
@@ -47,7 +50,7 @@ export default function ReceiveMoney() {
 
   const createRequest = useCreatePaymentRequest();
 
-  const phone = user.phone;
+  const phone = user?.phone ?? "";
 
   async function onContinue() {
     if (qrValue !== null) {
@@ -63,7 +66,7 @@ export default function ReceiveMoney() {
     try {
       const result = await createRequest.mutateAsync({
         recipientPhone: phone,
-        recipientName: user.fullName,
+        recipientName: user?.fullName ?? "",
         amountMinor: String(Math.round(amount * 100)),
         currency: activeCurrency,
         channel: "receive",

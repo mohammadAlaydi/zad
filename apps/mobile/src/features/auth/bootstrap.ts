@@ -19,6 +19,8 @@ function toSession(pair: TokenPairResponse): AuthSession {
     user: {
       id: pair.user.id,
       email: pair.user.email,
+      phone: pair.user.phone,
+      fullName: pair.user.fullName,
       kycStatus: pair.user.kycStatus,
       roles: pair.user.roles,
     },

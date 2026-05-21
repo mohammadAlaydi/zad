@@ -226,6 +226,8 @@ const ar: Partial<Translations> = {
     upnHint: "خصّص UPN ليكون سهل العثور عليه",
     accountsDetails: "تفاصيل الحسابات",
     notifyEmail: "أبلغ عبر البريد",
+    nameTooShort: "يرجى إدخال حرفين على الأقل.",
+    saveError: "تعذّر حفظ التغييرات. حاول مرة أخرى.",
   },
   security: {
     title: "أمان زاد باي",

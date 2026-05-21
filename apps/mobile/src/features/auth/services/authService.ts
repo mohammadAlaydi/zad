@@ -7,12 +7,14 @@ import {
   RegisterRequestSchema,
   TokenPairResponseSchema,
   MeResponseSchema,
+  UpdateMeRequestSchema,
   type ChangePasswordRequest,
   type LoginByPhoneRequest,
   type LoginRequest,
   type MeResponse,
   type RegisterRequest,
   type TokenPairResponse,
+  type UpdateMeRequest,
 } from "@zadpay/validation";
 import { type ClientError } from "@/lib/api/errors";
 import { api } from "@/lib/api/instance";
@@ -60,6 +62,11 @@ export const authService = {
 
   async me(): Promise<Result<MeResponse, ClientError>> {
     return api.get<MeResponse>("/v1/identity/me", MeResponseSchema);
+  },
+
+  async updateProfile(input: UpdateMeRequest): Promise<Result<MeResponse, ClientError>> {
+    UpdateMeRequestSchema.parse(input);
+    return api.patch<MeResponse>("/v1/identity/me", input, MeResponseSchema);
   },
 
   async changePassword(input: ChangePasswordRequest): Promise<Result<void, ClientError>> {

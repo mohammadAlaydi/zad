@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
+import { useAuthSession } from "@/features/auth";
 import { buildWirePayload } from "@/features/userdata";
 import { useAccountBalance, useMyAccounts } from "@/features/wallet";
 import { useApp } from "@/store/appStore";
@@ -18,7 +19,9 @@ const { width } = Dimensions.get("window");
 export default function QrDisplay() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { user, activeCurrency } = useApp();
+  const { activeCurrency } = useApp();
+  const { session } = useAuthSession();
+  const userPhone = session?.user.phone ?? "";
   const accounts = useMyAccounts();
   const account = accounts.data?.accounts.find((a) => a.currency === activeCurrency);
   const balanceQuery = useAccountBalance(account?.id);
@@ -28,7 +31,7 @@ export default function QrDisplay() {
   // route to /send/index with the recipient prefilled. No payment_request
   // row is created — there's nothing to track until the payer commits.
   const qrValue = JSON.stringify(
-    buildWirePayload({ phone: user.phone, amountMinor: 0, currency: activeCurrency }),
+    buildWirePayload({ phone: userPhone, amountMinor: 0, currency: activeCurrency }),
   );
 
   return (

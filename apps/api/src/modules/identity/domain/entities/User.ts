@@ -93,4 +93,18 @@ export class User {
       now,
     );
   }
+
+  withFullName(fullName: string, now: Date): User {
+    return new User(
+      this.id,
+      this.email,
+      this.phone,
+      fullName,
+      this.passwordHash,
+      this.kycStatus,
+      this.roles,
+      this.createdAt,
+      now,
+    );
+  }
 }

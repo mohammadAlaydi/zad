@@ -35,7 +35,7 @@ function stripDob(formatted: string): string {
 export default function PersonalInfo() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const [name, setName] = useState("Mahmoud rafat fauda");
+  const [name, setName] = useState("");
   const [user, setUser] = useState("");
   const [dob, setDob] = useState(""); // stored as digits only
   const [gender, setGender] = useState<string | null>(null);

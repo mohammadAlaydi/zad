@@ -8,4 +8,5 @@ export { useLogin, type UseLoginResult } from "./hooks/useLogin";
 export { useLoginByPhone, type UseLoginByPhoneResult } from "./hooks/useLoginByPhone";
 export { useRegister, type UseRegisterResult } from "./hooks/useRegister";
 export { useLogout } from "./hooks/useLogout";
+export { useUpdateProfile, type UseUpdateProfileResult } from "./hooks/useUpdateProfile";
 export type { AuthSession } from "./store/authStore";

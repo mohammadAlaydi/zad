@@ -8,15 +8,15 @@ import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
-import { useApp } from "@/store/appStore";
+import { useAuthSession } from "@/features/auth";
 import { Colors } from "@/theme/colors";
 
 export default function Help() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { user } = useApp();
+  const { session } = useAuthSession();
   const [q, setQ] = useState("");
-  const firstName = (user.fullName ?? "").split(" ")[0];
+  const firstName = (session?.user.fullName ?? "").split(" ")[0] ?? "";
 
   return (
     <Screen bg={Colors.white} keyboard>

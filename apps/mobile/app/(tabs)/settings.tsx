@@ -10,7 +10,7 @@ import { Button } from "@/components/Button";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
 import { Switch } from "@/components/Switch";
-import { useLogout } from "@/features/auth";
+import { useAuthSession, useLogout } from "@/features/auth";
 import { useApp } from "@/store/appStore";
 import { Colors } from "@/theme/colors";
 
@@ -18,7 +18,6 @@ export default function Settings() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const {
-    user,
     biometricEnabled,
     faceIdEnabled,
     hideBalance,
@@ -26,11 +25,13 @@ export default function Settings() {
     setFaceId,
     toggleHideBalance,
   } = useApp();
+  const { session } = useAuthSession();
+  const user = session?.user;
   const { logout } = useLogout();
   const [confirmClose, setConfirmClose] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
 
-  const initials = (user.fullName ?? "M")
+  const initials = (user?.fullName ?? "M")
     .split(" ")
     .filter(Boolean)
     .map((n: string) => n[0])
@@ -151,7 +152,7 @@ export default function Settings() {
           <Text
             style={{ color: Colors.white, fontFamily: "Sora_700Bold", fontSize: 19, marginTop: 12 }}
           >
-            {user.fullName}
+            {user?.fullName ?? ""}
           </Text>
           <Text
             style={{
@@ -161,7 +162,7 @@ export default function Settings() {
               marginTop: 3,
             }}
           >
-            {user.email}
+            {user?.email ?? ""}
           </Text>
           <Text
             style={{
@@ -171,7 +172,7 @@ export default function Settings() {
               marginTop: 1,
             }}
           >
-            {user.phone}
+            {user?.phone ?? ""}
           </Text>
         </MotiView>
       </LinearGradient>
