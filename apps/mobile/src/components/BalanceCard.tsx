@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import { useApp } from "@/store/appStore";
+import { useSettings } from "@/features/userdata";
 import { Colors } from "@/theme/colors";
 
 type Props = {
@@ -42,7 +42,9 @@ function CardPattern() {
 }
 
 export function BalanceCard({ amount, currency, iban, onGetQr }: Props) {
-  const { hideBalance, toggleHideBalance } = useApp();
+  const { settings, updateSettings } = useSettings();
+  const hideBalance = settings.hideBalance;
+  const toggleHideBalance = () => void updateSettings({ hideBalance: !hideBalance });
   const formatted = amount.toLocaleString("en-US", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,

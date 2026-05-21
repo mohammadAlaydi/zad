@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { MotiView } from "moti";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,6 +8,7 @@ import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
 import { Switch } from "@/components/Switch";
 import { useAuthSession } from "@/features/auth";
+import { useSettings } from "@/features/userdata";
 import { useHaptic } from "@/hooks/useHaptic";
 import { Colors } from "@/theme/colors";
 
@@ -19,7 +19,8 @@ export default function Security() {
   const { session } = useAuthSession();
   const profile = session?.user;
 
-  const [whatsappEnabled, setWhatsappEnabled] = useState(false);
+  const { settings, isPending, updateSettings } = useSettings();
+  const whatsappEnabled = settings.whatsappBotEnabled;
 
   return (
     <Screen bg={Colors.surface.background}>
@@ -335,9 +336,10 @@ export default function Security() {
               </View>
               <Switch
                 value={whatsappEnabled}
+                disabled={isPending}
                 onChange={(v) => {
                   haptic.selection();
-                  setWhatsappEnabled(v);
+                  void updateSettings({ whatsappBotEnabled: v });
                 }}
               />
             </View>
@@ -358,7 +360,7 @@ export default function Security() {
                 hitSlop={8}
                 onPress={() => {
                   haptic.selection();
-                  router.push("/settings/security/change-phone" as any);
+                  router.push("/profile/edit");
                 }}
                 style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
               >

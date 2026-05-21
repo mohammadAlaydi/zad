@@ -3,15 +3,25 @@ import { Pressable } from "react-native";
 import { useHaptic } from "@/hooks/useHaptic";
 import { Colors } from "@/theme/colors";
 
-export function Switch({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+export function Switch({
+  value,
+  onChange,
+  disabled = false,
+}: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+}) {
   const haptic = useHaptic();
   return (
     <Pressable
       onPress={() => {
+        if (disabled) return;
         haptic.selection();
         onChange(!value);
       }}
       hitSlop={6}
+      style={{ opacity: disabled ? 0.5 : 1 }}
     >
       <MotiView
         animate={{ backgroundColor: value ? Colors.brand.primary : Colors.ink[200] }}

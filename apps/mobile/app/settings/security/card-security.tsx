@@ -1,16 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
 import { useTranslation } from "react-i18next";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
+import { Switch } from "@/components/Switch";
+import { useSettings } from "@/features/userdata";
 import { Colors } from "@/theme/colors";
 
 export default function CardSecurity() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { settings, isPending, updateSettings } = useSettings();
+
   return (
     <Screen bg={Colors.surface.background}>
       <Header title={t("security.cardSecurity")} />
@@ -57,24 +61,40 @@ export default function CardSecurity() {
           >
             <ListRow
               icon={<Ionicons name="lock-closed-outline" size={18} color={Colors.brand.primary} />}
-              title="Change PIN"
-              onPress={() =>
-                Alert.alert("Coming Soon", "This feature will be available in a future update.")
+              title="Card PIN set"
+              subtitle={settings.cardPinSet ? "PIN is set" : "Set a PIN to authorise card use"}
+              right={
+                <Switch
+                  value={settings.cardPinSet}
+                  disabled={isPending}
+                  onChange={(v) => void updateSettings({ cardPinSet: v })}
+                />
               }
             />
             <ListRow
               icon={<Ionicons name="eye-off-outline" size={18} color={Colors.brand.primary} />}
               title="Hide card number"
-              onPress={() =>
-                Alert.alert("Coming Soon", "This feature will be available in a future update.")
+              right={
+                <Switch
+                  value={settings.cardNumberHidden}
+                  disabled={isPending}
+                  onChange={(v) => void updateSettings({ cardNumberHidden: v })}
+                />
               }
             />
             <ListRow
               icon={<Ionicons name="ban-outline" size={18} color={Colors.brand.primary} />}
               title="Freeze card"
+              subtitle={
+                settings.cardFrozen ? "Card is frozen — payments blocked" : "Block card payments"
+              }
               divider={false}
-              onPress={() =>
-                Alert.alert("Coming Soon", "This feature will be available in a future update.")
+              right={
+                <Switch
+                  value={settings.cardFrozen}
+                  disabled={isPending}
+                  onChange={(v) => void updateSettings({ cardFrozen: v })}
+                />
               }
             />
           </View>

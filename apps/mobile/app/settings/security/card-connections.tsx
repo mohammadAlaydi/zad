@@ -1,21 +1,32 @@
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
 import { useTranslation } from "react-i18next";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
+import { Switch } from "@/components/Switch";
+import { useSettings, type SettingsPayload } from "@/features/userdata";
 import { Colors } from "@/theme/colors";
+
+type ConnectionKey = "applePayLinked" | "googlePayLinked" | "samsungPayLinked";
+
+const ROWS: {
+  key: ConnectionKey;
+  name: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+}[] = [
+  { key: "applePayLinked", name: "Apple Pay", icon: "logo-apple" },
+  { key: "googlePayLinked", name: "Google Pay", icon: "logo-google" },
+  { key: "samsungPayLinked", name: "Samsung Pay", icon: "phone-portrait-outline" },
+];
 
 export default function CardConnections() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const connections = [
-    { id: "1", name: "Apple Pay", icon: "logo-apple" as const },
-    { id: "2", name: "Google Pay", icon: "logo-google" as const },
-    { id: "3", name: "Samsung Pay", icon: "phone-portrait-outline" as const },
-  ];
+  const { settings, isPending, updateSettings } = useSettings();
+
   return (
     <Screen bg={Colors.surface.background}>
       <Header title={t("security.cardConnections")} />
@@ -49,7 +60,8 @@ export default function CardConnections() {
               marginBottom: 20,
             }}
           >
-            Services connected to your ZADPAY card.
+            Services connected to your ZADPAY card. Toggle to mark a wallet as linked once you
+            finish the setup in your phone's system wallet.
           </Text>
           <View
             style={{
@@ -60,14 +72,21 @@ export default function CardConnections() {
               overflow: "hidden",
             }}
           >
-            {connections.map((c, i) => (
+            {ROWS.map((row, i) => (
               <ListRow
-                key={c.id}
-                icon={<Ionicons name={c.icon} size={18} color={Colors.brand.primary} />}
-                title={c.name}
-                divider={i < connections.length - 1}
-                onPress={() =>
-                  Alert.alert("Coming Soon", "This feature will be available in a future update.")
+                key={row.key}
+                icon={<Ionicons name={row.icon} size={18} color={Colors.brand.primary} />}
+                title={row.name}
+                subtitle={settings[row.key] ? "Linked" : "Not connected"}
+                divider={i < ROWS.length - 1}
+                right={
+                  <Switch
+                    value={settings[row.key]}
+                    disabled={isPending}
+                    onChange={(v) =>
+                      void updateSettings({ [row.key]: v } as Partial<SettingsPayload>)
+                    }
+                  />
                 }
               />
             ))}

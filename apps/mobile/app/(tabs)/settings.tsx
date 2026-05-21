@@ -11,20 +11,14 @@ import { ListRow } from "@/components/ListRow";
 import { Screen } from "@/components/Screen";
 import { Switch } from "@/components/Switch";
 import { useAuthSession, useLogout } from "@/features/auth";
-import { useApp } from "@/store/appStore";
+import { useSettings } from "@/features/userdata";
 import { Colors } from "@/theme/colors";
 
 export default function Settings() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const {
-    biometricEnabled,
-    faceIdEnabled,
-    hideBalance,
-    setBiometric,
-    setFaceId,
-    toggleHideBalance,
-  } = useApp();
+  const { settings, isPending, updateSettings } = useSettings();
+  const { biometricEnabled, faceIdEnabled, hideBalance } = settings;
   const { session } = useAuthSession();
   const user = session?.user;
   const { logout } = useLogout();
@@ -205,17 +199,35 @@ export default function Settings() {
           <ListRow
             icon={<Ionicons name="finger-print" size={16} color={Colors.brand.primary} />}
             title={t("settings.biometric")}
-            right={<Switch value={biometricEnabled} onChange={setBiometric} />}
+            right={
+              <Switch
+                value={biometricEnabled}
+                disabled={isPending}
+                onChange={(v) => void updateSettings({ biometricEnabled: v })}
+              />
+            }
           />
           <ListRow
             icon={<Ionicons name="happy-outline" size={16} color={Colors.brand.primary} />}
             title={t("settings.faceId")}
-            right={<Switch value={faceIdEnabled} onChange={setFaceId} />}
+            right={
+              <Switch
+                value={faceIdEnabled}
+                disabled={isPending}
+                onChange={(v) => void updateSettings({ faceIdEnabled: v })}
+              />
+            }
           />
           <ListRow
             icon={<Ionicons name="eye-off-outline" size={16} color={Colors.brand.primary} />}
             title={t("settings.hideBalance")}
-            right={<Switch value={hideBalance} onChange={toggleHideBalance} />}
+            right={
+              <Switch
+                value={hideBalance}
+                disabled={isPending}
+                onChange={(v) => void updateSettings({ hideBalance: v })}
+              />
+            }
           />
 
           {/* ── Navigation ── */}
