@@ -10,6 +10,7 @@ import { logger } from "../../infra/logger/index.js";
 import type { EventBus } from "../../shared/events/EventBus.js";
 import type { UserLookup } from "../identity/index.js";
 import type { TransferPosted } from "../wallet/index.js";
+import { ListInboxQuery, MarkAllReadCommand, MarkReadCommand } from "./application/Inbox.js";
 import { NotifyTransferCommand } from "./application/NotifyTransfer.js";
 import {
   RegisterPushTokenCommand,
@@ -20,8 +21,10 @@ import {
   createFirebaseSender,
   NoopNotificationSender,
 } from "./infrastructure/FirebaseAdminSender.js";
+import { PrismaNotificationInbox } from "./infrastructure/PrismaNotificationInbox.js";
 import { PrismaPushTokenRepository } from "./infrastructure/PrismaPushTokenRepository.js";
 import { registerDeviceRoutes } from "./interface/routes/devices.js";
+import { registerInboxRoutes } from "./interface/routes/inbox.js";
 
 export interface NotificationsModuleDeps {
   // Injected from the composition root in app.ts:
@@ -38,11 +41,15 @@ export async function registerNotificationsModule(
   deps: NotificationsModuleDeps,
 ): Promise<void> {
   const tokens = new PrismaPushTokenRepository(prisma);
+  const inbox = new PrismaNotificationInbox(prisma);
   const sender: NotificationSender = createFirebaseSender() ?? new NoopNotificationSender();
 
-  const notifyTransfer = new NotifyTransferCommand({ tokens, sender });
+  const notifyTransfer = new NotifyTransferCommand({ tokens, sender, inbox });
   const register = new RegisterPushTokenCommand({ tokens });
   const unregister = new UnregisterPushTokenCommand({ tokens });
+  const listInbox = new ListInboxQuery(inbox);
+  const markRead = new MarkReadCommand(inbox);
+  const markAllRead = new MarkAllReadCommand(inbox);
 
   // Cross-module subscription. We pull the entries out of the published
   // event, resolve each side back to its owner via wallet, and look up the
@@ -89,4 +96,5 @@ export async function registerNotificationsModule(
   });
 
   await registerDeviceRoutes(app, { register, unregister });
+  await registerInboxRoutes(app, { list: listInbox, markRead, markAllRead });
 }

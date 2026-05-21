@@ -42,11 +42,13 @@ export function usePushNotifications(): void {
     };
   }, [userId]);
 
-  // 2. Foreground arrivals — bust the wallet cache immediately.
+  // 2. Foreground arrivals — bust the wallet cache + inbox cache so the
+  //    user sees the new row without a manual pull.
   useEffect(() => {
     const sub = Notifications.addNotificationReceivedListener(() => {
       void qc.invalidateQueries({ queryKey: ["wallet", "balance"] });
       void qc.invalidateQueries({ queryKey: ["wallet", "transactions"] });
+      void qc.invalidateQueries({ queryKey: ["notifications", "inbox"] });
     });
     return () => sub.remove();
   }, [qc]);
@@ -57,12 +59,14 @@ export function usePushNotifications(): void {
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data ?? {};
       const kind = typeof data["kind"] === "string" ? data["kind"] : null;
-      // Default landing: home (balance is the most useful at-a-glance).
-      // For received transfers, transactions tab feels more natural.
-      if (kind === "transfer.received") {
+      // Default landing: the inbox, so any push type lands somewhere
+      // meaningful even if we haven't taught the app about it yet.
+      // Transfer payloads still get the transactions tab so the user can
+      // see the new balance immediately.
+      if (kind === "transfer.received" || kind === "transfer.sent") {
         router.push("/(tabs)/expenses");
       } else {
-        router.push("/(tabs)/home");
+        router.push("/notifications");
       }
     });
     return () => sub.remove();

@@ -1,4 +1,5 @@
 import { logger } from "../../../infra/logger/index.js";
+import type { NotificationInbox } from "../domain/ports/NotificationInbox.js";
 import type { NotificationSender } from "../domain/ports/NotificationSender.js";
 import type { PushTokenRepository } from "../domain/ports/PushTokenRepository.js";
 
@@ -15,6 +16,7 @@ export interface NotifyTransferInput {
 export interface NotifyTransferDeps {
   tokens: PushTokenRepository;
   sender: NotificationSender;
+  inbox: NotificationInbox;
 }
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -69,32 +71,66 @@ export class NotifyTransferCommand {
     const ref = shortRef(input.transactionId);
     const when = formatLocalTime();
 
-    // Two parallel fan-outs: one to sender devices, one to recipient.
+    const senderPayload = {
+      type: "transfer.sent" as const,
+      title: `Sent ${amount} to ${input.recipientName}`,
+      body: `Your transfer was completed successfully. Ref ${ref} • ${when}. Tap to view receipt.`,
+      data: {
+        kind: "transfer.sent",
+        transactionId: input.transactionId,
+        counterparty: input.recipientName,
+        amount: input.amountMinor.toString(),
+        currency: input.currency,
+        ref,
+      },
+    };
+    const recipientPayload = {
+      type: "transfer.received" as const,
+      title: `Received ${amount} from ${input.senderName}`,
+      body: `Your wallet has been credited. Ref ${ref} • ${when}. Tap to view receipt.`,
+      data: {
+        kind: "transfer.received",
+        transactionId: input.transactionId,
+        counterparty: input.senderName,
+        amount: input.amountMinor.toString(),
+        currency: input.currency,
+        ref,
+      },
+    };
+
+    // Persist to the inbox first (so the user can see the notification
+    // even if FCM never reaches the device), then dispatch the push.
+    // Persist + fan-out happen in parallel per user.
     const [senderTokens, recipientTokens] = await Promise.all([
       this.deps.tokens.listForUser(input.senderUserId),
       this.deps.tokens.listForUser(input.recipientUserId),
     ]);
 
-    const tasks: Promise<unknown>[] = [];
+    const tasks: Promise<unknown>[] = [
+      this.deps.inbox.create({
+        userId: input.senderUserId,
+        type: senderPayload.type,
+        title: senderPayload.title,
+        body: senderPayload.body,
+        data: senderPayload.data,
+      }),
+      this.deps.inbox.create({
+        userId: input.recipientUserId,
+        type: recipientPayload.type,
+        title: recipientPayload.title,
+        body: recipientPayload.body,
+        data: recipientPayload.data,
+      }),
+    ];
 
     if (senderTokens.length > 0) {
       tasks.push(
         this.deliver(
           senderTokens.map((t) => t.token),
           {
-            // InstaPay-style detailed copy: amount + counterparty in the
-            // title (visible on the lock screen), reference + time in the
-            // body so the user can confirm without opening the app.
-            title: `Sent ${amount} to ${input.recipientName}`,
-            body: `Your transfer was completed successfully. Ref ${ref} • ${when}. Tap to view receipt.`,
-            data: {
-              kind: "transfer.sent",
-              transactionId: input.transactionId,
-              counterparty: input.recipientName,
-              amount: input.amountMinor.toString(),
-              currency: input.currency,
-              ref,
-            },
+            title: senderPayload.title,
+            body: senderPayload.body,
+            data: senderPayload.data,
           },
         ),
       );
@@ -104,16 +140,9 @@ export class NotifyTransferCommand {
         this.deliver(
           recipientTokens.map((t) => t.token),
           {
-            title: `Received ${amount} from ${input.senderName}`,
-            body: `Your wallet has been credited. Ref ${ref} • ${when}. Tap to view receipt.`,
-            data: {
-              kind: "transfer.received",
-              transactionId: input.transactionId,
-              counterparty: input.senderName,
-              amount: input.amountMinor.toString(),
-              currency: input.currency,
-              ref,
-            },
+            title: recipientPayload.title,
+            body: recipientPayload.body,
+            data: recipientPayload.data,
           },
         ),
       );

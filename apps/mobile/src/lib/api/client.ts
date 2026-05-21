@@ -99,6 +99,17 @@ export class ApiClient {
     return err(await this.toApiError(response));
   }
 
+  async patchVoid(
+    path: string,
+    body: unknown,
+    opts?: ApiRequestOptions,
+  ): Promise<Result<void, ClientError>> {
+    const response = await this.doFetch("PATCH", path, body, opts);
+    if (response instanceof Error) return err(response);
+    if (response.status >= 200 && response.status < 300) return ok(undefined);
+    return err(await this.toApiError(response));
+  }
+
   private async request<T>(
     method: string,
     path: string,

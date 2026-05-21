@@ -14,3 +14,30 @@ export const UnregisterPushTokenRequestSchema = z.object({
   token: z.string().min(1).max(2048),
 });
 export type UnregisterPushTokenRequest = z.infer<typeof UnregisterPushTokenRequestSchema>;
+
+// ── Inbox ──────────────────────────────────────────────────────────────
+// Each notification row mirrors what the user saw on the lock screen,
+// plus a structured `data` payload for deep linking. Data is open-ended
+// (e.g. transactionId, ref) so the client can be forward-compatible.
+export const InboxNotificationSchema = z.object({
+  id: z.string().uuid(),
+  type: z.string().max(60),
+  title: z.string(),
+  body: z.string(),
+  data: z.record(z.unknown()),
+  readAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(),
+});
+export type InboxNotification = z.infer<typeof InboxNotificationSchema>;
+
+export const InboxPageResponseSchema = z.object({
+  items: z.array(InboxNotificationSchema),
+  unreadCount: z.number().int().nonnegative(),
+  nextCursor: z.string().datetime().nullable(),
+});
+export type InboxPageResponse = z.infer<typeof InboxPageResponseSchema>;
+
+export const MarkAllReadResponseSchema = z.object({
+  marked: z.number().int().nonnegative(),
+});
+export type MarkAllReadResponse = z.infer<typeof MarkAllReadResponseSchema>;

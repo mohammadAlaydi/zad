@@ -1,38 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import type { WalletTransactionResponse } from "@zadpay/validation";
+import type { InboxNotification } from "@zadpay/validation";
 import { MotiView } from "moti";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, Pressable, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { Screen } from "@/components/Screen";
-import { useMyAccounts, useMyTransactions } from "@/features/wallet";
+import { useInbox, useMarkAllRead, useMarkNotificationRead } from "@/features/notifications";
 import { Colors } from "@/theme/colors";
-
-interface NotifItem {
-  id: string;
-  title: string;
-  body: string;
-  icon: string;
-  color: string;
-  when: string;
-}
-
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  USD: "$",
-  AED: "د.إ",
-  EUR: "€",
-  GBP: "£",
-  CAD: "CA$",
-  AUD: "A$",
-  EGP: "E£",
-  SAR: "﷼",
-};
-
-function formatAmount(minorStr: string, currency: string): string {
-  const major = Math.abs(Number(minorStr)) / 100;
-  const sym = CURRENCY_SYMBOLS[currency] ?? currency + " ";
-  return `${sym}${major.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 function formatWhen(dateStr: string): string {
   const date = new Date(dateStr);
@@ -51,75 +25,80 @@ function formatWhen(dateStr: string): string {
   return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 }
 
-function toNotifItem(tx: WalletTransactionResponse, myAccountIds: Set<string>): NotifItem {
-  const mine = tx.entries.find((e) => myAccountIds.has(e.accountId));
-  const isCredit = mine?.direction === "credit";
-  const amount = mine ? formatAmount(mine.amount, mine.currency) : "";
-
-  let title: string;
-  let icon: string;
-  let color: string;
-  let body: string;
-
-  if (tx.type === "transfer") {
-    if (isCredit) {
-      title = "Money Received";
-      icon = "arrow-down-circle";
-      color = Colors.accent.green;
-      body = `You received ${amount} in your wallet.`;
-    } else {
-      title = "Money Sent";
-      icon = "paper-plane";
-      color = Colors.brand.primary;
-      body = `You sent ${amount} successfully.`;
-    }
-  } else if (tx.type === "topup") {
-    title = "Top Up";
-    icon = "add-circle";
-    color = Colors.accent.green;
-    body = `Your wallet was topped up with ${amount}.`;
-  } else if (tx.type === "withdrawal") {
-    title = "Withdrawal";
-    icon = "arrow-up-circle";
-    color = Colors.accent.red;
-    body = `${amount} was withdrawn from your wallet.`;
-  } else if (tx.type === "reversal") {
-    title = "Transfer Reversed";
-    icon = "refresh-circle";
-    color = Colors.brand.primary;
-    body = `A transaction was reversed. ${amount} returned to your wallet.`;
-  } else {
-    title = tx.type.replace(/^\w/, (c) => c.toUpperCase());
-    icon = "ellipse";
-    color = Colors.ink[400];
-    body = amount ? `Amount: ${amount}` : "Transaction processed.";
+function iconForType(type: string): { name: string; color: string } {
+  switch (type) {
+    case "transfer.received":
+      return { name: "arrow-down-circle", color: Colors.accent.green };
+    case "transfer.sent":
+      return { name: "paper-plane", color: Colors.brand.primary };
+    case "topup":
+      return { name: "add-circle", color: Colors.accent.green };
+    case "withdrawal":
+      return { name: "arrow-up-circle", color: Colors.accent.red };
+    case "security.signin":
+      return { name: "shield-checkmark", color: Colors.brand.primary };
+    case "fraud.alert":
+      return { name: "warning", color: Colors.accent.red };
+    default:
+      return { name: "notifications", color: Colors.ink[400] };
   }
-
-  return { id: tx.id, title, body, icon, color, when: formatWhen(tx.createdAt) };
 }
 
 export default function Notifications() {
   const insets = useSafeAreaInsets();
-  const accounts = useMyAccounts();
-  const txQuery = useMyTransactions({ page: 0, pageSize: 50 });
+  const inbox = useInbox();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllRead();
 
-  const myAccountIds = new Set((accounts.data?.accounts ?? []).map((a) => a.id));
-  const items: NotifItem[] = (txQuery.data?.transactions ?? []).map((tx) =>
-    toNotifItem(tx, myAccountIds),
-  );
+  const items: readonly InboxNotification[] = inbox.data?.items ?? [];
+  const unreadCount = inbox.data?.unreadCount ?? 0;
+  const isLoading = inbox.isLoading;
 
-  const isLoading = txQuery.isLoading || accounts.isLoading;
+  const handleTap = (n: InboxNotification) => {
+    if (n.readAt === null) void markRead.mutate(n.id);
+    // Deep-link handling could route based on n.data.kind here.
+  };
 
   return (
     <Screen bg={Colors.white}>
-      <Header title="Notifications" />
+      <Header
+        title="Notifications"
+        right={
+          unreadCount > 0 ? (
+            <Pressable
+              onPress={() => markAllRead.mutate()}
+              disabled={markAllRead.isPending}
+              style={({ pressed }) => ({
+                paddingHorizontal: 10,
+                paddingVertical: 6,
+                opacity: pressed || markAllRead.isPending ? 0.6 : 1,
+              })}
+            >
+              <Text
+                style={{
+                  color: Colors.brand.primary,
+                  fontFamily: "Inter_600SemiBold",
+                  fontSize: 12,
+                }}
+              >
+                Mark all read
+              </Text>
+            </Pressable>
+          ) : undefined
+        }
+      />
       {isLoading ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <ActivityIndicator color={Colors.brand.primary} />
         </View>
       ) : items.length === 0 ? (
         <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 32,
+          }}
         >
           <Ionicons name="notifications-off-outline" size={48} color={Colors.ink[300]} />
           <Text
@@ -137,69 +116,100 @@ export default function Notifications() {
       ) : (
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 24 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={inbox.isFetching && !inbox.isLoading}
+              onRefresh={() => void inbox.refetch()}
+              tintColor={Colors.brand.primary}
+            />
+          }
         >
-          {items.map((n, i) => (
-            <MotiView
-              key={n.id}
-              from={{ opacity: 0, translateY: 8 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ delay: i * 50, duration: 280 }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "flex-start",
-                  padding: 14,
-                  marginBottom: 10,
-                  borderRadius: 14,
-                  backgroundColor: Colors.white,
-                  borderWidth: 1,
-                  borderColor: Colors.ink[100],
-                }}
+          {items.map((n, i) => {
+            const icon = iconForType(n.type);
+            const unread = n.readAt === null;
+            return (
+              <MotiView
+                key={n.id}
+                from={{ opacity: 0, translateY: 8 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ delay: i * 30, duration: 280 }}
               >
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    backgroundColor: n.color + "20",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginRight: 12,
-                  }}
+                <Pressable
+                  onPress={() => handleTap(n)}
+                  style={({ pressed }) => ({
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    padding: 14,
+                    marginBottom: 10,
+                    borderRadius: 14,
+                    backgroundColor: unread ? Colors.brand.primary50 : Colors.white,
+                    borderWidth: 1,
+                    borderColor: unread ? Colors.brand.primary : Colors.ink[100],
+                    opacity: pressed ? 0.85 : 1,
+                  })}
                 >
-                  <Ionicons name={n.icon as any} size={20} color={n.color} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text
+                  <View
                     style={{
-                      color: Colors.ink[900],
-                      fontFamily: "Inter_600SemiBold",
-                      fontSize: 14,
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      backgroundColor: icon.color + "20",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
                     }}
                   >
-                    {n.title}
-                  </Text>
+                    <Ionicons name={icon.name as any} size={20} color={icon.color} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                      <Text
+                        style={{
+                          color: Colors.ink[900],
+                          fontFamily: unread ? "Inter_700Bold" : "Inter_600SemiBold",
+                          fontSize: 14,
+                          flex: 1,
+                        }}
+                      >
+                        {n.title}
+                      </Text>
+                      {unread && (
+                        <View
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: 4,
+                            backgroundColor: Colors.brand.primary,
+                          }}
+                        />
+                      )}
+                    </View>
+                    <Text
+                      style={{
+                        color: Colors.ink[500],
+                        fontFamily: "Inter_400Regular",
+                        fontSize: 12,
+                        marginTop: 2,
+                        lineHeight: 18,
+                      }}
+                    >
+                      {n.body}
+                    </Text>
+                  </View>
                   <Text
                     style={{
-                      color: Colors.ink[500],
+                      color: Colors.ink[400],
                       fontFamily: "Inter_400Regular",
-                      fontSize: 12,
-                      marginTop: 2,
-                      lineHeight: 18,
+                      fontSize: 11,
+                      marginLeft: 8,
                     }}
                   >
-                    {n.body}
+                    {formatWhen(n.createdAt)}
                   </Text>
-                </View>
-                <Text
-                  style={{ color: Colors.ink[400], fontFamily: "Inter_400Regular", fontSize: 11 }}
-                >
-                  {n.when}
-                </Text>
-              </View>
-            </MotiView>
-          ))}
+                </Pressable>
+              </MotiView>
+            );
+          })}
         </ScrollView>
       )}
     </Screen>
