@@ -10,6 +10,8 @@ import { useUserItems } from "@/features/userdata";
 import { useHaptic } from "@/hooks/useHaptic";
 import { Colors } from "@/theme/colors";
 
+const PAN_PREFIX = "5454 8844 8844";
+
 interface CardPayload {
   brand?: string;
   last4?: string;
@@ -60,16 +62,7 @@ export default function SavedCards() {
   const haptic = useHaptic();
   const cardsQuery = useUserItems<CardPayload>("cards");
   const cards = cardsQuery.data?.items ?? [];
-
-  // No real items yet → show two placeholders so the design isn't blank.
-  // Once the user requests a card via /cards/issue they replace this list.
-  const display: { id: string; last4: string }[] =
-    cards.length > 0
-      ? cards.map((c) => ({ id: c.id, last4: c.payload.last4 ?? "0000" }))
-      : [
-          { id: "1", last4: "4242" },
-          { id: "2", last4: "7821" },
-        ];
+  const display = cards.map((c) => ({ id: c.id, last4: c.payload.last4 ?? "0000" }));
 
   return (
     <Screen bg={Colors.white}>
@@ -107,54 +100,101 @@ export default function SavedCards() {
           </Text>
         </MotiView>
 
-        {display.map((card, i) => (
-          <MotiView
-            key={card.id}
-            from={{ opacity: 0, translateY: 10 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ delay: 90 + i * 90, duration: 320 }}
+        {cardsQuery.isLoading ? (
+          <Text
+            style={{
+              color: Colors.ink[500],
+              fontFamily: "Inter_400Regular",
+              fontSize: 13,
+              paddingVertical: 28,
+              textAlign: "center",
+            }}
           >
-            {/* Pressable for touch, inner View for layout */}
-            <Pressable
-              onPress={() => haptic.selection()}
-              style={({ pressed }) => ({
-                borderRadius: 18,
-                backgroundColor: Colors.white,
-                borderWidth: 1,
-                borderColor: Colors.ink[100],
-                marginBottom: 12,
-                opacity: pressed ? 0.85 : 1,
-              })}
+            Loading…
+          </Text>
+        ) : display.length === 0 ? (
+          <View
+            style={{
+              backgroundColor: Colors.surface.background,
+              borderRadius: 18,
+              paddingVertical: 32,
+              paddingHorizontal: 24,
+              alignItems: "center",
+              marginBottom: 12,
+            }}
+          >
+            <Ionicons name="card-outline" size={36} color={Colors.ink[300]} />
+            <Text
+              style={{
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 15,
+                color: Colors.ink[800],
+                marginTop: 12,
+                marginBottom: 4,
+              }}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", padding: 14 }}>
-                <View style={{ marginRight: 14, paddingHorizontal: 4 }}>
-                  <MasterCardLogo />
+              No saved cards yet
+            </Text>
+            <Text
+              style={{
+                fontFamily: "Inter_400Regular",
+                fontSize: 12,
+                color: Colors.ink[500],
+                textAlign: "center",
+              }}
+            >
+              Add a card to fund top-ups or request a ZADPay card below.
+            </Text>
+          </View>
+        ) : (
+          display.map((card, i) => (
+            <MotiView
+              key={card.id}
+              from={{ opacity: 0, translateY: 10 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ delay: 90 + i * 90, duration: 320 }}
+            >
+              <Pressable
+                onPress={() => haptic.selection()}
+                style={({ pressed }) => ({
+                  borderRadius: 18,
+                  backgroundColor: Colors.white,
+                  borderWidth: 1,
+                  borderColor: Colors.ink[100],
+                  marginBottom: 12,
+                  opacity: pressed ? 0.85 : 1,
+                })}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", padding: 14 }}>
+                  <View style={{ marginRight: 14, paddingHorizontal: 4 }}>
+                    <MasterCardLogo />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        color: Colors.ink[900],
+                        fontFamily: "Inter_600SemiBold",
+                        fontSize: 14,
+                      }}
+                    >
+                      {t("topup.masterCard")}
+                    </Text>
+                    <Text
+                      style={{
+                        color: Colors.ink[400],
+                        fontFamily: "Inter_400Regular",
+                        fontSize: 12,
+                        marginTop: 2,
+                      }}
+                    >
+                      {PAN_PREFIX} {card.last4}
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: Colors.ink[900],
-                      fontFamily: "Inter_600SemiBold",
-                      fontSize: 14,
-                    }}
-                  >
-                    {t("topup.masterCard")}
-                  </Text>
-                  <Text
-                    style={{
-                      color: Colors.ink[400],
-                      fontFamily: "Inter_400Regular",
-                      fontSize: 12,
-                      marginTop: 2,
-                    }}
-                  >
-                    5454 8844 8844 {card.last4}
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
-          </MotiView>
-        ))}
+              </Pressable>
+            </MotiView>
+          ))
+        )}
 
         <MotiView
           from={{ opacity: 0, translateY: 8 }}

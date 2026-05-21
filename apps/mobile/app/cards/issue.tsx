@@ -9,6 +9,7 @@ import { Button } from "@/components/Button";
 import { Header } from "@/components/Header";
 import { Input } from "@/components/Input";
 import { Screen } from "@/components/Screen";
+import { useAuthSession } from "@/features/auth";
 import { useCreateUserItem } from "@/features/userdata";
 import { Colors } from "@/theme/colors";
 
@@ -18,6 +19,7 @@ export default function IssueCard() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const createCard = useCreateUserItem("cards");
+  const { session } = useAuthSession();
   const [selected, setSelected] = useState<CardType>("virtual");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
@@ -25,13 +27,21 @@ export default function IssueCard() {
 
   const handleRequest = async () => {
     setError(null);
+    if (session?.user.fullName === undefined) {
+      setError("Sign in to request a card.");
+      return;
+    }
+    // Virtual cards generate a placeholder last4 locally — real issuance
+    // would call a card-issuer API and persist its response. The
+    // expiry is set 4y out; the issuer would override this in production.
     const last4 = String(Math.floor(1000 + Math.random() * 9000));
+    const expYear = String((new Date().getFullYear() + 4) % 100).padStart(2, "0");
     try {
       await createCard.mutateAsync({
         brand: "visa",
         last4,
-        exp: "12/29",
-        name: "Mahmoud Hafez",
+        exp: `12/${expYear}`,
+        name: session.user.fullName,
         isVirtual: selected === "virtual",
         isPhysical: selected === "physical",
         isActive: true,

@@ -178,12 +178,10 @@ function ReferModal({
   visible,
   userName,
   onClose,
-  onSimulateReferral,
 }: {
   visible: boolean;
   userName: string;
   onClose: () => void;
-  onSimulateReferral: () => void;
 }) {
   const code = (userName.replace("@", "").toUpperCase() + "ZADPAY").slice(0, 10);
 
@@ -214,16 +212,7 @@ function ReferModal({
             <Text style={ref.code}>{code}</Text>
           </View>
 
-          <Button title="Share Code" onPress={handleShare} size="md" style={{ marginBottom: 12 }} />
-          <Button
-            title="Simulate Referral (Dev)"
-            variant="secondary"
-            size="md"
-            onPress={() => {
-              onSimulateReferral();
-              onClose();
-            }}
-          />
+          <Button title="Share Code" onPress={handleShare} size="md" />
         </Pressable>
       </Pressable>
     </Modal>
@@ -285,8 +274,8 @@ export default function LoyaltyScreen() {
   // first row). Created lazily on first redeem if it doesn't exist.
   const loyaltyQuery = useUserItems<LoyaltyState>("loyalty");
   const loyaltyItem = loyaltyQuery.data?.items[0];
-  const loyaltyPoints = loyaltyItem?.payload.points ?? 1240;
-  const loyaltyLevel = loyaltyItem?.payload.level ?? ("Silver" as LoyaltyLevel);
+  const loyaltyPoints = loyaltyItem?.payload.points ?? 0;
+  const loyaltyLevel = loyaltyItem?.payload.level ?? ("Bronze" as LoyaltyLevel);
   const createLoyalty = useCreateUserItem("loyalty");
   const updateLoyalty = useUpdateUserItem("loyalty");
 
@@ -296,7 +285,6 @@ export default function LoyaltyScreen() {
     id: it.id,
     ...it.payload,
   }));
-  const createReferral = useCreateUserItem("referrals");
 
   const [showRedeem, setShowRedeem] = useState(false);
   const [showRefer, setShowRefer] = useState(false);
@@ -306,7 +294,7 @@ export default function LoyaltyScreen() {
   // id to target. Idempotent guard prevents duplicate seeds across renders.
   useEffect(() => {
     if (loyaltyQuery.isFetched && loyaltyItem === undefined && !createLoyalty.isPending) {
-      createLoyalty.mutate({ points: 1240, level: "Silver" });
+      createLoyalty.mutate({ points: 0, level: "Bronze" });
     }
   }, [loyaltyQuery.isFetched, loyaltyItem, createLoyalty]);
 
@@ -327,23 +315,6 @@ export default function LoyaltyScreen() {
     });
     setRecentRedeemed(label);
     setTimeout(() => setRecentRedeemed(null), 3500);
-  }
-
-  function handleSimulateReferral() {
-    const names = ["Sara Ali", "Omar Hadi", "Lina Karim", "Yusuf Noor", "Aya Hassan"];
-    const name = names[Math.floor(Math.random() * names.length)];
-    createReferral.mutate({
-      name,
-      joinedAt: new Date().toISOString(),
-      pointsEarned: 200,
-    });
-    // Award the referrer points too.
-    if (loyaltyItem !== undefined) {
-      updateLoyalty.mutate({
-        id: loyaltyItem.id,
-        payload: { points: loyaltyPoints + 200, level: loyaltyLevel },
-      });
-    }
   }
 
   return (
@@ -498,7 +469,6 @@ export default function LoyaltyScreen() {
         visible={showRefer}
         userName={session?.user.fullName ?? ""}
         onClose={() => setShowRefer(false)}
-        onSimulateReferral={handleSimulateReferral}
       />
     </Screen>
   );
