@@ -7,7 +7,7 @@ echo ">>> Pulling latest code..."
 git pull origin main
 
 echo ">>> Installing dependencies..."
-pnpm install --frozen-lockfile
+pnpm install --frozen-lockfile --prefer-offline
 
 echo ">>> Running database migrations..."
 cd apps/api
