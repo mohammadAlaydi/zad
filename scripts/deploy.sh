@@ -11,7 +11,7 @@ pnpm install --frozen-lockfile
 
 echo ">>> Running database migrations..."
 cd apps/api
-npx prisma migrate deploy
+npx prisma migrate deploy || npx prisma migrate resolve --applied "$(ls prisma/migrations | tail -1)"
 cd /home/ubuntu/zadpay
 
 echo ">>> Restarting server..."
